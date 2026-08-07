@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Proyecto } from "@/lib/tipos-proyecto";
 import { exportarDictamen } from "@/lib/exportar-pdf";
+import { exportarMemoriaPdf } from "@/lib/exportar-memoria-pdf";
 import { exportarCsv, exportarDxf, exportarHtml, exportarIfc, exportarSvg } from "@/lib/exportadores";
 import { exportarWord } from "@/lib/exportadores/word";
 
@@ -56,6 +57,15 @@ export function ExportarProyecto({ proyecto }: { proyecto: Proyecto }) {
       detalle: "Memoria editable (.docx)",
       accion: () => exportarWord(proyecto),
     },
+    ...(proyecto.memoria
+      ? [
+          {
+            etiqueta: "PDF · Memoria técnica",
+            detalle: "Descriptiva y de cálculo",
+            accion: () => exportarMemoriaPdf(proyecto),
+          },
+        ]
+      : []),
     {
       etiqueta: "Excel / CSV",
       detalle: "Catálogo de conceptos",

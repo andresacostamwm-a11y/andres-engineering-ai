@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { proyectar, type EncargoProyecto } from "@/lib/agentes/orquestador-proyecto";
-import { hayApiKey } from "@/lib/modelo";
+import { conMotor, hayApiKey, preferenciaDeCookie } from "@/lib/modelo";
 import { definicionProyectoSchema } from "@/lib/schemas";
 import { DISCIPLINAS } from "@/lib/disciplinas";
 import type { DisciplinaProyecto } from "@/lib/disciplinas";
@@ -61,8 +61,11 @@ export async function POST(request: Request) {
       const enviar = (dato: unknown) =>
         controlador.enqueue(codificador.encode(`data: ${JSON.stringify(dato)}\n\n`));
 
+      const preferencia = preferenciaDeCookie(request);
       try {
-        for await (const evento of proyectar(encargo)) enviar(evento);
+        await conMotor(preferencia, async () => {
+          for await (const evento of proyectar(encargo)) enviar(evento);
+        });
       } catch (error) {
         enviar({
           tipo: "error",

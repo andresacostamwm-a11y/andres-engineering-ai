@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Marca } from "@/components/Marca";
 import { CerrarSesion } from "@/components/CerrarSesion";
 import { SelectorTema } from "@/components/SelectorTema";
+import { SelectorMotor } from "@/components/SelectorMotor";
 import { CrearProyecto } from "@/components/CrearProyecto";
 import { hayApiKey } from "@/lib/modelo";
 import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
@@ -26,6 +27,7 @@ export default async function PaginaProyecto() {
           </Link>
 
           <nav className="flex items-center gap-4">
+            <SelectorMotor />
             <SelectorTema />
             <Link
               href="/app"
@@ -48,9 +50,11 @@ export default async function PaginaProyecto() {
             Proyectar desde cero
           </h1>
           <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-tinta-media">
-            Describe qué quieres construir y en qué disciplina. Seis agentes con
+            Describe qué quieres construir y en qué disciplina. Siete agentes con
             perfil doctoral redactan el alcance, extraen los requerimientos,
-            presupuestan, revisan normativa y dibujan los planos del sistema.
+            presupuestan, revisan la normativa, dibujan el paquete completo de
+            planos de las instalaciones y entregan la memoria descriptiva y de
+            cálculo del proyecto.
           </p>
         </div>
 

@@ -139,6 +139,24 @@ ${proyecto.resumen ? `
 <ol>${proyecto.resumen.recomendaciones.map((r) => `<li>${e(r)}</li>`).join("")}</ol>
 ` : ""}
 
+${proyecto.memoria ? `<h2>Memoria técnica</h2>
+<p><strong>Objeto.</strong> ${e(proyecto.memoria.objeto)}</p>
+<p><strong>Antecedentes.</strong> ${e(proyecto.memoria.antecedentes)}</p>
+<p><strong>Normativa aplicable:</strong></p>
+<ul>${proyecto.memoria.normativa.map((n) => `<li>${e(n)}</li>`).join("")}</ul>
+${proyecto.memoria.sistemas.map((s) => `
+  <h3 style="font-size:16px;margin:28px 0 6px">${e(s.nombre)}</h3>
+  <p>${e(s.descripcion)}</p>
+  ${s.criterios.length ? `<p><strong>Criterios de diseño</strong></p><ul>${s.criterios.map((c) => `<li>${e(c)}</li>`).join("")}</ul>` : ""}
+  ${s.calculos.length ? `<table>
+    <thead><tr><th>Concepto</th><th>Método</th><th>Datos</th><th>Resultado</th></tr></thead>
+    <tbody>${s.calculos.map((c) => `<tr><td>${e(c.concepto)}</td><td>${e(c.metodo)}</td><td>${e(c.datos)}</td><td><strong>${e(c.resultado)}</strong></td></tr>`).join("")}</tbody>
+  </table>` : ""}
+  ${s.especificaciones.length ? `<p><strong>Especificaciones</strong></p><ul>${s.especificaciones.map((x) => `<li>${e(x)}</li>`).join("")}</ul>` : ""}
+`).join("")}
+<div class="nota"><strong>Conclusiones.</strong> ${e(proyecto.memoria.conclusiones)}</div>
+` : ""}
+
 ${svgs.length > 0 ? `<h2>Planos y diagramas</h2>
 ${proyecto.diagramas.map((d, i) => `
   <h3 style="font-size:15px;margin:24px 0 4px">${e(d.titulo)}</h3>

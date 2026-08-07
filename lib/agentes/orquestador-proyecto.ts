@@ -11,7 +11,7 @@
  * Los diagramas se generan en paralelo entre sí una vez que existe el alcance,
  * porque ninguno depende de otro.
  */
-import type { EventoProyecto } from "../tipos-proyecto.ts";
+import type { EventoProyecto, MemoriaProyecto } from "../tipos-proyecto.ts";
 import type { Hallazgo, Partida } from "../types.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
@@ -24,7 +24,8 @@ import { generarPresupuesto } from "./costos.ts";
 import { revisarNormativa } from "./normativo.ts";
 import { sintetizar } from "./sintesis.ts";
 import { generarDiagrama } from "./proyectista.ts";
-import { DIAGRAMAS_DEMO, PROYECTO_DEMO } from "../demo-proyecto.ts";
+import { redactarMemoria } from "./memoria.ts";
+import { DIAGRAMAS_DEMO, MEMORIA_DEMO, PROYECTO_DEMO } from "../demo-proyecto.ts";
 
 export interface EncargoProyecto {
   nombre: string;
@@ -87,23 +88,35 @@ export async function* proyectar(
   const requerimientos = await extraerRequerimientos(documento);
   yield { tipo: "resultado", agente: "extractor", datos: requerimientos };
 
-  // Etapa 3 — costos, normativa y diagramas, todos en paralelo.
-  const tiposDiagrama = ficha.diagramas.slice(
-    0,
-    encargo.envergadura === "grande" ? 3 : encargo.envergadura === "mediana" ? 2 : 1,
-  );
+  // Etapa 3 — costos, normativa, memoria y el paquete COMPLETO de planos,
+  // todos en paralelo: un proyecto entrega todas sus instalaciones, no una
+  // muestra. La envergadura calibra la densidad de cada plano, no cuántos hay.
+  const tiposDiagrama = ficha.diagramas;
 
   yield { tipo: "inicio", agente: "costos", mensaje: "Elaborando el catálogo de conceptos" };
   yield { tipo: "inicio", agente: "normativo", mensaje: "Revisando el cumplimiento normativo" };
   yield {
     tipo: "inicio",
+    agente: "memoria",
+    mensaje: "Redactando la memoria descriptiva y de cálculo",
+  };
+  yield {
+    tipo: "inicio",
     agente: "proyectista",
-    mensaje: `Dibujando ${tiposDiagrama.length} diagrama${tiposDiagrama.length > 1 ? "s" : ""} técnico${tiposDiagrama.length > 1 ? "s" : ""}`,
+    mensaje: `Dibujando el paquete completo: ${tiposDiagrama.length} láminas`,
   };
 
   const tareas: Promise<unknown>[] = [
     generarPresupuesto(requerimientos, contexto),
     revisarNormativa(requerimientos, contexto),
+    redactarMemoria({
+      nombre: encargo.nombre,
+      disciplina: encargo.disciplina,
+      envergadura: encargo.envergadura,
+      ubicacion: encargo.ubicacion,
+      alcance: contexto,
+      requerimientos,
+    }),
     ...tiposDiagrama.map((tipo) =>
       generarDiagrama({
         tipo,
@@ -133,8 +146,18 @@ export async function* proyectar(
     yield { tipo: "error", agente: "normativo", mensaje: mensajeDeError(resultados[1].reason) };
   }
 
+  if (resultados[2].status === "fulfilled") {
+    yield {
+      tipo: "resultado",
+      agente: "memoria",
+      datos: resultados[2].value as MemoriaProyecto,
+    };
+  } else {
+    yield { tipo: "error", agente: "memoria", mensaje: mensajeDeError(resultados[2].reason) };
+  }
+
   const diagramas: Diagrama[] = [];
-  for (let i = 2; i < resultados.length; i++) {
+  for (let i = 3; i < resultados.length; i++) {
     const r = resultados[i];
     if (r.status === "fulfilled") {
       const diagrama = r.value as Diagrama;
@@ -144,7 +167,7 @@ export async function* proyectar(
       yield {
         tipo: "error",
         agente: "proyectista",
-        mensaje: `No se pudo dibujar el diagrama ${tiposDiagrama[i - 2]}: ${mensajeDeError(r.reason)}`,
+        mensaje: `No se pudo dibujar el diagrama ${tiposDiagrama[i - 3]}: ${mensajeDeError(r.reason)}`,
       };
     }
   }
@@ -185,10 +208,13 @@ async function* proyectarEnModoDemo(
 
   yield { tipo: "inicio", agente: "costos", mensaje: "Modo demostración" };
   yield { tipo: "inicio", agente: "normativo", mensaje: "Modo demostración" };
+  yield { tipo: "inicio", agente: "memoria", mensaje: "Modo demostración" };
   yield { tipo: "inicio", agente: "proyectista", mensaje: "Modo demostración" };
   await espera(1400);
   yield { tipo: "resultado", agente: "costos", datos: PROYECTO_DEMO.partidas };
   yield { tipo: "resultado", agente: "normativo", datos: PROYECTO_DEMO.hallazgos };
+  await espera(600);
+  yield { tipo: "resultado", agente: "memoria", datos: MEMORIA_DEMO };
 
   const diagramas = DIAGRAMAS_DEMO[encargo.disciplina] ?? DIAGRAMAS_DEMO.electrica ?? [];
   for (const diagrama of diagramas) {

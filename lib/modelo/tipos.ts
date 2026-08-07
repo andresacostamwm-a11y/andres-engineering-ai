@@ -1,7 +1,7 @@
 /** Contrato común a todos los proveedores de modelo. */
 import type { z } from "zod";
 
-export type Proveedor = "claude" | "gemini";
+export type Proveedor = "claude" | "gemini" | "openai";
 
 export interface PeticionAgente {
   /** Identificador del modelo dentro del proveedor; si falta, usa su predeterminado. */

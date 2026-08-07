@@ -60,6 +60,52 @@ export async function exportarWord(proyecto: Proyecto): Promise<void> {
     }
   }
 
+  if (proyecto.memoria) {
+    const memoria = proyecto.memoria;
+    cuerpo.push(titulo("Memoria técnica — objeto"));
+    cuerpo.push(parrafo(memoria.objeto, { espacioDespues: 120 }));
+    cuerpo.push(titulo("Antecedentes"));
+    cuerpo.push(parrafo(memoria.antecedentes, { espacioDespues: 120 }));
+
+    cuerpo.push(titulo("Normativa aplicable"));
+    memoria.normativa.forEach((n) =>
+      cuerpo.push(parrafo(`— ${n}`, { tamano: 20, espacioDespues: 50 })),
+    );
+
+    memoria.sistemas.forEach((sistema) => {
+      cuerpo.push(titulo(sistema.nombre));
+      cuerpo.push(parrafo(sistema.descripcion, { espacioDespues: 100 }));
+
+      if (sistema.criterios.length > 0) {
+        cuerpo.push(parrafo("Criterios de diseño", { negrita: true, tamano: 21, espacioAntes: 120 }));
+        sistema.criterios.forEach((c) =>
+          cuerpo.push(parrafo(`— ${c}`, { tamano: 19, espacioDespues: 40 })),
+        );
+      }
+
+      if (sistema.calculos.length > 0) {
+        cuerpo.push(parrafo("Memoria de cálculo", { negrita: true, tamano: 21, espacioAntes: 120 }));
+        cuerpo.push(
+          tabla(
+            [["Concepto", "Método", "Datos", "Resultado"]],
+            sistema.calculos.map((c) => [c.concepto, c.metodo, c.datos, c.resultado]),
+            [2300, 2400, 2300, 2400],
+          ),
+        );
+      }
+
+      if (sistema.especificaciones.length > 0) {
+        cuerpo.push(parrafo("Especificaciones", { negrita: true, tamano: 21, espacioAntes: 120 }));
+        sistema.especificaciones.forEach((e) =>
+          cuerpo.push(parrafo(`— ${e}`, { tamano: 19, espacioDespues: 40 })),
+        );
+      }
+    });
+
+    cuerpo.push(titulo("Conclusiones de la memoria"));
+    cuerpo.push(parrafo(memoria.conclusiones, { espacioDespues: 160 }));
+  }
+
   if (proyecto.partidas.length > 0) {
     const total = proyecto.partidas.reduce((s, p) => s + p.importe, 0);
     cuerpo.push(titulo("Catálogo de conceptos"));

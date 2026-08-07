@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { analizar } from "@/lib/agentes/orquestador";
-import { hayApiKey } from "@/lib/modelo";
+import { conMotor, hayApiKey, preferenciaDeCookie } from "@/lib/modelo";
 import { ipDe, verificarLimite } from "@/lib/limite";
 import { MAX_CARACTERES } from "@/lib/pdf";
 
@@ -54,10 +54,11 @@ export async function POST(request: Request) {
           codificador.encode(`data: ${JSON.stringify(dato)}\n\n`),
         );
 
+      const preferencia = preferenciaDeCookie(request);
       try {
-        for await (const evento of analizar(texto)) {
-          enviar(evento);
-        }
+        await conMotor(preferencia, async () => {
+          for await (const evento of analizar(texto)) enviar(evento);
+        });
       } catch (error) {
         enviar({
           tipo: "error",

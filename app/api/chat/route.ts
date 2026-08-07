@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { esErrorDeCuota, hayApiKey, transmitirTexto } from "@/lib/modelo";
+import {
+  conMotor,
+  esErrorDeCuota,
+  hayApiKey,
+  preferenciaDeCookie,
+  transmitirTexto,
+} from "@/lib/modelo";
 import { fragmentar, recuperar } from "@/lib/rag";
 import { ipDe, verificarLimite } from "@/lib/limite";
 
@@ -88,13 +94,16 @@ export async function POST(request: Request) {
         })),
       });
 
+      const preferencia = preferenciaDeCookie(request);
       try {
-        for await (const trozo of transmitirTexto({
-          sistema: SISTEMA,
-          prompt: `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`,
-        })) {
-          enviar({ tipo: "texto", texto: trozo });
-        }
+        await conMotor(preferencia, async () => {
+          for await (const trozo of transmitirTexto({
+            sistema: SISTEMA,
+            prompt: `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`,
+          })) {
+            enviar({ tipo: "texto", texto: trozo });
+          }
+        });
       } catch (error) {
         enviar({
           tipo: "error",

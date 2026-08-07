@@ -39,7 +39,10 @@ export interface FichaDisciplina {
   id: DisciplinaProyecto;
   nombre: string;
   descripcion: string;
-  /** Diagramas que tienen sentido en esta disciplina, el primero es el principal. */
+  /**
+   * Paquete completo de instalaciones de la disciplina: todos los planos que
+   * un proyecto real de este tipo entrega, el primero es el principal.
+   */
   diagramas: TipoDiagrama[];
   /** Normativa de referencia que el agente debe considerar. */
   normativa: string[];
@@ -52,7 +55,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "arquitectura",
     nombre: "Arquitectura",
     descripcion: "Edificación, distribución de espacios y envolvente.",
-    diagramas: ["planta", "bloques"],
+    diagramas: ["planta", "unifilar", "hidraulico", "hvac", "bloques"],
     normativa: [
       "Reglamento de construcción local",
       "NMX-R-050-SCFI (accesibilidad)",
@@ -69,7 +72,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "civil-estructural",
     nombre: "Civil y estructural",
     descripcion: "Cimentaciones, estructura de concreto y acero, obra civil.",
-    diagramas: ["estructural", "planta"],
+    diagramas: ["estructural", "planta", "unifilar", "hidraulico"],
     normativa: [
       "NTC-Estructuras del reglamento local",
       "ACI 318",
@@ -86,7 +89,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "mecanica",
     nombre: "Mecánica",
     descripcion: "Máquinas, transmisiones, equipos y montajes mecánicos.",
-    diagramas: ["mecanico", "bloques", "pid"],
+    diagramas: ["mecanico", "pid", "unifilar", "neumatico"],
     normativa: ["ASME B31.3", "ISO 2768", "NOM-004-STPS (maquinaria)"],
     entregables: [
       "Diagrama de conjunto",
@@ -99,7 +102,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "mecatronica",
     nombre: "Mecatrónica",
     descripcion: "Automatización, control, sensores y actuadores.",
-    diagramas: ["bloques", "electronico", "neumatico"],
+    diagramas: ["bloques", "electronico", "neumatico", "unifilar"],
     normativa: ["IEC 61131-3 (PLC)", "ISO 13849 (seguridad de mando)", "NOM-004-STPS"],
     entregables: [
       "Arquitectura de control",
@@ -112,7 +115,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "electrica",
     nombre: "Eléctrica",
     descripcion: "Distribución, tableros, alumbrado y fuerza.",
-    diagramas: ["unifilar", "planta"],
+    diagramas: ["unifilar", "planta", "bloques"],
     normativa: [
       "NOM-001-SEDE-2012",
       "NOM-025-STPS (iluminación)",
@@ -129,7 +132,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "electronica",
     nombre: "Electrónica",
     descripcion: "Circuitos, instrumentación y electrónica de potencia.",
-    diagramas: ["electronico", "bloques"],
+    diagramas: ["electronico", "bloques", "unifilar"],
     normativa: ["IPC-2221 (diseño PCB)", "IEC 61010", "FCC parte 15"],
     entregables: [
       "Esquemático",
@@ -142,7 +145,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "hidraulica",
     nombre: "Hidráulica y sanitaria",
     descripcion: "Redes de agua, drenaje, bombeo y contra incendio.",
-    diagramas: ["hidraulico", "pid", "planta"],
+    diagramas: ["hidraulico", "pid", "planta", "unifilar"],
     normativa: [
       "NOM-001-CONAGUA",
       "NOM-127-SSA1 (agua potable)",
@@ -158,7 +161,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "neumatica",
     nombre: "Neumática",
     descripcion: "Aire comprimido, actuadores y mando neumático.",
-    diagramas: ["neumatico", "bloques"],
+    diagramas: ["neumatico", "bloques", "unifilar"],
     normativa: ["ISO 1219-1 (simbología)", "ISO 8573 (calidad del aire)"],
     entregables: [
       "Esquema neumático",
@@ -170,7 +173,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "hvac",
     nombre: "HVAC",
     descripcion: "Climatización, ventilación y refrigeración.",
-    diagramas: ["hvac", "pid", "planta"],
+    diagramas: ["hvac", "pid", "planta", "unifilar"],
     normativa: [
       "ASHRAE 62.1 (ventilación)",
       "ASHRAE 90.1 (eficiencia)",
@@ -187,7 +190,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "aeronautica",
     nombre: "Aeronáutica",
     descripcion: "Sistemas de aeronave, estructuras y propulsión.",
-    diagramas: ["bloques", "mecanico", "hidraulico"],
+    diagramas: ["bloques", "mecanico", "hidraulico", "electronico"],
     normativa: ["FAR/CS-25", "SAE ARP4754A", "DO-178C (software)"],
     entregables: [
       "Diagrama de sistema",
@@ -199,7 +202,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "naval",
     nombre: "Naval",
     descripcion: "Buques, sistemas de a bordo y propulsión marina.",
-    diagramas: ["bloques", "hidraulico", "mecanico"],
+    diagramas: ["bloques", "hidraulico", "mecanico", "unifilar"],
     normativa: [
       "SOLAS",
       "MARPOL",
@@ -227,7 +230,7 @@ export const DISCIPLINAS: FichaDisciplina[] = [
     id: "fluidos",
     nombre: "Ingeniería de fluidos",
     descripcion: "Proceso, bombeo, tuberías e instrumentación.",
-    diagramas: ["pid", "hidraulico", "bloques"],
+    diagramas: ["pid", "hidraulico", "bloques", "unifilar"],
     normativa: ["ASME B31.3", "API 610 (bombas)", "ISA 5.1 (simbología)"],
     entregables: [
       "P&ID",

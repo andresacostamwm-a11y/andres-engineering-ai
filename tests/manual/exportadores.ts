@@ -1,5 +1,5 @@
 import { exportarDxf, exportarIfc } from "../../lib/exportadores/index.ts";
-import { DIAGRAMAS_DEMO, PROYECTO_DEMO } from "../../lib/demo-proyecto.ts";
+import { DIAGRAMAS_DEMO, MEMORIA_DEMO, PROYECTO_DEMO } from "../../lib/demo-proyecto.ts";
 import type { Proyecto } from "../../lib/tipos-proyecto.ts";
 import { writeFileSync } from "node:fs";
 
@@ -21,7 +21,8 @@ const proyecto: Proyecto = {
   creadoEn: new Date(0).toISOString(), alcance: PROYECTO_DEMO.alcance,
   premisas: PROYECTO_DEMO.premisas, requerimientos: PROYECTO_DEMO.requerimientos,
   partidas: PROYECTO_DEMO.partidas, hallazgos: PROYECTO_DEMO.hallazgos,
-  diagramas: DIAGRAMAS_DEMO.hidraulica!, resumen: PROYECTO_DEMO.resumen, modoDemo: true,
+  diagramas: DIAGRAMAS_DEMO.hidraulica!, memoria: MEMORIA_DEMO,
+  resumen: PROYECTO_DEMO.resumen, modoDemo: true,
 };
 
 exportarDxf(proyecto, proyecto.diagramas[0]);

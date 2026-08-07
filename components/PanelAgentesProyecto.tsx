@@ -37,7 +37,13 @@ const AGENTES: {
   {
     id: "proyectista",
     nombre: "Proyectista",
-    rol: "Dibuja los planos y diagramas del sistema",
+    rol: "Dibuja el paquete completo de planos de las instalaciones",
+    etapa: "Etapa 3 · paralelo",
+  },
+  {
+    id: "memoria",
+    nombre: "Memoria",
+    rol: "Memoria descriptiva y de cálculo por instalación",
     etapa: "Etapa 3 · paralelo",
   },
   {
@@ -63,7 +69,7 @@ export function PanelAgentesProyecto({
   mensajes: Partial<Record<AgenteProyecto, string>>;
 }) {
   return (
-    <ol className="escalonado grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <ol className="escalonado grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
       {AGENTES.map((agente, i) => {
         const estado = estados[agente.id];
         return (

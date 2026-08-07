@@ -13,6 +13,8 @@
  */
 import { clienteClaude } from "./claude.ts";
 import { clienteGemini } from "./gemini.ts";
+import { clienteOpenai } from "./openai.ts";
+import { motorPreferido } from "./preferencia.ts";
 import {
   ErrorDeCuota,
   esErrorDeCuota,
@@ -23,20 +25,38 @@ import {
 
 export { ErrorDeCuota, esErrorDeCuota };
 export type { Proveedor };
+export { COOKIE_MOTOR, conMotor, preferenciaDeCookie } from "./preferencia.ts";
 
 const CLIENTES: Record<Proveedor, ClienteModelo> = {
   claude: clienteClaude,
   gemini: clienteGemini,
+  openai: clienteOpenai,
 };
 
-/** Proveedores utilizables ahora mismo, en orden de preferencia. */
-export function proveedoresDisponibles(): ClienteModelo[] {
-  const preferido = process.env.PROVEEDOR_IA as Proveedor | undefined;
-  const orden: Proveedor[] = ["claude", "gemini"];
+const NOMBRE_PROVEEDOR: Record<Proveedor, string> = {
+  claude: "Claude",
+  gemini: "Gemini",
+  openai: "GPT",
+};
 
-  if (preferido && orden.includes(preferido)) {
-    orden.sort((a, b) => (a === preferido ? -1 : b === preferido ? 1 : 0));
-  }
+/**
+ * Proveedores utilizables ahora mismo, en orden de preferencia: primero lo que
+ * eligió el usuario en el selector, luego PROVEEDOR_IA del despliegue, y el
+ * resto como respaldo ante cuota agotada.
+ */
+export function proveedoresDisponibles(): ClienteModelo[] {
+  const orden: Proveedor[] = ["claude", "gemini", "openai"];
+
+  const alFrente = (p: Proveedor) => {
+    const i = orden.indexOf(p);
+    if (i > 0) orden.unshift(...orden.splice(i, 1));
+  };
+
+  const entorno = process.env.PROVEEDOR_IA as Proveedor | undefined;
+  if (entorno && orden.includes(entorno)) alFrente(entorno);
+
+  const elegido = motorPreferido();
+  if (elegido) alFrente(elegido.proveedor);
 
   return orden.map((p) => CLIENTES[p]).filter((c) => c.disponible);
 }
@@ -50,9 +70,12 @@ export function hayApiKey(): boolean {
 export function motorActivo(): string | null {
   const [cliente] = proveedoresDisponibles();
   if (!cliente) return null;
-  return cliente.proveedor === "claude"
-    ? `Claude (${cliente.modeloPorDefecto})`
-    : `Gemini (${cliente.modeloPorDefecto})`;
+  const elegido = motorPreferido();
+  const modelo =
+    elegido && elegido.proveedor === cliente.proveedor && elegido.modelo
+      ? elegido.modelo
+      : cliente.modeloPorDefecto;
+  return `${NOMBRE_PROVEEDOR[cliente.proveedor]} (${modelo})`;
 }
 
 /**
@@ -72,10 +95,19 @@ export async function ejecutarAgente<T>(opciones: OpcionesAgente<T>): Promise<T>
   }
 
   let ultimoErrorDeCuota: unknown = null;
+  const elegido = motorPreferido();
 
   for (const cliente of clientes) {
     try {
-      let respuesta = await cliente.invocarHerramienta(peticion);
+      // El modelo exacto elegido en el selector solo aplica a su proveedor;
+      // los proveedores de respaldo usan su modelo por defecto.
+      const modelo =
+        peticion.modelo ??
+        (elegido && elegido.proveedor === cliente.proveedor
+          ? elegido.modelo
+          : undefined);
+
+      let respuesta = await cliente.invocarHerramienta({ ...peticion, modelo });
 
       for (let intento = 0; intento < 2; intento++) {
         const resultado = validador.safeParse(respuesta.argumentos);

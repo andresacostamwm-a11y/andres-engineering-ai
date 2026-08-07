@@ -14,7 +14,10 @@ import type {
 import { DISCIPLINAS, ENVERGADURAS, ETIQUETA_DIAGRAMA } from "@/lib/disciplinas";
 import { EXTENSIONES_ACEPTADAS } from "@/lib/extractores";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "@/lib/types";
-import { Plano } from "./diagramas/Plano";
+import type { MemoriaProyecto } from "@/lib/tipos-proyecto";
+import { Lamina } from "./diagramas/Lamina";
+import { GenerarPlano } from "./diagramas/GenerarPlano";
+import { MemoriaPanel } from "./MemoriaPanel";
 import { PanelAgentesProyecto, type EstadoAgente } from "./PanelAgentesProyecto";
 import {
   ListaHallazgos,
@@ -30,6 +33,7 @@ const ESTADOS_INICIALES: Record<AgenteProyecto, EstadoAgente> = {
   costos: "pendiente",
   normativo: "pendiente",
   proyectista: "pendiente",
+  memoria: "pendiente",
   sintesis: "pendiente",
 };
 
@@ -67,6 +71,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [hallazgos, setHallazgos] = useState<Hallazgo[]>([]);
   const [diagramas, setDiagramas] = useState<Diagrama[]>([]);
+  const [memoria, setMemoria] = useState<MemoriaProyecto | null>(null);
   const [resumen, setResumen] = useState<ResumenEjecutivo | null>(null);
   const [modoDemo, setModoDemo] = useState(false);
 
@@ -86,6 +91,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
     setPartidas([]);
     setHallazgos([]);
     setDiagramas([]);
+    setMemoria(null);
     setResumen(null);
     setFase("generando");
 
@@ -108,6 +114,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       partidas: [] as Partida[],
       hallazgos: [] as Hallazgo[],
       diagramas: [] as Diagrama[],
+      memoria: null as MemoriaProyecto | null,
       resumen: null as ResumenEjecutivo | null,
       alcance: "",
       premisas: [] as string[],
@@ -167,6 +174,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       partidas: Partida[];
       hallazgos: Hallazgo[];
       diagramas: Diagrama[];
+      memoria: MemoriaProyecto | null;
       resumen: ResumenEjecutivo | null;
       alcance: string;
       premisas: string[];
@@ -200,6 +208,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         } else if (evento.agente === "normativo") {
           acumulado.hallazgos = evento.datos;
           setHallazgos(evento.datos);
+        } else if (evento.agente === "memoria") {
+          acumulado.memoria = evento.datos;
+          setMemoria(evento.datos);
         } else if (evento.agente === "sintesis") {
           acumulado.resumen = evento.datos;
           setResumen(evento.datos);
@@ -232,6 +243,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           partidas,
           hallazgos,
           diagramas,
+          memoria,
           resumen,
           modoDemo,
         }
@@ -359,21 +371,20 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           </div>
 
           <div className="mt-5 rounded-lg border border-borde-suave bg-superficie-alta px-4 py-3.5">
-            <p className="etiqueta-seccion">Se dibujará</p>
+            <p className="etiqueta-seccion">Paquete completo de láminas</p>
             <ul className="mt-2 flex flex-wrap gap-2">
-              {ficha.diagramas
-                .slice(0, envergadura === "grande" ? 3 : envergadura === "mediana" ? 2 : 1)
-                .map((t) => (
+              {ficha.diagramas.map((t) => (
                   <li
                     key={t}
                     className="rounded-full border border-acento/25 bg-superficie px-2.5 py-1 text-xs font-medium text-acento"
                   >
                     {ETIQUETA_DIAGRAMA[t]}
                   </li>
-                ))}
+              ))}
             </ul>
             <p className="mt-3 text-xs text-tinta-media">
-              Normativa de referencia: {ficha.normativa.join(" · ")}
+              Además de estas láminas podrás pedir cualquier otra del catálogo al
+              terminar. Normativa de referencia: {ficha.normativa.join(" · ")}
             </p>
           </div>
         </section>
@@ -515,38 +526,38 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
           <div className="space-y-8 p-5 sm:p-7">
             {diagramas.map((d, i) => (
-              <figure key={i}>
-                <div className="overflow-x-auto rounded-lg border border-borde">
-                  <Plano
-                    diagrama={d}
-                    proyecto={{
-                      nombre,
-                      disciplina: ficha.nombre,
-                      fecha: new Date().toLocaleDateString("es-MX"),
-                    }}
-                    className="min-w-[52rem] w-full"
-                  />
-                </div>
-                {d.notas.length > 0 && (
-                  <figcaption className="mt-3">
-                    <p className="etiqueta-seccion">Notas del plano</p>
-                    <ul className="mt-1.5 space-y-1 text-sm text-tinta-media">
-                      {d.notas.map((n, j) => (
-                        <li key={j} className="flex gap-2">
-                          <span className="cifra shrink-0 text-xs text-acento">
-                            {j + 1}.
-                          </span>
-                          {n}
-                        </li>
-                      ))}
-                    </ul>
-                  </figcaption>
-                )}
-              </figure>
+              <Lamina
+                key={`${d.tipo}-${i}`}
+                diagrama={d}
+                proyecto={proyecto}
+                cabecera={{
+                  nombre,
+                  disciplina: ficha.nombre,
+                  fecha: new Date().toLocaleDateString("es-MX"),
+                }}
+              />
             ))}
+
+            {fase === "listo" && (
+              <GenerarPlano
+                encargo={{ nombre, descripcion, disciplina, envergadura, contexto: alcance }}
+                yaGenerados={diagramas.map((d) => d.tipo)}
+                onDiagrama={(d) => setDiagramas((prev) => [...prev, d])}
+              />
+            )}
           </div>
         </section>
       )}
+
+      {fase === "listo" && diagramas.length === 0 && (
+        <GenerarPlano
+          encargo={{ nombre, descripcion, disciplina, envergadura, contexto: alcance }}
+          yaGenerados={[]}
+          onDiagrama={(d) => setDiagramas((prev) => [...prev, d])}
+        />
+      )}
+
+      {memoria && proyecto && <MemoriaPanel proyecto={proyecto} />}
 
       {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
       {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}

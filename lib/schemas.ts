@@ -115,6 +115,31 @@ export const salidaDiagramaSchema = z.object({
   notas: z.array(z.string()),
 });
 
+/* ------------------------------------------------- Memoria del proyecto -- */
+
+export const calculoMemoriaSchema = z.object({
+  concepto: z.string(),
+  metodo: z.string(),
+  datos: z.string(),
+  resultado: z.string(),
+});
+
+export const sistemaMemoriaSchema = z.object({
+  nombre: z.string(),
+  descripcion: z.string(),
+  criterios: z.array(z.string()),
+  calculos: z.array(calculoMemoriaSchema),
+  especificaciones: z.array(z.string()),
+});
+
+export const salidaMemoriaSchema = z.object({
+  objeto: z.string(),
+  antecedentes: z.string(),
+  normativa: z.array(z.string()),
+  sistemas: z.array(sistemaMemoriaSchema).min(1),
+  conclusiones: z.string(),
+});
+
 /* ------------------------------------------------ Definición de proyecto -- */
 
 export const definicionProyectoSchema = z.object({

@@ -6,6 +6,7 @@
  * que la aplicación desplegada siempre se puede evaluar de principio a fin.
  */
 import type { Diagrama } from "./diagramas/tipos.ts";
+import type { MemoriaProyecto } from "./tipos-proyecto.ts";
 import type { DisciplinaProyecto } from "./disciplinas.ts";
 import {
   DOCUMENTO_DEMO,
@@ -130,19 +131,134 @@ const HVAC_DEMO: Diagrama = {
   ],
 };
 
-/** Diagramas de demostración por disciplina; el resto reutiliza los eléctricos. */
+/**
+ * Diagramas de demostración por disciplina. En demostración también se entrega
+ * el paquete completo de instalaciones, combinando las tres láminas de muestra.
+ */
 export const DIAGRAMAS_DEMO: Partial<Record<DisciplinaProyecto, Diagrama[]>> = {
-  electrica: [UNIFILAR],
-  hidraulica: [HIDRAULICO, UNIFILAR],
-  hvac: [HVAC_DEMO, HIDRAULICO],
-  fluidos: [HIDRAULICO],
-  mecanica: [HVAC_DEMO],
-  arquitectura: [UNIFILAR],
-  "civil-estructural": [UNIFILAR],
-  mecatronica: [UNIFILAR],
-  electronica: [UNIFILAR],
-  neumatica: [HIDRAULICO],
-  aeronautica: [HIDRAULICO],
-  naval: [HIDRAULICO],
-  ferroviaria: [UNIFILAR],
+  electrica: [UNIFILAR, HIDRAULICO, HVAC_DEMO],
+  hidraulica: [HIDRAULICO, UNIFILAR, HVAC_DEMO],
+  hvac: [HVAC_DEMO, HIDRAULICO, UNIFILAR],
+  fluidos: [HIDRAULICO, HVAC_DEMO, UNIFILAR],
+  mecanica: [HVAC_DEMO, UNIFILAR, HIDRAULICO],
+  arquitectura: [UNIFILAR, HIDRAULICO, HVAC_DEMO],
+  "civil-estructural": [UNIFILAR, HIDRAULICO],
+  mecatronica: [UNIFILAR, HVAC_DEMO],
+  electronica: [UNIFILAR, HVAC_DEMO],
+  neumatica: [HIDRAULICO, UNIFILAR],
+  aeronautica: [HIDRAULICO, UNIFILAR],
+  naval: [HIDRAULICO, UNIFILAR, HVAC_DEMO],
+  ferroviaria: [UNIFILAR, HIDRAULICO],
+};
+
+/** Memoria técnica de demostración: descriptiva y de cálculo por instalación. */
+export const MEMORIA_DEMO: MemoriaProyecto = {
+  objeto:
+    "La presente memoria documenta el anteproyecto de la ampliación de una nave industrial de 1,200 m² en el Parque Industrial de Cancún, Quintana Roo, y justifica el dimensionamiento preliminar de sus instalaciones eléctrica, hidrosanitaria y de climatización para su revisión por el responsable técnico del proyecto.",
+  antecedentes:
+    "El predio cuenta con una nave existente en operación, suministro eléctrico en media tensión de 13.2 kV, cisterna de 30 m³ y descarga sanitaria al colector municipal. La zona es de clima cálido húmedo, con riesgo ciclónico y temperatura de diseño exterior de 35 °C bulbo seco. La ampliación destina el 70 % de la superficie a producción y el resto a oficinas y servicios.",
+  normativa: [
+    "NOM-001-SEDE-2012 — instalaciones eléctricas (utilización)",
+    "NOM-025-STPS-2008 — niveles de iluminación en centros de trabajo",
+    "NOM-001-CONAGUA-2011 — sistemas de agua potable y alcantarillado",
+    "NFPA 13 / NFPA 20 — protección contra incendio y equipos de bombeo",
+    "ASHRAE 62.1 y 90.1 — ventilación y eficiencia energética",
+  ],
+  sistemas: [
+    {
+      nombre: "Instalación eléctrica",
+      descripcion:
+        "La ampliación se alimenta desde una subestación compacta propia de 300 kVA, 13.2 kV/220-127 V, derivada de la acometida existente previa verificación de capacidad con la suministradora. Del tablero general parten tres circuitos derivados: producción, servicios y climatización, con planta de emergencia de 150 kW para cargas críticas y sistema de tierra física con resistencia máxima de 10 ohm.",
+      criterios: [
+        "Densidad de carga de 120 VA/m² en producción y 50 VA/m² en oficinas, conforme a la práctica de diseño industrial y NOM-001-SEDE-2012.",
+        "Caída de tensión máxima de 3 % en alimentadores y 5 % total, artículo 215-2 de la NOM-001-SEDE-2012.",
+        "Iluminación de 300 lx en área de trabajo por NOM-025-STPS-2008.",
+      ],
+      calculos: [
+        {
+          concepto: "Carga total instalada",
+          metodo: "P = Σ (área · densidad de carga) · factor de demanda",
+          datos: "840 m² · 120 VA/m² + 360 m² · 50 VA/m², FD = 0.8",
+          resultado: "P ≈ 95 kVA de demanda; con reserva del 25 % → transformador de 300 kVA seleccionado por crecimiento futuro",
+        },
+        {
+          concepto: "Corriente del alimentador general",
+          metodo: "I = S / (√3 · V)",
+          datos: "S = 300 kVA, V = 220 V",
+          resultado: "I = 787 A → interruptor general de 800 A y barras de 1000 A",
+        },
+        {
+          concepto: "Conductor del alimentador a tablero de producción",
+          metodo: "Selección por ampacidad (tabla 310-15) y verificación de caída de tensión",
+          datos: "I = 150 A, longitud 45 m, THW-LS 75 °C en tubería",
+          resultado: "Conductor 1/0 AWG por fase, caída de tensión 1.9 % < 3 %",
+        },
+      ],
+      especificaciones: [
+        "Subestación compacta tipo pedestal de 300 kVA, 13.2 kV/220-127 V, con seccionador de operación en grupo.",
+        "Tableros de distribución autosoportados con interruptores termomagnéticos coordinados selectivamente.",
+        "Red de tierras con delta de varillas de 3 m y conductor desnudo 2/0 AWG, Rg ≤ 10 Ω.",
+      ],
+    },
+    {
+      nombre: "Instalación hidrosanitaria",
+      descripcion:
+        "El abastecimiento parte de la cisterna existente de 30 m³ mediante equipo hidroneumático dúplex de 3 L/s a 35 m.c.a., con red de distribución en PPR termofusionado y válvulas de seccionamiento por zona. El drenaje sanitario se conduce por gravedad al registro municipal con pendiente mínima del 2 %; el pluvial se capta en azotea y descarga a pozo de absorción.",
+      criterios: [
+        "Dotación de 100 L/trabajador/día conforme a criterio CONAGUA para naves industriales.",
+        "Velocidad de diseño en tuberías entre 0.6 y 2.5 m/s para evitar sedimentación y golpe de ariete.",
+        "Presión mínima de 10 m.c.a. en el mueble más desfavorable.",
+      ],
+      calculos: [
+        {
+          concepto: "Gasto máximo instantáneo",
+          metodo: "Método de Hunter: Q = f(Σ unidades mueble)",
+          datos: "48 UM entre sanitarios, regaderas y tarjas de producción",
+          resultado: "Q = 2.6 L/s → equipo hidroneumático de 3 L/s seleccionado",
+        },
+        {
+          concepto: "Carga dinámica total del equipo",
+          metodo: "CDT = h estática + h fricción + presión residual",
+          datos: "h est = 8 m, h fricción = 6.5 m (Hazen-Williams, C=140), P res = 10 m.c.a.",
+          resultado: "CDT = 24.5 m.c.a. → se especifica 35 m.c.a. con margen del 40 %",
+        },
+      ],
+      especificaciones: [
+        "Tubería PPR PN-10 termofusionada en distribución, cobre tipo M en retornos de agua caliente.",
+        "Equipo hidroneumático dúplex con alternancia automática y tanque precargado de 450 L.",
+        "Válvulas de compuerta en cada derivación y de retención en la descarga de bombas.",
+      ],
+    },
+    {
+      nombre: "Climatización y ventilación",
+      descripcion:
+        "El área de producción se acondiciona con dos sistemas dividido-comercial de 15 TR con manejadora central de 12,000 CFM y distribución por ductos de lámina galvanizada aislada; las oficinas usan minisplits inverter. La ventilación cumple ASHRAE 62.1 con inyección de aire exterior filtrado y extracción mecánica en servicios.",
+      criterios: [
+        "Condición interior de diseño: 24 °C ± 1 °C y 50 % HR en producción.",
+        "Carga térmica calculada por el método CLTD de ASHRAE con orientación real de la nave.",
+        "Renovación mínima de aire exterior: 0.06 CFM/ft² más 5 CFM/persona (ASHRAE 62.1).",
+      ],
+      calculos: [
+        {
+          concepto: "Carga térmica del área de producción",
+          metodo: "Método CLTD: Q = Q envolvente + Q internas + Q aire exterior",
+          datos: "840 m², 35 °C exterior, 18 kW de cargas internas de proceso, 40 personas",
+          resultado: "Q ≈ 28.4 TR → dos unidades de 15 TR con respaldo parcial",
+        },
+        {
+          concepto: "Caudal de aire de diseño",
+          metodo: "CFM = Q sensible / (1.08 · ΔT)",
+          datos: "Q sen = 258,000 BTU/h, ΔT = 20 °F",
+          resultado: "CFM ≈ 11,950 → manejadora de 12,000 CFM",
+        },
+      ],
+      especificaciones: [
+        "Unidades condensadoras de 15 TR con refrigerante R-454B y SEER mínimo 15.",
+        "Ductos de lámina galvanizada calibre 24 con aislamiento de fibra de vidrio de 25 mm.",
+        "Difusores de 4 vías con damper de regulación y filtros MERV 8 en retorno.",
+      ],
+    },
+  ],
+  conclusiones:
+    "El anteproyecto es técnicamente viable con la infraestructura existente del parque industrial. Los puntos críticos a verificar en la ingeniería de detalle son la capacidad disponible real de la acometida en media tensión, el estudio de calidad de agua de la cisterna y la coordinación de la estructura de soporte de equipos de climatización con el proyecto estructural. Las cifras de esta memoria son de anteproyecto y requieren validación y firma de un responsable técnico antes de su uso constructivo o contractual.",
 };

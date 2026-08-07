@@ -63,8 +63,10 @@ export default function Inicio() {
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-tinta-media">
                 ANDRES Engineering AI proyecta y audita obra en trece
                 disciplinas: extrae los requerimientos con su cita, presupuesta
-                con matrices de precio unitario, revisa la normativa y dibuja los
-                planos y diagramas del sistema.
+                con matrices de precio unitario, revisa la normativa, dibuja el
+                paquete completo de planos de las instalaciones —con maqueta 3D
+                navegable— y redacta la memoria descriptiva y de cálculo,
+                todo descargable en PDF, Word, DXF e IFC.
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -127,12 +129,14 @@ export default function Inicio() {
           <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
             <span className="etiqueta-seccion">Arquitectura</span>
             <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Seis agentes, no un chat
+              Siete agentes, no un chat
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-tinta-media">
               Cada agente tiene un rol acotado, un esquema de salida obligatorio y
-              acceso solo a lo que necesita. Costos, normativo y proyectista
-              corren en paralelo porque ninguno depende de los otros.
+              acceso solo a lo que necesita. Costos, normativo, memoria y
+              proyectista corren en paralelo porque ninguno depende de los otros,
+              y el motor —Claude, GPT o Gemini— se elige desde la propia
+              aplicación.
             </p>
 
             <ol className="escalonado mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

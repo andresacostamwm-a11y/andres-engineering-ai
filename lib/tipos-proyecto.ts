@@ -9,7 +9,45 @@ export type AgenteProyecto =
   | "costos"
   | "normativo"
   | "proyectista"
+  | "memoria"
   | "sintesis";
+
+/** Un renglón de cálculo dentro de la memoria: concepto, método y resultado. */
+export interface CalculoMemoria {
+  concepto: string;
+  /** Fórmula o método aplicado, en notación legible (ej. "I = P / (√3·V·fp)"). */
+  metodo: string;
+  /** Datos de entrada con unidades. */
+  datos: string;
+  /** Resultado con unidad y, si aplica, la selección comercial derivada. */
+  resultado: string;
+}
+
+/** Memoria de un sistema o instalación del proyecto. */
+export interface SistemaMemoria {
+  nombre: string;
+  /** Memoria descriptiva del sistema: qué es, cómo funciona, de qué se compone. */
+  descripcion: string;
+  /** Criterios de diseño adoptados, con su base normativa o física. */
+  criterios: string[];
+  /** Cálculos justificativos del dimensionamiento. */
+  calculos: CalculoMemoria[];
+  /** Especificaciones de materiales y equipos resultantes. */
+  especificaciones: string[];
+}
+
+/** Memoria técnica completa del proyecto: descriptiva y de cálculo. */
+export interface MemoriaProyecto {
+  /** Objeto de la memoria: qué proyecto documenta y con qué fin. */
+  objeto: string;
+  /** Antecedentes y condiciones de partida. */
+  antecedentes: string;
+  /** Normativa aplicable citada. */
+  normativa: string[];
+  /** Un bloque por instalación o sistema del proyecto. */
+  sistemas: SistemaMemoria[];
+  conclusiones: string;
+}
 
 export type EventoProyecto =
   | { tipo: "inicio"; agente: AgenteProyecto; mensaje: string }
@@ -18,6 +56,7 @@ export type EventoProyecto =
   | { tipo: "resultado"; agente: "costos"; datos: Partida[] }
   | { tipo: "resultado"; agente: "normativo"; datos: Hallazgo[] }
   | { tipo: "resultado"; agente: "proyectista"; datos: number }
+  | { tipo: "resultado"; agente: "memoria"; datos: MemoriaProyecto }
   | { tipo: "resultado"; agente: "sintesis"; datos: ResumenEjecutivo }
   | { tipo: "diagrama"; diagrama: Diagrama }
   | { tipo: "error"; agente: AgenteProyecto; mensaje: string }
@@ -38,6 +77,7 @@ export interface Proyecto {
   partidas: Partida[];
   hallazgos: Hallazgo[];
   diagramas: Diagrama[];
+  memoria: MemoriaProyecto | null;
   resumen: ResumenEjecutivo | null;
   modoDemo: boolean;
 }
