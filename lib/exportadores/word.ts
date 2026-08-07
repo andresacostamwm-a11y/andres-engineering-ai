@@ -6,11 +6,11 @@
  * ZIP con tres XML dentro, y generarlo así evita añadir 200 kB de dependencia
  * al bundle para producir un documento que Word abre igual.
  */
-import type { Proyecto } from "../tipos-proyecto";
-import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types";
-import { fichaDisciplina } from "../disciplinas";
-import { pesosExactos } from "../formato";
-import { descargar, nombreBase } from "./index";
+import type { Proyecto } from "../tipos-proyecto.ts";
+import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types.ts";
+import { fichaDisciplina } from "../disciplinas.ts";
+import { pesosExactos } from "../formato.ts";
+import { descargar, nombreBase } from "./index.ts";
 
 const ACENTO = "155E85";
 

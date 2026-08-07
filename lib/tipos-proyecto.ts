@@ -1,7 +1,7 @@
 /** Tipos del flujo de proyecto nuevo. */
-import type { Diagrama } from "./diagramas/tipos";
-import type { DisciplinaProyecto, Envergadura } from "./disciplinas";
-import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "./types";
+import type { Diagrama } from "./diagramas/tipos.ts";
+import type { DisciplinaProyecto, Envergadura } from "./disciplinas.ts";
+import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "./types.ts";
 
 export type AgenteProyecto =
   | "programa"

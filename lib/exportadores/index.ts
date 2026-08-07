@@ -9,11 +9,11 @@
  * de intercambio BIM que Revit lee sin conversión. Es la vía habitual en la
  * industria para entregar geometría y datos entre plataformas distintas.
  */
-import type { Proyecto } from "../tipos-proyecto";
-import type { Diagrama } from "../diagramas/tipos";
-import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types";
-import { fichaDisciplina } from "../disciplinas";
-import { pesosExactos } from "../formato";
+import type { Proyecto } from "../tipos-proyecto.ts";
+import type { Diagrama } from "../diagramas/tipos.ts";
+import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types.ts";
+import { fichaDisciplina } from "../disciplinas.ts";
+import { pesosExactos } from "../formato.ts";
 
 export function descargar(contenido: string | Blob, nombre: string, tipo: string): void {
   const blob =

@@ -1,67 +1,61 @@
 {
-  "descripcion": "Guion de narración ajustado a las marcas de demo-editado.mp4 (202 s). Cada bloque tiene su instante de entrada y la ventana disponible hasta el siguiente.",
+  "descripcion": "Narración ajustada a demo-editado.mp4 (194 s). Cada bloque entra en su marca.",
   "voz": "Vpg5ilBqxfgdhGM3H5gH",
   "modelo": "eleven_multilingual_v2",
   "bloques": [
     {
       "id": "01-portada",
       "inicio": 0.5,
-      "ventana": 11.5,
-      "texto": "Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster: un sistema de cuatro agentes que lee un pliego de obra y devuelve un dictamen técnico completo."
+      "ventana": 13.5,
+      "texto": "Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster: un sistema de seis agentes que audita documentación de obra y proyecta desde cero en trece disciplinas de ingeniería."
     },
     {
       "id": "02-problema",
-      "inicio": 12.5,
-      "ventana": 17.5,
-      "texto": "El problema viene de mi trabajo en ingeniería. Antes de decidir si competimos por una obra, alguien debe leerse el pliego, extraer qué se exige, cuantificar, presupuestar y revisar normativa. Entre tres y cinco días. Y lo caro no es lo que el pliego dice: es lo que calla."
+      "inicio": 14.5,
+      "ventana": 15.5,
+      "texto": "El problema viene de mi trabajo en ingeniería. Antes de competir por una obra hay que leerse el pliego, cuantificar, presupuestar y revisar normativa. Y lo caro no es lo que el pliego dice: es lo que calla."
     },
     {
-      "id": "03-acceso",
+      "id": "03-proyecto",
       "inicio": 30.5,
-      "ventana": 14.5,
-      "texto": "Entro con la cuenta de demostración, que dejo publicada en la documentación. Y uso el documento de ejemplo: el alcance de obra de la ampliación de una nave industrial en Cancún."
+      "ventana": 24.5,
+      "texto": "Aquí no subo un documento: proyecto desde cero. Describo una red hidrosanitaria para un hotel de ciento veinte habitaciones, elijo la disciplina y la envergadura. Cada disciplina trae su propia normativa y sus propios planos."
     },
     {
       "id": "04-pipeline",
-      "inicio": 45.5,
-      "ventana": 19.5,
-      "texto": "Aquí está lo interesante. No es una llamada a un chat: son cuatro agentes. El primero extrae los requerimientos. Su salida alimenta en paralelo a dos que no dependen entre sí: uno presupuesta, otro revisa normativa. Y un cuarto sintetiza. Este tramo va acelerado seis veces: en real tarda dos minutos."
+      "inicio": 56.0,
+      "ventana": 24.0,
+      "texto": "Al generar arrancan seis agentes. El primero redacta el alcance de obra a partir de mi descripción. Después se extraen los requerimientos, y en paralelo corren costos, normativa y el proyectista que dibuja los planos."
     },
     {
-      "id": "05-resultado",
-      "inicio": 65.5,
-      "ventana": 29.5,
-      "texto": "Con este documento extrajo dieciséis requerimientos, generó veintisiete partidas y encontró catorce hallazgos normativos. El progreso llega por Server Sent Events, así que cada tarjeta se completa en vivo con su recuento real, en lugar de mostrar un spinner durante dos minutos. El resumen ejecutivo lo encabeza todo: cinco millones trescientos mil pesos estimados, y riesgo global crítico."
+      "id": "05-acelerado",
+      "inicio": 80.5,
+      "ventana": 24.5,
+      "texto": "Este tramo va acelerado siete veces: en real tarda unos tres minutos. El progreso llega por Server Sent Events, así que cada tarjeta se completa en vivo con su recuento en lugar de mostrar un spinner."
     },
     {
-      "id": "06-presupuesto",
-      "inicio": 95.5,
-      "ventana": 29.5,
-      "texto": "El presupuesto no es una lista de precios. Cada partida abre su matriz de precio unitario: materiales, mano de obra, equipo e indirectos. Y algo que me importaba: cuando el agente supone una cantidad, lo escribe en la partida. Un presupuesto con supuestos declarados es útil; uno con cifras inventadas y silenciadas es peligroso. La aritmética no la hace el modelo: estiman precios bien y multiplican mal, así que el importe y el total se calculan en código."
+      "id": "06-planos",
+      "inicio": 106.0,
+      "ventana": 28.0,
+      "texto": "Y este es el resultado que más me importa: un diagrama de tubería e instrumentación con simbología normalizada, cajetín y notas de plano. La clave está en que el modelo no dibuja: devuelve la topología, y el trazo lo pone el código. Por eso sale un plano y no un boceto."
     },
     {
-      "id": "07-hallazgos",
-      "inicio": 125.5,
-      "ventana": 29.5,
-      "texto": "Los hallazgos van ordenados por riesgo, con su norma y una acción concreta. Lo importante es que detecta lo que el documento omite: aquí señaló que falta tierra física y pararrayos, que no hay diseño ante viento huracanado, y estamos en zona ciclónica, y que no se contempla protección contra incendio. Y cada requerimiento guarda su cita textual. Sin cita no hay requerimiento: eso lo hace auditable en vez de algo que hay que creer."
+      "id": "07-presupuesto",
+      "inicio": 135.0,
+      "ventana": 24.0,
+      "texto": "El presupuesto abre la matriz de precio unitario de cada partida, y cuando el agente supone una cantidad lo escribe. La aritmética no la hace el modelo: el importe, el total y el riesgo global se calculan en código."
     },
     {
-      "id": "08-chat",
-      "inicio": 155.5,
-      "ventana": 19.5,
-      "texto": "También se puede preguntar al documento. La recuperación es BM veinticinco implementado desde cero, sin base vectorial ni servicios externos: para un solo documento por sesión rinde mejor, y además es explicable, porque se ve qué fragmentos se usaron. Si la respuesta no está en el texto, contesta que no está."
+      "id": "08-exportar",
+      "inicio": 159.5,
+      "ventana": 20.5,
+      "texto": "Todo se exporta a siete formatos: PDF, Word, CSV, HTML, SVG, y para CAD y BIM, DXF e IFC. El punto ere ve te no se puede generar sin Revit, así que se entrega el estándar abierto que Revit sí lee."
     },
     {
-      "id": "09-pdf",
-      "inicio": 175.5,
-      "ventana": 14.5,
-      "texto": "Todo se exporta a un dictamen en PDF de cinco páginas. Se genera en el navegador, porque el documento nunca se almacena en el servidor: un pliego lleva información comercial sensible, y esa fue una decisión de arquitectura consciente."
-    },
-    {
-      "id": "10-cierre",
-      "inicio": 190.0,
-      "ventana": 12.0,
-      "texto": "El código está en GitHub y la aplicación desplegada en Vercel. Construido con Next punto jota ese dieciséis, TypeScript y Claude Sonnet, con treinta y una pruebas unitarias. Gracias por verlo."
+      "id": "09-cierre",
+      "inicio": 180.5,
+      "ventana": 13.5,
+      "texto": "El código está en GitHub y la aplicación desplegada en Vercel. Next punto jota ese dieciséis, TypeScript, Claude Sonnet y treinta y seis pruebas unitarias. Gracias por verlo."
     }
   ]
 }

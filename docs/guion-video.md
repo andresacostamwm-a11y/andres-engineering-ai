@@ -1,7 +1,7 @@
 # Guion del vídeo de presentación
 
-**Duración objetivo: 3 min 22 s** — coincide exactamente con `demo-editado.mp4`.
-Basta con reproducir el vídeo y narrar encima siguiendo las marcas de tiempo.
+**Duración: 3 min 14 s** — coincide exactamente con `video/demo-editado.mp4`.
+Reproduce el vídeo y narra encima siguiendo las marcas de tiempo.
 
 **Autor:** Heber Andres Acosta Jimenez
 **Proyecto:** ANDRES Engineering AI — TFM Máster en Desarrollo con IA, BIG School
@@ -11,117 +11,86 @@ Basta con reproducir el vídeo y narrar encima siguiendo las marcas de tiempo.
 ## Cómo grabar
 
 1. Abre `video/demo-editado.mp4` a pantalla completa.
-2. Graba la pantalla con audio de micrófono (QuickTime: *Archivo → Nueva grabación de pantalla*, elegir micrófono en el menú de opciones; o Loom, OBS, ScreenStudio).
-3. Narra siguiendo las marcas. Los tiempos ya están ajustados al vídeo: no hay que pausar.
-4. Si quieres salir en cámara, activa la webcam en esquina (opcional según las bases).
+2. Graba pantalla con micrófono (QuickTime → *Nueva grabación de pantalla*, eligiendo el micrófono; o Loom, OBS, ScreenStudio).
+3. Narra siguiendo las marcas. Los tiempos ya están ajustados: no hay que pausar.
+4. Salir en cámara es opcional según las bases.
 
-> Consejo: lee el guion una vez en voz alta antes de grabar y marca dónde respiras. El texto está escrito para decirse, no para leerse.
+> Lee el guion una vez en voz alta antes de grabar. Está escrito para decirse, no para leerse.
 
 ---
 
 ## Guion
 
-### 0:00 — 0:12 · Portada
 
-> Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster.
->
-> Es un sistema de cuatro agentes de inteligencia artificial que lee un pliego de obra y devuelve un dictamen técnico completo.
+### 0:00 — 0:14 · Portada
 
-*(En pantalla: portada, el titular «El pliego dice una cosa. Lo que cuesta es otra».)*
+> Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster: un sistema de seis agentes que audita documentación de obra y proyecta desde cero en trece disciplinas de ingeniería.
+
+*(En pantalla: portada con la marca y el titular.)*
 
 ---
 
-### 0:12 — 0:30 · El problema
+### 0:14 — 0:30 · El problema
 
-> El problema que resuelve viene de mi trabajo diario en ingeniería. Antes de decidir si competimos por una obra, alguien tiene que leerse el pliego completo, extraer qué se exige, cuantificar, presupuestar y revisar qué normativa aplica. Son entre tres y cinco días.
->
-> Y lo caro no es lo que el pliego dice: es lo que calla. La partida que la ley obliga y el documento no menciona.
+> El problema viene de mi trabajo en ingeniería. Antes de competir por una obra hay que leerse el pliego, cuantificar, presupuestar y revisar normativa. Y lo caro no es lo que el pliego dice: es lo que calla.
 
 *(En pantalla: sección del problema, las tres cifras.)*
 
 ---
 
-### 0:30 — 0:45 · Acceso y arranque
+### 0:30 — 0:55 · Proyectar desde cero
 
-> La aplicación tiene acceso con una cuenta de demostración pública, que dejo indicada en la documentación y en la propia pantalla.
->
-> Aquí uso el documento de ejemplo: el alcance de obra de la ampliación de una nave industrial en Cancún.
+> Aquí no subo un documento: proyecto desde cero. Describo una red hidrosanitaria para un hotel de ciento veinte habitaciones, elijo la disciplina y la envergadura. Cada disciplina trae su propia normativa y sus propios planos.
 
-*(En pantalla: login, entrada al área de trabajo, clic en «Usar documento de ejemplo».)*
+*(En pantalla: formulario: nombre, ubicación, descripción, las 13 disciplinas y la envergadura.)*
 
 ---
 
-### 0:45 — 1:05 · El pipeline (tramo acelerado ×6)
+### 0:56 — 1:20 · Los seis agentes
 
-> Y aquí está la parte interesante. No es una llamada a un chat: son cuatro agentes especializados.
->
-> El primero extrae los requerimientos. Su salida alimenta en paralelo a dos agentes que no dependen entre sí: uno presupuesta y otro revisa normativa. Y un cuarto agente sintetiza el dictamen final.
->
-> El progreso que ves llega por Server-Sent Events, así que las tarjetas se completan en vivo en lugar de mostrar un spinner. Este tramo va acelerado seis veces: en real, el pipeline tarda unos dos minutos.
+> Al generar arrancan seis agentes. El primero redacta el alcance de obra a partir de mi descripción. Después se extraen los requerimientos, y en paralelo corren costos, normativa y el proyectista que dibuja los planos.
 
-*(En pantalla: las cuatro tarjetas de agentes completándose, con el rótulo «×6».)*
+*(En pantalla: las seis tarjetas de agentes arrancando.)*
 
 ---
 
-### 1:05 — 1:35 · Qué produjo
+### 1:20 — 1:45 · Generación (tramo acelerado ×7)
 
-> Con este documento extrajo dieciséis requerimientos, generó veintisiete partidas de presupuesto y encontró catorce hallazgos normativos.
->
-> El resumen ejecutivo lo encabeza todo: cinco millones trescientos mil pesos estimados, y riesgo global crítico.
+> Este tramo va acelerado siete veces: en real tarda unos tres minutos. El progreso llega por Server Sent Events, así que cada tarjeta se completa en vivo con su recuento en lugar de mostrar un spinner.
 
-*(En pantalla: pipeline completo y resumen ejecutivo.)*
+*(En pantalla: pipeline completándose, con el rótulo ×7.)*
 
 ---
 
-### 1:35 — 2:05 · El presupuesto y sus supuestos
+### 1:46 — 2:14 · Los planos — lo diferencial
 
-> El presupuesto no es una lista de precios. Cada partida abre su matriz de precio unitario: materiales, mano de obra, equipo e indirectos.
->
-> Y algo que me importaba mucho: cuando el agente tiene que suponer una cantidad porque el documento no la da, lo escribe en la partida. Un presupuesto con supuestos declarados es útil; uno con cifras inventadas y silenciadas es peligroso.
->
-> La aritmética, además, no la hace el modelo. Los modelos de lenguaje estiman precios bien y multiplican mal, así que el importe, el total y el riesgo global se calculan en código.
+> Y este es el resultado que más me importa: un diagrama de tubería e instrumentación con simbología normalizada, cajetín y notas de plano. La clave está en que el modelo no dibuja: devuelve la topología, y el trazo lo pone el código. Por eso sale un plano y no un boceto.
 
-*(En pantalla: catálogo de conceptos, matriz de precio unitario desplegada, supuestos en ámbar.)*
+*(En pantalla: el P&ID con cajetín y notas de plano.)*
 
 ---
 
-### 2:05 — 2:35 · Hallazgos y evidencia
+### 2:15 — 2:39 · Presupuesto y supuestos
 
-> Los hallazgos normativos van ordenados por riesgo, con la norma y una acción concreta.
->
-> Lo que más me interesa de este bloque es que el sistema detecta también lo que el documento **omite**. En esta ejecución señaló que falta el sistema de tierra física y pararrayos, que no hay diseño estructural ante viento huracanado —y estamos en zona ciclónica— y que no se contempla protección contra incendio en el cuarto de máquinas.
->
-> Y cada requerimiento guarda la cita textual del documento que lo respalda. Sin cita no hay requerimiento. Eso convierte la herramienta en algo auditable en lugar de algo que hay que creer.
+> El presupuesto abre la matriz de precio unitario de cada partida, y cuando el agente supone una cantidad lo escribe. La aritmética no la hace el modelo: el importe, el total y el riesgo global se calculan en código.
 
-*(En pantalla: lista de hallazgos y despliegue de una evidencia.)*
+*(En pantalla: catálogo de conceptos, matriz de precio unitario y filtro por disciplina.)*
 
 ---
 
-### 2:35 — 2:55 · Chat sobre el documento
+### 2:39 — 3:00 · Exportación
 
-> También se puede preguntar directamente al documento. La recuperación es BM25 implementado desde cero, sin base vectorial ni servicios externos: para un solo documento por sesión, el emparejamiento léxico rinde mejor y además es explicable — se ve exactamente qué fragmentos se usaron.
->
-> El prompt lo obliga a responder solo con lo que el documento dice. Si no está, contesta que no está.
+> Todo se exporta a siete formatos: PDF, Word, CSV, HTML, SVG, y para CAD y BIM, DXF e IFC. El punto ere ve te no se puede generar sin Revit, así que se entrega el estándar abierto que Revit sí lee.
 
-*(En pantalla: pregunta sobre la subestación y respuesta con cita y fragmentos.)*
+*(En pantalla: menú Exportar con los siete formatos.)*
 
 ---
 
-### 2:55 — 3:10 · El dictamen en PDF
+### 3:00 — 3:14 · Cierre
 
-> Todo se exporta a un dictamen en PDF de cinco páginas, con resumen, presupuesto, hallazgos y supuestos. Se genera en el navegador, porque el documento nunca llega a almacenarse en el servidor: un pliego contiene información comercial sensible y esa fue una decisión de arquitectura consciente.
+> El código está en GitHub y la aplicación desplegada en Vercel. Next punto jota ese dieciséis, TypeScript, Claude Sonnet y treinta y seis pruebas unitarias. Gracias por verlo.
 
-*(En pantalla: descarga y vista del PDF.)*
-
----
-
-### 3:10 — 3:22 · Cierre
-
-> El código está en GitHub, la aplicación desplegada en Vercel y la presentación completa en la ruta barra slides.
->
-> Está construido con Next.js dieciséis, TypeScript, Claude Sonnet y treinta y una pruebas unitarias. Gracias por verlo.
-
-*(En pantalla: slides del proyecto.)*
+*(En pantalla: diapositivas del proyecto.)*
 
 ---
 
@@ -129,21 +98,28 @@ Basta con reproducir el vídeo y narrar encima siguiendo las marcas de tiempo.
 
 | Dato | Valor |
 | --- | --- |
-| Tiempo real del pipeline | 1 min 58 s |
-| Requerimientos / partidas / hallazgos | 16 / 27 / 14 |
-| Incoherencias aritméticas | 0 |
-| Pruebas | 31, todas en verde |
+| Agentes | 6, con perfil doctoral y dominio transversal |
+| Disciplinas | 13 |
+| Tipos de diagrama | 10, con más de 50 símbolos normalizados |
+| Formatos de entrada | PDF, Word, Excel, CSV, HTML, DXF, IFC, JSON, texto |
+| Formatos de salida | PDF, Word, CSV, HTML, DXF, IFC, SVG |
+| Pruebas | 36, todas en verde |
+| Incoherencias aritméticas | 0 en las ejecuciones verificadas |
 | Modelo | claude-sonnet-5 |
-| Coste aproximado por análisis | unos 0.15 USD |
 
-> Nota: los recuentos varían ligeramente entre ejecuciones porque el modelo no es determinista. El vídeo muestra una ejecución real contra el despliegue de producción, no una simulación.
+> El vídeo muestra una ejecución real contra el despliegue de producción. El único
+> retoque es que el tramo de espera va acelerado ×7, y el propio vídeo lo rotula.
+
+> **Si te preguntan por `.rvt`**: no es generable sin Revit —ningún sistema lo
+> escribe por API—. Se entrega DXF, que AutoCAD abre y Revit importa, e IFC, el
+> estándar abierto que Revit lee sin conversión.
 
 ---
 
 ## Dónde subirlo
 
-YouTube **como «no listado»** es la opción más cómoda: no aparece en búsquedas pero cualquiera con el enlace puede verlo, que es justo lo que pide el formulario de entrega. Google Drive con enlace público también sirve.
+YouTube **como «no listado»**: no aparece en búsquedas pero cualquiera con el enlace lo ve, que es lo que pide el formulario. Google Drive con enlace público también sirve.
 
-Después, pega la URL en:
+Después pega la URL en:
 1. El formulario de entrega del máster.
-2. La tabla de enlaces del `README.md` (marcador `<!--VIDEO-->`).
+2. La tabla de enlaces del `README.md`.

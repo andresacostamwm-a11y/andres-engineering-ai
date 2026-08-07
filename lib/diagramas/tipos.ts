@@ -7,7 +7,7 @@
  * un plano legible y no un garabato: la posición la propone el modelo sobre una
  * rejilla lógica, pero el trazo, los símbolos y las cotas los pone el código.
  */
-import type { TipoDiagrama } from "../disciplinas";
+import type { TipoDiagrama } from "../disciplinas.ts";
 
 /** Símbolos disponibles en la biblioteca, agrupados por familia. */
 export type Simbolo =
