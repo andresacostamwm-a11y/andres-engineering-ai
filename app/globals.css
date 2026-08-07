@@ -1,18 +1,76 @@
 @import "tailwindcss";
 
 /*
- * Sistema de diseño ANDRES Engineering AI — dirección ejecutiva corporativa.
+ * Sistema de diseño ANDRES Engineering AI.
  *
- * Referencia visual: el informe que se lleva a un comité de dirección, no el
- * panel de un desarrollador. De ahí el fondo claro con papel cálido, el azul
- * petróleo como color institucional, el latón para los acentos de valor, y la
- * jerarquía construida con elevación y espacio en blanco en lugar de bordes
- * duros. El semáforo de riesgo mantiene su código de color, calibrado para
- * cumplir contraste AA sobre superficie clara.
+ * Dos temas sobre los mismos tokens:
+ *
+ *  - **Holográfico** (predeterminado): sala de proyecto nocturna. Fondo oscuro
+ *    con una escena de hologramas de ingeniería, superficies traslúcidas con
+ *    desenfoque y cian como luz viva. La jerarquía la construye la luz.
+ *  - **Ejecutivo** (`data-tema="claro"`): informe de comité. Fondo claro, azul
+ *    petróleo institucional y jerarquía por elevación y espacio en blanco.
+ *
+ * Los componentes no saben en qué tema están: usan siempre los mismos nombres
+ * semánticos —superficie, tinta, acento, borde— y aquí se define qué valen.
  */
 
 @theme {
-  /* Superficies: blanco frío con un punto de calidez, no blanco puro. */
+  /* ------------------------------------------- Tema holográfico (default) -- */
+  --color-fondo: oklch(15% 0.022 245);
+  --color-superficie: oklch(21% 0.026 243);
+  --color-superficie-alta: oklch(25% 0.03 242);
+  --color-superficie-honda: oklch(18% 0.024 244);
+  --color-borde: oklch(34% 0.035 235);
+  --color-borde-suave: oklch(28% 0.03 240);
+
+  --color-tinta: oklch(95% 0.018 210);
+  --color-tinta-media: oklch(81% 0.03 208);
+  --color-tinta-debil: oklch(66% 0.038 212);
+
+  --color-acento: oklch(80% 0.145 198);
+  --color-acento-fuerte: oklch(88% 0.15 197);
+  --color-acento-claro: oklch(86% 0.13 199);
+  --color-acento-tenue: oklch(28% 0.06 210);
+  /* Texto que va ENCIMA del acento: en oscuro el acento es claro, así que el
+     texto debe ser oscuro para cumplir contraste. */
+  --color-sobre-acento: oklch(16% 0.03 240);
+
+  --color-laton: oklch(80% 0.115 78);
+  --color-laton-tenue: oklch(28% 0.05 70);
+
+  --color-critico: oklch(70% 0.19 22);
+  --color-critico-tenue: oklch(27% 0.08 22);
+  --color-alto: oklch(79% 0.15 62);
+  --color-alto-tenue: oklch(28% 0.07 60);
+  --color-medio: oklch(85% 0.13 95);
+  --color-medio-tenue: oklch(28% 0.06 92);
+  --color-bajo: oklch(80% 0.14 160);
+  --color-bajo-tenue: oklch(26% 0.06 160);
+
+  --font-sans: var(--font-sans-app), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-app), ui-monospace, monospace;
+
+  --text-micro: 0.6875rem;
+  --text-titular: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
+
+  /* En oscuro la elevación es luz, no sombra: halo del acento y borde vivo. */
+  --shadow-sutil: 0 1px 2px oklch(0% 0 0 / 0.4);
+  --shadow-tarjeta: 0 1px 2px oklch(0% 0 0 / 0.45), 0 8px 24px -8px oklch(0% 0 0 / 0.55);
+  --shadow-elevada: 0 2px 6px oklch(0% 0 0 / 0.5), 0 18px 44px -12px oklch(0% 0 0 / 0.7);
+  --shadow-acento: 0 0 0 1px oklch(80% 0.145 198 / 0.35), 0 8px 28px -8px oklch(80% 0.145 198 / 0.4);
+
+  --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-suave: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Opacidad de las superficies: traslúcidas en oscuro, sólidas en claro. */
+  --opacidad-superficie: 0.72;
+  --desenfoque-superficie: 14px;
+}
+
+/* ------------------------------------------------------- Tema ejecutivo -- */
+
+[data-tema="claro"] {
   --color-fondo: oklch(98.2% 0.004 250);
   --color-superficie: oklch(100% 0 0);
   --color-superficie-alta: oklch(97% 0.005 250);
@@ -20,22 +78,19 @@
   --color-borde: oklch(90% 0.008 250);
   --color-borde-suave: oklch(93.5% 0.006 250);
 
-  /* Texto: azul-pizarra, nunca negro puro. */
   --color-tinta: oklch(24% 0.024 250);
   --color-tinta-media: oklch(45% 0.018 250);
   --color-tinta-debil: oklch(59% 0.014 250);
 
-  /* Acento institucional: azul petróleo profundo. */
   --color-acento: oklch(46% 0.115 232);
   --color-acento-fuerte: oklch(38% 0.12 235);
   --color-acento-claro: oklch(62% 0.1 228);
   --color-acento-tenue: oklch(95.5% 0.022 232);
+  --color-sobre-acento: oklch(100% 0 0);
 
-  /* Latón: reservado a cifras de valor y detalles de jerarquía. */
   --color-laton: oklch(50% 0.095 72);
   --color-laton-tenue: oklch(96% 0.03 80);
 
-  /* Semáforo de riesgo, calibrado para contraste AA sobre superficie clara. */
   --color-critico: oklch(48% 0.19 25);
   --color-critico-tenue: oklch(95.5% 0.03 25);
   --color-alto: oklch(53% 0.14 55);
@@ -45,45 +100,72 @@
   --color-bajo: oklch(48% 0.11 155);
   --color-bajo-tenue: oklch(95.5% 0.035 155);
 
-  --font-sans: var(--font-sans-app), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-app), ui-monospace, monospace;
-
-  --text-micro: 0.6875rem;
-  --text-titular: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
-
-  /* Elevación: en un tema claro la jerarquía la construye la sombra. */
-  --shadow-sutil: 0 1px 2px oklch(24% 0.024 250 / 0.05),
-    0 1px 3px oklch(24% 0.024 250 / 0.04);
-  --shadow-tarjeta: 0 1px 2px oklch(24% 0.024 250 / 0.05),
-    0 4px 12px -2px oklch(24% 0.024 250 / 0.07);
-  --shadow-elevada: 0 2px 4px oklch(24% 0.024 250 / 0.05),
-    0 12px 28px -6px oklch(24% 0.024 250 / 0.12);
+  --shadow-sutil: 0 1px 2px oklch(24% 0.024 250 / 0.05), 0 1px 3px oklch(24% 0.024 250 / 0.04);
+  --shadow-tarjeta: 0 1px 2px oklch(24% 0.024 250 / 0.05), 0 4px 12px -2px oklch(24% 0.024 250 / 0.07);
+  --shadow-elevada: 0 2px 4px oklch(24% 0.024 250 / 0.05), 0 12px 28px -6px oklch(24% 0.024 250 / 0.12);
   --shadow-acento: 0 6px 20px -6px oklch(46% 0.115 232 / 0.32);
 
-  --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-suave: cubic-bezier(0.4, 0, 0.2, 1);
+  --opacidad-superficie: 1;
+  --desenfoque-superficie: 0px;
+
+  color-scheme: light;
 }
 
 html {
   background-color: var(--color-fondo);
-  color-scheme: light;
+  color-scheme: dark;
 }
 
+/*
+ * La escena de fondo va en el propio `body`, no en un pseudo-elemento: uno con
+ * z-index negativo quedaría por detrás del color de fondo de su contenedor y no
+ * se vería. El velo en degradado va en la misma declaración, por encima de la
+ * imagen, y deja el texto con contraste suficiente en toda la altura.
+ */
 body {
-  background-color: var(--color-fondo);
+  position: relative;
   color: var(--color-tinta);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+
+  background-color: var(--color-fondo);
+  background-image:
+    radial-gradient(
+      ellipse 70% 45% at 50% 8%,
+      oklch(80% 0.145 198 / 0.12),
+      transparent 70%
+    ),
+    linear-gradient(
+      to bottom,
+      oklch(15% 0.022 245 / 0.4) 0%,
+      oklch(15% 0.022 245 / 0.68) 40%,
+      oklch(15% 0.022 245 / 0.92) 74%,
+      oklch(15% 0.022 245 / 0.985) 100%
+    ),
+    url("/fondo-holografico.jpg");
+  background-position: center, center, center 42%;
+  background-size: cover, cover, cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed, fixed, fixed;
 }
 
-/* Rejilla técnica: en claro se percibe como papel milimétrico, casi al límite
-   de lo visible, que es exactamente lo que debe hacer. */
+[data-tema="claro"] body {
+  background-image: none;
+}
+
+/* Rejilla técnica: retícula de proyección en oscuro, papel milimétrico en claro. */
 .rejilla-tecnica {
+  background-image:
+    linear-gradient(to right, oklch(80% 0.145 198 / 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(80% 0.145 198 / 0.09) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 15%, transparent 76%);
+}
+
+[data-tema="claro"] .rejilla-tecnica {
   background-image:
     linear-gradient(to right, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px),
     linear-gradient(to bottom, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px);
-  background-size: 46px 46px;
-  mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 15%, transparent 76%);
 }
 
 /* Cifras alineadas en columna: imprescindible en tablas de presupuesto. */
@@ -101,12 +183,26 @@ body {
   color: var(--color-tinta-debil);
 }
 
-/* Superficie elevada estándar de la aplicación. */
+/*
+ * Superficie de panel. En oscuro es traslúcida con desenfoque, de modo que la
+ * escena de fondo se intuye a través de ella sin restar legibilidad; en claro
+ * queda sólida y la regla es inocua.
+ */
 .tarjeta {
-  background-color: var(--color-superficie);
+  background-color: color-mix(
+    in oklch,
+    var(--color-superficie) calc(var(--opacidad-superficie) * 100%),
+    transparent
+  );
+  backdrop-filter: blur(var(--desenfoque-superficie));
   border: 1px solid var(--color-borde);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-tarjeta);
+}
+
+/* Mismo tratamiento para las superficies declaradas con utilidades. */
+.bg-superficie {
+  backdrop-filter: blur(var(--desenfoque-superficie));
 }
 
 /* Foco visible y consistente (WCAG 2.4.7). */
@@ -119,24 +215,13 @@ body {
 /* ------------------------------------------------------------ Movimiento -- */
 
 @keyframes aparecer {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
-.aparecer {
-  animation: aparecer 0.45s var(--ease-salida) both;
-}
+.aparecer { animation: aparecer 0.45s var(--ease-salida) both; }
 
-/* Entrada escalonada: cada elemento entra un poco después del anterior. */
-.escalonado > * {
-  animation: aparecer 0.45s var(--ease-salida) both;
-}
+.escalonado > * { animation: aparecer 0.45s var(--ease-salida) both; }
 .escalonado > *:nth-child(1) { animation-delay: 0.04s; }
 .escalonado > *:nth-child(2) { animation-delay: 0.10s; }
 .escalonado > *:nth-child(3) { animation-delay: 0.16s; }
@@ -149,9 +234,7 @@ body {
   50% { opacity: 0.4; transform: scale(0.82); }
 }
 
-.pulso-agente {
-  animation: pulso-agente 1.4s var(--ease-suave) infinite;
-}
+.pulso-agente { animation: pulso-agente 1.4s var(--ease-suave) infinite; }
 
 @keyframes barrido {
   from { transform: translateX(-100%); }
@@ -163,16 +246,10 @@ body {
   position: absolute;
   inset-block: 0;
   inline-size: 24%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-acento),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--color-acento), transparent);
   animation: barrido 1.5s linear infinite;
 }
 
-/* Crecimiento de barras de datos al entrar en pantalla. */
 @keyframes crecer-ancho {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
@@ -183,7 +260,6 @@ body {
   animation: crecer-ancho 0.85s var(--ease-salida) both;
 }
 
-/* Realce al pasar el puntero sobre una superficie accionable. */
 .elevable {
   transition:
     box-shadow 0.25s var(--ease-suave),
@@ -198,16 +274,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .elevable:hover {
-    transform: none;
-  }
+  .elevable:hover { transform: none; }
 }
 
 ::selection {
@@ -215,24 +287,117 @@ body {
   color: var(--color-acento-fuerte);
 }
 
-/* Barra de desplazamiento discreta. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-borde) transparent;
 }
 
-/* Impresión de la presentación: una diapositiva 16:9 por página, con los
-   colores del tema intactos (el PDF exportado debe verse como la pantalla). */
+/* Impresión: siempre en claro y sin escena de fondo, para que el PDF exportado
+   sea legible en papel. */
 @media print {
-  @page {
-    size: 297mm 167mm;
-    margin: 0;
-  }
+  @page { size: 297mm 167mm; margin: 0; }
 
-  html,
-  body {
-    background: var(--color-fondo) !important;
+  html, body {
+    background: #ffffff !important;
+    color: #1f2937 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  body::before, body::after { display: none !important; }
+}
+
+
+/* ------------------------------------------------- Hologramas animados -- */
+
+/*
+ * La capa vive detrás del contenido y solo anima `transform` y `opacity`, que
+ * el navegador resuelve en el compositor. Los wireframes van muy tenues: deben
+ * leerse como atmósfera, nunca competir con el texto.
+ */
+.capa-hologramas {
+  color: var(--color-acento);
+}
+
+[data-tema="claro"] .capa-hologramas {
+  display: none;
+}
+
+.holo {
+  position: absolute;
+  opacity: 0.13;
+  filter: drop-shadow(0 0 6px currentColor);
+  will-change: transform, opacity;
+}
+
+.holo-edificio {
+  top: 7vh;
+  left: 3vw;
+  width: clamp(150px, 15vw, 260px);
+  animation: flotar 17s ease-in-out infinite, latir 9s ease-in-out infinite;
+}
+
+.holo-red {
+  top: 20vh;
+  right: 4vw;
+  width: clamp(180px, 19vw, 320px);
+  animation: flotar 21s ease-in-out infinite reverse, latir 11s ease-in-out infinite 1.5s;
+}
+
+.holo-rotor {
+  bottom: 12vh;
+  left: 8vw;
+  width: clamp(120px, 12vw, 210px);
+  animation: girar 60s linear infinite, latir 13s ease-in-out infinite 3s;
+}
+
+.holo-circuito {
+  bottom: 6vh;
+  right: 6vw;
+  width: clamp(220px, 25vw, 420px);
+  animation: flotar 24s ease-in-out infinite 2s, latir 8s ease-in-out infinite;
+}
+
+@keyframes flotar {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -26px, 0); }
+}
+
+@keyframes latir {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Barrido de escáner: recorre la pantalla de arriba abajo, muy sutil. */
+.escaner {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 28vh;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    oklch(80% 0.145 198 / 0.05) 45%,
+    oklch(80% 0.145 198 / 0.09) 50%,
+    oklch(80% 0.145 198 / 0.05) 55%,
+    transparent
+  );
+  animation: escanear 14s linear infinite;
+  will-change: transform;
+}
+
+@keyframes escanear {
+  from { transform: translate3d(0, -30vh, 0); }
+  to { transform: translate3d(0, 110vh, 0); }
+}
+
+/* Con movimiento reducido los hologramas siguen ahí, pero quietos. */
+@media (prefers-reduced-motion: reduce) {
+  .holo { animation: none !important; }
+  .escaner { display: none; }
 }

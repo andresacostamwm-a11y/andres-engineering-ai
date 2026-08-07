@@ -437,7 +437,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           <button
             type="button"
             onClick={generar}
-            className="rounded-md bg-acento px-7 py-3 font-semibold text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+            className="rounded-md bg-acento px-7 py-3 font-semibold text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
             Generar proyecto
           </button>

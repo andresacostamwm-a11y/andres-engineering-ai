@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { Marca } from "@/components/Marca";
 import { CerrarSesion } from "@/components/CerrarSesion";
+import { SelectorTema } from "@/components/SelectorTema";
 import { CrearProyecto } from "@/components/CrearProyecto";
 import { hayApiKey } from "@/lib/modelo";
 import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
@@ -25,6 +26,7 @@ export default async function PaginaProyecto() {
           </Link>
 
           <nav className="flex items-center gap-4">
+            <SelectorTema />
             <Link
               href="/app"
               className="text-xs font-medium text-tinta-media transition-colors hover:text-acento"

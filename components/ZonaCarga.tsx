@@ -83,7 +83,7 @@ export function ZonaCarga({
             type="button"
             onClick={() => entradaRef.current?.click()}
             disabled={ocupado}
-            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
             Seleccionar archivos
           </button>

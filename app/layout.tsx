@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { CapaHologramas } from "@/components/CapaHologramas";
 
 /*
  * Emparejamiento tipográfico: IBM Plex Sans e IBM Plex Mono comparten esqueleto,
@@ -53,7 +54,21 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        {/*
+          Restaura el tema guardado antes del primer pintado: si se hiciera en
+          un efecto, la página aparecería un instante con el tema equivocado.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('aei:tema')==='claro'){document.documentElement.dataset.tema='claro'}}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col">
+        <CapaHologramas />
+        {children}
+      </body>
     </html>
   );
 }

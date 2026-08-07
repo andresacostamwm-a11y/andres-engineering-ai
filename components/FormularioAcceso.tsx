@@ -83,7 +83,7 @@ function Formulario({ usuarioInicial, passwordInicial }: Props) {
       <button
         type="submit"
         disabled={enviando}
-        className="w-full rounded-md bg-acento py-2.5 text-sm font-semibold text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-md bg-acento py-2.5 text-sm font-semibold text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {enviando ? "Entrando…" : "Entrar"}
       </button>

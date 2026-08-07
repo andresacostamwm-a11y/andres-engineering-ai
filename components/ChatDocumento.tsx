@@ -137,7 +137,7 @@ export function ChatDocumento({
             className={mensaje.rol === "usuario" ? "flex justify-end" : ""}
           >
             {mensaje.rol === "usuario" ? (
-              <p className="max-w-[85%] rounded-lg rounded-br-sm bg-acento text-white px-3.5 py-2 text-sm">
+              <p className="max-w-[85%] rounded-lg rounded-br-sm bg-acento text-sobre-acento px-3.5 py-2 text-sm">
                 {mensaje.contenido}
               </p>
             ) : (
@@ -202,7 +202,7 @@ export function ChatDocumento({
         <button
           type="submit"
           disabled={!disponible || cargando || !pregunta.trim()}
-          className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           Enviar
         </button>

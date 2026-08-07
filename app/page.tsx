@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Marca } from "@/components/Marca";
+import { SelectorTema } from "@/components/SelectorTema";
 import { AGENTES } from "@/lib/pipeline-def";
 import { USUARIO_DEMO, PASSWORD_DEMO } from "@/lib/auth";
 
@@ -28,12 +29,15 @@ export default function Inicio() {
       <header className="border-b border-borde">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
           <Marca />
+          <div className="flex items-center gap-3">
+          <SelectorTema />
           <Link
             href="/app"
-            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
             Entrar a la aplicación
           </Link>
+          </div>
         </div>
       </header>
 
@@ -66,7 +70,7 @@ export default function Inicio() {
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Link
                   href="/app/proyecto"
-                  className="rounded-md bg-acento px-6 py-3 font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+                  className="rounded-md bg-acento px-6 py-3 font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
                 >
                   Crear un proyecto
                 </Link>

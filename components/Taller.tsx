@@ -322,7 +322,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
               <button
                 type="button"
                 onClick={() => exportarDictamen(analisisActual)}
-                className="rounded-md bg-acento px-3.5 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+                className="rounded-md bg-acento px-3.5 py-2 text-sm font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
               >
                 Descargar dictamen PDF
               </button>
