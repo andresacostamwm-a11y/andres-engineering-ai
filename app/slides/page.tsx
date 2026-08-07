@@ -370,7 +370,7 @@ function Diapositiva({
     <section
       id={`d${indice}`}
       data-diapositiva
-      className={`flex min-h-dvh snap-start flex-col justify-center border-b border-borde-suave px-5 py-20 sm:px-8 print:min-h-0 print:break-after-page ${className}`}
+      className={`flex min-h-dvh snap-start flex-col justify-center border-b border-borde-suave px-5 py-20 sm:px-8 print:h-[167mm] print:min-h-0 print:break-after-page print:justify-center print:py-10 ${className}`}
     >
       <div className="mx-auto w-full max-w-6xl">{children}</div>
     </section>

@@ -152,3 +152,19 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--color-borde) transparent;
 }
+
+/* Impresión de la presentación: una diapositiva 16:9 por página, con los
+   colores del tema intactos (el PDF exportado debe verse como la pantalla). */
+@media print {
+  @page {
+    size: 297mm 167mm;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: var(--color-fondo) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
