@@ -318,14 +318,14 @@ return {
               Pruébalo tú mismo
             </h2>
             <div className="mt-9 space-y-2.5">
-              <Enlace href="https://diem-copilot.vercel.app" etiqueta="Aplicación">
-                diem-copilot.vercel.app
+              <Enlace href="https://andres-engineering-ai.vercel.app" etiqueta="Aplicación">
+                andres-engineering-ai.vercel.app
               </Enlace>
               <Enlace
-                href="https://github.com/andresacostamwm-a11y/diem-copilot"
+                href="https://github.com/andresacostamwm-a11y/andres-engineering-ai"
                 etiqueta="Código"
               >
-                github.com/andresacostamwm-a11y/diem-copilot
+                github.com/andresacostamwm-a11y/andres-engineering-ai
               </Enlace>
             </div>
 

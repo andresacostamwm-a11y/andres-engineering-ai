@@ -21,7 +21,7 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const URL_BASE = "https://diem-copilot.vercel.app";
+const URL_BASE = "https://andres-engineering-ai.vercel.app";
 const DESCRIPCION =
   "Sistema multiagente que proyecta y audita obra en trece disciplinas: extrae requerimientos con su cita, presupuesta con precios unitarios, revisa normativa y dibuja los planos del sistema.";
 

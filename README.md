@@ -11,9 +11,9 @@ Autor: **Heber Andres Acosta Jimenez** — andresacosta.mwm@gmail.com
 
 | Recurso | Enlace |
 | --- | --- |
-| Aplicación desplegada | **https://diem-copilot.vercel.app** |
-| Repositorio | https://github.com/andresacostamwm-a11y/diem-copilot |
-| Presentación (slides) | https://diem-copilot.vercel.app/slides |
+| Aplicación desplegada | **https://andres-engineering-ai.vercel.app** |
+| Repositorio | https://github.com/andresacostamwm-a11y/andres-engineering-ai |
+| Presentación (slides) | https://andres-engineering-ai.vercel.app/slides |
 | Vídeo de presentación | _(pendiente de publicar — ver `docs/guion-video.md`)_ |
 
 **Credenciales de prueba** (aparecen también en la propia pantalla de acceso):
@@ -74,8 +74,8 @@ El máster es agnóstico en cuanto a qué construir, así que elegí un problema
 ### Puesta en marcha
 
 ```bash
-git clone https://github.com/andresacostamwm-a11y/diem-copilot.git
-cd diem-copilot
+git clone https://github.com/andresacostamwm-a11y/andres-engineering-ai.git
+cd andres-engineering-ai
 npm install
 cp .env.example .env.local
 npm run dev
@@ -110,7 +110,7 @@ AUTH_SECRET=$(openssl rand -hex 32)
 ## 4. Estructura del proyecto
 
 ```
-diem-copilot/
+andres-engineering-ai/
 ├── app/
 │   ├── page.tsx                     Portada pública: problema, arquitectura, decisiones
 │   ├── login/page.tsx               Acceso con credenciales de demostración
