@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/*
+ * Sistema de diseño DIEM Copilot.
+ *
+ * Dirección visual: instrumental técnico. La referencia no es una landing SaaS
+ * sino el software con el que se trabaja un proyecto de obra — plano, tabla de
+ * cantidades, tablero de control. De ahí el tema oscuro único (no adaptativo:
+ * es una herramienta de escritorio prolongado), la rejilla técnica de fondo, la
+ * numeración monoespaciada de las tablas y el ámbar reservado exclusivamente a
+ * la señalización de riesgo.
+ */
+
+@theme {
+  /* Superficies: azul-pizarra profundo, no negro puro. */
+  --color-fondo: oklch(17% 0.018 250);
+  --color-superficie: oklch(21% 0.02 250);
+  --color-superficie-alta: oklch(25% 0.022 250);
+  --color-borde: oklch(32% 0.024 250);
+  --color-borde-suave: oklch(27% 0.02 250);
+
+  /* Texto. */
+  --color-tinta: oklch(96% 0.005 250);
+  --color-tinta-media: oklch(76% 0.015 250);
+  --color-tinta-debil: oklch(60% 0.018 250);
+
+  /* Acento: cian técnico, el color de la línea viva en un plano. */
+  --color-acento: oklch(76% 0.14 200);
+  --color-acento-fuerte: oklch(84% 0.15 200);
+  --color-acento-tenue: oklch(30% 0.05 210);
+
+  /* Semáforo de riesgo. Solo se usa para riesgo, nunca decorativo. */
+  --color-critico: oklch(64% 0.2 22);
+  --color-alto: oklch(74% 0.16 55);
+  --color-medio: oklch(80% 0.13 90);
+  --color-bajo: oklch(72% 0.12 155);
+
+  --font-sans: var(--font-sans-app), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-app), ui-monospace, monospace;
+
+  /* Escala tipográfica con contraste real entre extremos. */
+  --text-micro: 0.6875rem;
+  --text-titular: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
+
+  --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  background-color: var(--color-fondo);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Rejilla técnica de fondo: sugiere papel milimétrico sin competir con el texto. */
+.rejilla-tecnica {
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--color-borde) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--color-borde) 45%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 85% 60% at 50% 0%, #000 20%, transparent 78%);
+}
+
+/* Cifras alineadas en columna: imprescindible en tablas de presupuesto. */
+.cifra {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.etiqueta-seccion {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-tinta-debil);
+}
+
+/* Foco visible y consistente en toda la aplicación (WCAG 2.4.7). */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.aparecer {
+  animation: aparecer 0.4s var(--ease-salida) both;
+}
+
+@keyframes pulso-agente {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.pulso-agente {
+  animation: pulso-agente 1.4s ease-in-out infinite;
+}
+
+@keyframes barrido {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+
+.barrido::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inline-size: 25%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--color-acento) 55%, transparent),
+    transparent
+  );
+  animation: barrido 1.6s linear infinite;
+}
+
+/* Respeta la preferencia del sistema: la app es una herramienta de trabajo,
+   no una pieza expresiva, así que aquí sí se desactiva el movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: color-mix(in oklch, var(--color-acento) 30%, transparent);
+}
+
+/* Barra de desplazamiento discreta y coherente con el tema. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-borde) transparent;
+}
