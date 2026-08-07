@@ -98,6 +98,7 @@ export const clienteGemini: ClienteModelo = {
 async function llamar(
   peticion: PeticionAgente,
   historial: ContenidoGemini[],
+  reintento = false,
 ): Promise<RespuestaHerramienta> {
   const cuerpo = {
     systemInstruction: { parts: [{ text: peticion.sistema }] },
@@ -123,7 +124,12 @@ async function llamar(
     },
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: peticion.maxTokens ?? 8000,
+      // Gemini 2.5 descuenta su razonamiento interno del presupuesto de salida:
+      // si se queda corto trunca la llamada a función y devuelve
+      // MALFORMED_FUNCTION_CALL. Se acota el razonamiento y se da holgura
+      // suficiente para que la estructura quepa entera.
+      maxOutputTokens: Math.min(Math.max((peticion.maxTokens ?? 8000) * 2, 16000), 65_000),
+      thinkingConfig: { thinkingBudget: 2048 },
     },
   };
 
@@ -148,6 +154,13 @@ async function llamar(
 
   if (!llamada) {
     const motivo = datos?.candidates?.[0]?.finishReason ?? "desconocido";
+
+    // Una llamada truncada es un fallo transitorio de generación, no del
+    // esquema: se reintenta una vez antes de darla por perdida.
+    if (motivo === "MALFORMED_FUNCTION_CALL" && !reintento) {
+      return llamar(peticion, historial, true);
+    }
+
     throw new Error(
       `Gemini no invocó la herramienta ${peticion.herramienta} (motivo: ${motivo}).`,
     );
