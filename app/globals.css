@@ -17,12 +17,12 @@
 
 @theme {
   /* ------------------------------------------- Tema holográfico (default) -- */
-  --color-fondo: oklch(15% 0.022 245);
-  --color-superficie: oklch(21% 0.026 243);
-  --color-superficie-alta: oklch(25% 0.03 242);
-  --color-superficie-honda: oklch(18% 0.024 244);
-  --color-borde: oklch(34% 0.035 235);
-  --color-borde-suave: oklch(28% 0.03 240);
+  --color-fondo: oklch(25% 0.026 244);
+  --color-superficie: oklch(31% 0.03 243);
+  --color-superficie-alta: oklch(36% 0.033 242);
+  --color-superficie-honda: oklch(28% 0.028 244);
+  --color-borde: oklch(45% 0.04 235);
+  --color-borde-suave: oklch(38% 0.034 240);
 
   --color-tinta: oklch(95% 0.018 210);
   --color-tinta-media: oklch(81% 0.03 208);
@@ -31,22 +31,22 @@
   --color-acento: oklch(80% 0.145 198);
   --color-acento-fuerte: oklch(88% 0.15 197);
   --color-acento-claro: oklch(86% 0.13 199);
-  --color-acento-tenue: oklch(28% 0.06 210);
+  --color-acento-tenue: oklch(37% 0.07 210);
   /* Texto que va ENCIMA del acento: en oscuro el acento es claro, así que el
      texto debe ser oscuro para cumplir contraste. */
-  --color-sobre-acento: oklch(16% 0.03 240);
+  --color-sobre-acento: oklch(20% 0.03 240);
 
   --color-laton: oklch(80% 0.115 78);
-  --color-laton-tenue: oklch(28% 0.05 70);
+  --color-laton-tenue: oklch(37% 0.06 70);
 
   --color-critico: oklch(70% 0.19 22);
-  --color-critico-tenue: oklch(27% 0.08 22);
+  --color-critico-tenue: oklch(36% 0.09 22);
   --color-alto: oklch(79% 0.15 62);
-  --color-alto-tenue: oklch(28% 0.07 60);
+  --color-alto-tenue: oklch(37% 0.08 60);
   --color-medio: oklch(85% 0.13 95);
-  --color-medio-tenue: oklch(28% 0.06 92);
+  --color-medio-tenue: oklch(37% 0.07 92);
   --color-bajo: oklch(80% 0.14 160);
-  --color-bajo-tenue: oklch(26% 0.06 160);
+  --color-bajo-tenue: oklch(35% 0.07 160);
 
   --font-sans: var(--font-sans-app), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-app), ui-monospace, monospace;
@@ -137,10 +137,10 @@ body {
     ),
     linear-gradient(
       to bottom,
-      oklch(15% 0.022 245 / 0.4) 0%,
-      oklch(15% 0.022 245 / 0.68) 40%,
-      oklch(15% 0.022 245 / 0.92) 74%,
-      oklch(15% 0.022 245 / 0.985) 100%
+      oklch(25% 0.026 244 / 0.4) 0%,
+      oklch(25% 0.026 244 / 0.66) 40%,
+      oklch(25% 0.026 244 / 0.9) 74%,
+      oklch(25% 0.026 244 / 0.97) 100%
     ),
     url("/fondo-holografico.jpg");
   background-position: center, center, center 42%;
