@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { proyectar, type EncargoProyecto } from "@/lib/agentes/orquestador-proyecto";
-import { hayApiKey } from "@/lib/anthropic";
+import { hayApiKey } from "@/lib/modelo";
 import { definicionProyectoSchema } from "@/lib/schemas";
 import { DISCIPLINAS } from "@/lib/disciplinas";
 import type { DisciplinaProyecto } from "@/lib/disciplinas";

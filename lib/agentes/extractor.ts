@@ -6,7 +6,7 @@
  * La evidencia es obligatoria: sin cita no hay requerimiento, para que el
  * usuario pueda auditar cada renglón contra el documento original.
  */
-import { ejecutarAgente } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaExtractorSchema } from "../schemas.ts";
 import type { Requerimiento } from "../types.ts";
 import { DISCIPLINAS_JSON } from "./comun.ts";

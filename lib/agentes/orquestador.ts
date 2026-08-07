@@ -14,7 +14,7 @@
  * progreso real en lugar de un spinner opaco.
  */
 import type { EventoAgente, Hallazgo, Partida } from "../types.ts";
-import { esErrorDeCuota, hayApiKey } from "../anthropic.ts";
+import { esErrorDeCuota, hayApiKey } from "../modelo/index.ts";
 import { recortarDocumento } from "./comun.ts";
 import { extraerRequerimientos } from "./extractor.ts";
 import { generarPresupuesto } from "./costos.ts";

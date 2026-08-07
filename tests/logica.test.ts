@@ -16,7 +16,8 @@ import { riesgoGlobal } from "../lib/agentes/normativo.ts";
 import { fragmentar, recuperar, tokenizar } from "../lib/rag.ts";
 import { crearToken, credencialesValidas, leerToken } from "../lib/auth.ts";
 import { verificarLimite } from "../lib/limite.ts";
-import { esErrorDeCuota } from "../lib/anthropic.ts";
+import { esErrorDeCuota } from "../lib/modelo/tipos.ts";
+import { aEsquemaGemini } from "../lib/modelo/esquema.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
@@ -283,5 +284,66 @@ describe("detección de errores de cuota", () => {
   it("tolera valores que no son Error", () => {
     assert.equal(esErrorDeCuota(null), false);
     assert.equal(esErrorDeCuota(undefined), false);
+  });
+});
+
+describe("conversión de esquema a Gemini", () => {
+  it("convierte los tipos nullable de JSON Schema a nullable de OpenAPI", () => {
+    const salida = aEsquemaGemini({
+      type: "object",
+      properties: { pagina: { type: ["number", "null"], description: "d" } },
+    }) as Record<string, Record<string, Record<string, unknown>>>;
+
+    assert.equal(salida.properties.pagina.type, "number");
+    assert.equal(salida.properties.pagina.nullable, true);
+    assert.equal(salida.properties.pagina.description, "d");
+  });
+
+  it("deja intactos los tipos simples", () => {
+    const salida = aEsquemaGemini({
+      type: "object",
+      properties: { nombre: { type: "string" } },
+    }) as Record<string, Record<string, Record<string, unknown>>>;
+
+    assert.equal(salida.properties.nombre.type, "string");
+    assert.equal(salida.properties.nombre.nullable, undefined);
+  });
+
+  it("elimina las claves que Gemini no reconoce", () => {
+    const salida = aEsquemaGemini({
+      type: "object",
+      additionalProperties: false,
+      $schema: "http://json-schema.org/draft-07/schema#",
+      properties: { a: { type: "string", default: "x" } },
+    }) as Record<string, unknown>;
+
+    assert.equal("additionalProperties" in salida, false);
+    assert.equal("$schema" in salida, false);
+    assert.equal(
+      "default" in ((salida.properties as Record<string, object>).a as object),
+      false,
+    );
+  });
+
+  it("conserva enum, required y arrays anidados", () => {
+    const salida = aEsquemaGemini({
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: { type: "object", properties: { t: { type: "string", enum: ["a", "b"] } } },
+        },
+      },
+      required: ["items"],
+    }) as Record<string, unknown>;
+
+    const items = (salida.properties as Record<string, Record<string, Record<string, Record<string, Record<string, unknown>>>>>)
+      .items.items.properties.t;
+    assert.deepEqual(items.enum, ["a", "b"]);
+    assert.deepEqual(salida.required, ["items"]);
+  });
+
+  it("reconoce el agotamiento de cuota de Gemini", () => {
+    assert.ok(esErrorDeCuota(new Error("Gemini 429: RESOURCE_EXHAUSTED")));
   });
 });

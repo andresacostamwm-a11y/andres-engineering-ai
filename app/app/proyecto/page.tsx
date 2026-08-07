@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { Marca } from "@/components/Marca";
 import { CerrarSesion } from "@/components/CerrarSesion";
 import { CrearProyecto } from "@/components/CrearProyecto";
-import { hayApiKey } from "@/lib/anthropic";
+import { hayApiKey } from "@/lib/modelo";
 import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";

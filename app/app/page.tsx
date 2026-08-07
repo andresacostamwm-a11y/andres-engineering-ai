@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { Taller } from "@/components/Taller";
 import { Marca } from "@/components/Marca";
-import { hayApiKey } from "@/lib/anthropic";
+import { hayApiKey } from "@/lib/modelo";
 import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
 import { CerrarSesion } from "@/components/CerrarSesion";
 

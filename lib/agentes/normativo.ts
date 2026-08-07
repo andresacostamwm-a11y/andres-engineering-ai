@@ -5,7 +5,7 @@
  * devuelve hallazgos con nivel de riesgo. Corre en paralelo con el agente de
  * costos porque ambos dependen solo del extractor.
  */
-import { ejecutarAgente } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaNormativoSchema } from "../schemas.ts";
 import type { Hallazgo, Requerimiento } from "../types.ts";
 import { DISCIPLINAS_JSON, RIESGO_JSON } from "./comun.ts";

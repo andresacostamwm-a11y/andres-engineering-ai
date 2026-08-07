@@ -16,7 +16,7 @@ import type { Hallazgo, Partida } from "../types.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
 import { fichaDisciplina } from "../disciplinas.ts";
-import { esErrorDeCuota, hayApiKey } from "../anthropic.ts";
+import { esErrorDeCuota, hayApiKey } from "../modelo/index.ts";
 import { recortarDocumento } from "./comun.ts";
 import { redactarAlcance } from "./programa.ts";
 import { extraerRequerimientos } from "./extractor.ts";

@@ -5,7 +5,7 @@
  * unitario desglosada. Trabaja sobre la salida del extractor, no sobre el
  * documento crudo: así el presupuesto es trazable requerimiento → partida.
  */
-import { ejecutarAgente } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaCostosSchema } from "../schemas.ts";
 import type { Partida, Requerimiento } from "../types.ts";
 import { DISCIPLINAS_JSON } from "./comun.ts";

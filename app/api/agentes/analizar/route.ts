@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { analizar } from "@/lib/agentes/orquestador";
-import { hayApiKey } from "@/lib/anthropic";
+import { hayApiKey } from "@/lib/modelo";
 import { ipDe, verificarLimite } from "@/lib/limite";
 import { MAX_CARACTERES } from "@/lib/pdf";
 

@@ -5,7 +5,7 @@
  * redacta el resumen que encabeza el dictamen: qué es el proyecto, cuánto cuesta,
  * qué riesgo tiene y qué hacer a continuación.
  */
-import { ejecutarAgente, MODELO_SINTESIS } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaSintesisSchema } from "../schemas.ts";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "../types.ts";
 import { RIESGO_JSON } from "./comun.ts";
@@ -70,7 +70,6 @@ export async function sintetizar(params: {
   const total = totalPresupuesto(partidas);
 
   const resumen = await ejecutarAgente({
-    modelo: MODELO_SINTESIS,
     sistema: SISTEMA,
     prompt: `Redacta el resumen ejecutivo del dictamen.
 

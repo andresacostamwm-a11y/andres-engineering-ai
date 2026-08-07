@@ -6,7 +6,7 @@
  * necesita como entrada. Es el paso que convierte «quiero una nave con oficinas»
  * en un documento sobre el que se puede extraer, costear y revisar normativa.
  */
-import { ejecutarAgente } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { z } from "zod";
 import type { DisciplinaProyecto, Envergadura } from "../disciplinas.ts";
 import { ENVERGADURAS, fichaDisciplina } from "../disciplinas.ts";

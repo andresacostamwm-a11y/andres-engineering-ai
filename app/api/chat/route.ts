@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { esErrorDeCuota, hayApiKey, transmitirTexto } from "@/lib/anthropic";
+import { esErrorDeCuota, hayApiKey, transmitirTexto } from "@/lib/modelo";
 import { fragmentar, recuperar } from "@/lib/rag";
 import { ipDe, verificarLimite } from "@/lib/limite";
 

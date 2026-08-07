@@ -6,7 +6,7 @@
  * aplicación con simbología normalizada, que es lo que garantiza que la salida
  * se parezca a un plano y no a un boceto.
  */
-import { ejecutarAgente } from "../anthropic.ts";
+import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaDiagramaSchema } from "../schemas.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
@@ -88,8 +88,8 @@ function esquema(tipo: TipoDiagrama) {
               enum: SIMBOLOS_POR_TIPO[tipo],
               description: "Símbolo normalizado que representa al elemento.",
             },
-            x: { type: "number", description: "Posición horizontal, de 0 a 100." },
-            y: { type: "number", description: "Posición vertical, de 0 a 100." },
+            x: { type: "number", description: "Posición horizontal: 0 es el borde izquierdo, 100 el derecho." },
+            y: { type: "number", description: "Posición vertical: 0 es el borde SUPERIOR, 100 el INFERIOR." },
             datos: {
               type: "array",
               items: { type: "string" },
@@ -165,9 +165,15 @@ Tu salida es la TOPOLOGÍA de un ${ETIQUETA_DIAGRAMA[tipo].toLowerCase()}: qué 
 dónde van sobre una rejilla lógica de 0 a 100, y cómo se conectan. No describas el dibujo:
 declara los elementos.
 
+Sistema de coordenadas, léelo con atención:
+- x va de 0 (borde IZQUIERDO) a 100 (borde DERECHO).
+- y va de 0 (borde SUPERIOR) a 100 (borde INFERIOR). Es la convención de pantalla,
+  no la matemática: y menor está MÁS ARRIBA.
+
 Reglas de composición, que son las que hacen legible un plano:
-- Sigue el sentido natural del flujo: en un unifilar, de arriba (acometida) hacia abajo
-  (cargas); en hidráulica y proceso, de izquierda (origen) a derecha (consumo).
+- Sigue el sentido natural del flujo: en un unifilar, la acometida arriba (y pequeña,
+  cerca de 10) y las cargas abajo (y grande, cerca de 90); en hidráulica y proceso,
+  el origen a la izquierda (x pequeña) y el consumo a la derecha (x grande).
 - Alinea los elementos: los que están en el mismo nivel jerárquico comparten coordenada.
   Un plano legible tiene pocas coordenadas distintas, no muchas ligeramente diferentes.
 - Deja al menos 12 unidades entre centros de elementos y no los pegues a los bordes:
