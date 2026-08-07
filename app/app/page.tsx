@@ -38,9 +38,9 @@ export default async function PaginaTaller() {
             Analizar un documento de proyecto
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-tinta-media">
-            Sube un pliego, alcance de obra o memoria descriptiva. Cuatro agentes
-            especializados extraen los requerimientos, elaboran el presupuesto y
-            revisan el cumplimiento normativo.
+            Sube hasta diez documentos en PDF, Word, Excel, CSV, HTML, DXF, IFC,
+            JSON o texto. Los agentes extraen los requerimientos con su cita,
+            elaboran el presupuesto y revisan el cumplimiento normativo.
           </p>
         </div>
 

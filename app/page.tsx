@@ -127,12 +127,12 @@ export default function Inicio() {
           <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
             <span className="etiqueta-seccion">Arquitectura</span>
             <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Cuatro agentes, no un chat
+              Seis agentes, no un chat
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-tinta-media">
               Cada agente tiene un rol acotado, un esquema de salida obligatorio y
-              acceso solo a lo que necesita. Costos y normativo corren en paralelo
-              porque ninguno depende del otro.
+              acceso solo a lo que necesita. Costos, normativo y proyectista
+              corren en paralelo porque ninguno depende de los otros.
             </p>
 
             <ol className="escalonado mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

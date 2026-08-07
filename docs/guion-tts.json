@@ -1,61 +1,61 @@
 {
-  "descripcion": "Narración ajustada a demo-editado.mp4 (194 s). Cada bloque entra en su marca.",
+  "descripcion": "Narración ajustada a demo-editado.mp4 (212 s). Cada bloque entra en su marca.",
   "voz": "Vpg5ilBqxfgdhGM3H5gH",
   "modelo": "eleven_multilingual_v2",
   "bloques": [
     {
       "id": "01-portada",
       "inicio": 0.5,
-      "ventana": 13.5,
+      "ventana": 17.5,
       "texto": "Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster: un sistema de seis agentes que audita documentación de obra y proyecta desde cero en trece disciplinas de ingeniería."
     },
     {
       "id": "02-problema",
-      "inicio": 14.5,
-      "ventana": 15.5,
-      "texto": "El problema viene de mi trabajo en ingeniería. Antes de competir por una obra hay que leerse el pliego, cuantificar, presupuestar y revisar normativa. Y lo caro no es lo que el pliego dice: es lo que calla."
+      "inicio": 18.5,
+      "ventana": 19.5,
+      "texto": "El problema viene de mi trabajo en ingeniería. Antes de competir por una obra hay que leerse el pliego, cuantificar, presupuestar y revisar normativa: entre tres y cinco días. Y lo caro no es lo que el pliego dice, es lo que calla."
     },
     {
       "id": "03-proyecto",
-      "inicio": 30.5,
-      "ventana": 24.5,
-      "texto": "Aquí no subo un documento: proyecto desde cero. Describo una red hidrosanitaria para un hotel de ciento veinte habitaciones, elijo la disciplina y la envergadura. Cada disciplina trae su propia normativa y sus propios planos."
+      "inicio": 39.0,
+      "ventana": 25.0,
+      "texto": "Aquí no subo un documento: proyecto desde cero. Describo una red hidrosanitaria y contra incendio para un hotel de ciento veinte habitaciones, y elijo disciplina y envergadura. Cada disciplina trae su normativa y sus propios planos."
     },
     {
       "id": "04-pipeline",
-      "inicio": 56.0,
-      "ventana": 24.0,
-      "texto": "Al generar arrancan seis agentes. El primero redacta el alcance de obra a partir de mi descripción. Después se extraen los requerimientos, y en paralelo corren costos, normativa y el proyectista que dibuja los planos."
+      "inicio": 65.0,
+      "ventana": 22.0,
+      "texto": "Al generar arrancan seis agentes con perfil doctoral. El primero redacta el alcance de obra. Después se extraen los requerimientos, y en paralelo corren costos, normativa y el proyectista que dibuja los planos."
     },
     {
       "id": "05-acelerado",
-      "inicio": 80.5,
-      "ventana": 24.5,
-      "texto": "Este tramo va acelerado siete veces: en real tarda unos tres minutos. El progreso llega por Server Sent Events, así que cada tarjeta se completa en vivo con su recuento en lugar de mostrar un spinner."
+      "inicio": 88.0,
+      "ventana": 22.0,
+      "texto": "Este tramo va acelerado seis veces. El progreso llega por Server Sent Events, así que cada tarjeta se completa en vivo con su recuento real en lugar de mostrar un spinner opaco."
     },
     {
       "id": "06-planos",
-      "inicio": 106.0,
+      "inicio": 111.0,
       "ventana": 28.0,
-      "texto": "Y este es el resultado que más me importa: un diagrama de tubería e instrumentación con simbología normalizada, cajetín y notas de plano. La clave está en que el modelo no dibuja: devuelve la topología, y el trazo lo pone el código. Por eso sale un plano y no un boceto."
+      "texto": "Y este es el resultado que más me importa: un plano de la red con simbología normalizada, cajetín y notas citando normativa. La clave está en que el modelo no dibuja: devuelve la topología, y el trazo lo pone el código. Por eso sale un plano y no un boceto."
     },
     {
       "id": "07-presupuesto",
-      "inicio": 135.0,
+      "inicio": 140.0,
       "ventana": 24.0,
       "texto": "El presupuesto abre la matriz de precio unitario de cada partida, y cuando el agente supone una cantidad lo escribe. La aritmética no la hace el modelo: el importe, el total y el riesgo global se calculan en código."
     },
     {
       "id": "08-exportar",
-      "inicio": 159.5,
-      "ventana": 20.5,
+      "inicio": 165.0,
+      "ventana": 22.0,
       "texto": "Todo se exporta a siete formatos: PDF, Word, CSV, HTML, SVG, y para CAD y BIM, DXF e IFC. El punto ere ve te no se puede generar sin Revit, así que se entrega el estándar abierto que Revit sí lee."
     },
     {
       "id": "09-cierre",
-      "inicio": 180.5,
-      "ventana": 13.5,
-      "texto": "El código está en GitHub y la aplicación desplegada en Vercel. Next punto jota ese dieciséis, TypeScript, Claude Sonnet y treinta y seis pruebas unitarias. Gracias por verlo."
+      "inicio": 188.0,
+      "ventana": 23.0,
+      "texto": "La interfaz tiene dos temas, holográfico y ejecutivo. El código está en GitHub y la aplicación desplegada en Vercel: Next punto jota ese dieciséis, TypeScript, y cuarenta y una pruebas unitarias. Gracias por verlo."
     }
   ]
 }

@@ -33,9 +33,10 @@ export default function Presentacion() {
               <span className="text-acento">Lo que cuesta es otra.</span>
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-relaxed text-tinta-media">
-              Un sistema de cuatro agentes que convierte un alcance de obra en un
-              dictamen técnico: requerimientos con evidencia, presupuesto con
-              precios unitarios y hallazgos normativos.
+              Un sistema de seis agentes que audita documentación de obra y
+              proyecta desde cero en trece disciplinas: requerimientos con
+              evidencia, presupuesto con precios unitarios, hallazgos normativos
+              y los planos del sistema.
             </p>
             <p className="mt-10 text-sm text-tinta-media">
               <strong className="font-semibold text-tinta">Heber Andres Acosta Jimenez</strong>
@@ -96,7 +97,7 @@ export default function Presentacion() {
         {/* 04 — Arquitectura */}
         <Diapositiva indice={3}>
           <Rotulo>03 · Arquitectura</Rotulo>
-          <Titulo>Cuatro agentes, no un chat</Titulo>
+          <Titulo>Seis agentes, no un chat</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
             Cada agente tiene un rol acotado, un esquema de salida obligatorio y
             solo el contexto que necesita. Costos y normativo no dependen entre sí,

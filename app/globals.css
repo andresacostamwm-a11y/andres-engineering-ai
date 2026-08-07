@@ -292,21 +292,26 @@ body {
   scrollbar-color: var(--color-borde) transparent;
 }
 
-/* Impresión: siempre en claro y sin escena de fondo, para que el PDF exportado
-   sea legible en papel. */
+/*
+ * Impresión y exportación a PDF: se conserva el tema activo —lo exportado debe
+ * verse como la pantalla— pero sin la escena de fondo ni los hologramas, que
+ * en papel solo restarían legibilidad al contenido.
+ */
 @media print {
   @page { size: 297mm 167mm; margin: 0; }
 
   html, body {
-    background: #ffffff !important;
-    color: #1f2937 !important;
+    background-image: none !important;
+    background-color: var(--color-fondo) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  body::before, body::after { display: none !important; }
-}
+  .capa-hologramas { display: none !important; }
 
+  /* Sin desenfoque: algunos motores de impresión lo resuelven mal. */
+  .tarjeta, .bg-superficie { backdrop-filter: none !important; }
+}
 
 /* ------------------------------------------------- Hologramas animados -- */
 
