@@ -10,7 +10,7 @@ export const metadata = {
     "Presentación del Trabajo de Fin de Máster: sistema multiagente de análisis de proyectos de ingeniería.",
 };
 
-const TOTAL = 14;
+const TOTAL = 17;
 
 export default function Presentacion() {
   return (
@@ -74,7 +74,7 @@ export default function Presentacion() {
                 ["Requerimientos con evidencia", "Cada exigencia técnica con la cita textual del documento y su página."],
                 ["Presupuesto con matrices", "Catálogo de conceptos con precio unitario desglosado y supuestos declarados."],
                 ["Hallazgos normativos", "Contraste contra NOM y reglamentos, incluido lo que el documento omite."],
-                ["Dictamen en PDF", "Resumen ejecutivo, riesgo global y acciones, listo para enviar."],
+                ["Planos y entregables", "Diagramas del sistema y exportación a PDF, Word, CSV, HTML, DXF, IFC y SVG."],
               ].map(([titulo, texto], i) => (
                 <li key={titulo} className="flex gap-4">
                   <span className="cifra shrink-0 text-sm text-acento">
@@ -111,8 +111,100 @@ export default function Presentacion() {
           </p>
         </Diapositiva>
 
-        {/* 05 — Progreso en vivo */}
+
+        {/* 05 — Dos modos */}
         <Diapositiva indice={4}>
+          <Rotulo>04 · Alcance</Rotulo>
+          <Titulo>Auditar lo que existe, o proyectar lo que no</Titulo>
+          <div className="mt-10 grid max-w-5xl gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-borde bg-superficie p-6 shadow-[var(--shadow-tarjeta)]">
+              <p className="etiqueta-seccion">Modo 1</p>
+              <h3 className="mt-1.5 text-xl font-semibold">Analizar documentos</h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-tinta-media">
+                Hasta diez archivos a la vez en PDF, Word, Excel, CSV, HTML, DXF,
+                IFC, JSON o texto. De un CAD se extraen capas, bloques y
+                anotaciones; de un IFC, la jerarquía espacial y los elementos.
+              </p>
+            </div>
+            <div className="rounded-xl border border-acento/30 bg-acento-tenue p-6 shadow-[var(--shadow-tarjeta)]">
+              <p className="etiqueta-seccion">Modo 2</p>
+              <h3 className="mt-1.5 text-xl font-semibold">Proyectar desde cero</h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-tinta-media">
+                Se describe la obra, se elige disciplina y envergadura, y el
+                sistema redacta el alcance, lo cuantifica, revisa normativa y
+                dibuja los planos.
+              </p>
+            </div>
+          </div>
+          <p className="mt-8 max-w-3xl leading-relaxed text-tinta-media">
+            Trece disciplinas: arquitectura, civil y estructural, mecánica,
+            mecatrónica, eléctrica, electrónica, hidráulica, neumática, HVAC,
+            aeronáutica, naval, ferroviaria e ingeniería de fluidos. Cada una
+            aporta su normativa y sus diagramas propios.
+          </p>
+        </Diapositiva>
+
+        {/* 06 — Diagramas */}
+        <Diapositiva indice={5}>
+          <Rotulo>05 · Lo diferencial</Rotulo>
+          <Titulo>El modelo no dibuja: da la topología</Titulo>
+          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
+            El agente proyectista devuelve qué elementos hay, dónde van sobre una
+            rejilla lógica y cómo se conectan. El trazo lo pone el código, con
+            simbología normalizada, ruteo ortogonal y cajetín.
+          </p>
+          <div className="mt-8 grid max-w-4xl gap-5 sm:grid-cols-3">
+            <Razon titulo="Simbología">
+              Más de 50 símbolos en SVG: IEC/NEMA en eléctrico, ISO 1219 en
+              neumático, ISA 5.1 en instrumentación.
+            </Razon>
+            <Razon titulo="Ruteo ortogonal">
+              Las conexiones se trazan en L, como en un unifilar o un P&amp;ID
+              real, no en diagonal.
+            </Razon>
+            <Razon titulo="Anticolisión">
+              Separación elíptica: más holgura vertical, porque bajo cada símbolo
+              van su etiqueta y sus datos.
+            </Razon>
+          </div>
+          <p className="mt-8 text-lg">
+            Es lo que hace que la salida se parezca a{" "}
+            <strong className="text-acento">un plano y no a un boceto.</strong>
+          </p>
+        </Diapositiva>
+
+        {/* 07 — Exportación */}
+        <Diapositiva indice={6}>
+          <Rotulo>06 · Entregables</Rotulo>
+          <Titulo>Siete formatos, todos generados en el navegador</Titulo>
+          <div className="mt-10 grid gap-px bg-borde-suave sm:grid-cols-4">
+            {[
+              ["PDF", "Dictamen completo"],
+              ["Word", "OOXML propio, sin librería"],
+              ["CSV", "Catálogo de conceptos"],
+              ["HTML", "Informe con planos"],
+              ["DXF", "AutoCAD · importa Revit"],
+              ["IFC", "Estándar BIM abierto"],
+              ["SVG", "Planos vectoriales"],
+              ["—", "El documento nunca vuelve al servidor"],
+            ].map(([f, d]) => (
+              <div key={f} className="bg-superficie px-5 py-6">
+                <p className="cifra text-xl font-semibold text-acento">{f}</p>
+                <p className="mt-2 text-xs leading-relaxed text-tinta-media">{d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 max-w-3xl text-sm leading-relaxed text-tinta-media">
+            <strong className="text-tinta">Sobre .rvt:</strong> es un formato
+            binario propietario que solo Revit puede escribir; ningún sistema lo
+            genera por API. Se entrega DXF —que AutoCAD abre y Revit importa— e
+            IFC, el estándar abierto que Revit lee sin conversión. Es la vía real
+            en la industria.
+          </p>
+        </Diapositiva>
+
+        {/* 08 — Progreso en vivo */}
+        <Diapositiva indice={7}>
           <Rotulo>04 · Experiencia</Rotulo>
           <Titulo>El usuario ve lo que pasa</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -126,7 +218,7 @@ export default function Presentacion() {
         </Diapositiva>
 
         {/* 06 — Decisión 1 */}
-        <Diapositiva indice={5}>
+        <Diapositiva indice={8}>
           <Rotulo>05 · Decisión técnica</Rotulo>
           <Titulo>El modelo no devuelve texto</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -149,7 +241,7 @@ if (resultado.success) return resultado.data;
         </Diapositiva>
 
         {/* 07 — Decisión 2 */}
-        <Diapositiva indice={6}>
+        <Diapositiva indice={9}>
           <Rotulo>06 · Decisión técnica</Rotulo>
           <Titulo>La aritmética no la hace el modelo</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -170,7 +262,7 @@ return {
         </Diapositiva>
 
         {/* 08 — Decisión 3 */}
-        <Diapositiva indice={7}>
+        <Diapositiva indice={10}>
           <Rotulo>07 · Decisión técnica</Rotulo>
           <Titulo>Sin cita no hay requerimiento</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -193,7 +285,7 @@ return {
         </Diapositiva>
 
         {/* 09 — Decisión 4 */}
-        <Diapositiva indice={8}>
+        <Diapositiva indice={11}>
           <Rotulo>08 · Decisión técnica</Rotulo>
           <Titulo>BM25, no embeddings</Titulo>
           <div className="mt-8 grid max-w-4xl gap-6 sm:grid-cols-3">
@@ -216,7 +308,7 @@ return {
         </Diapositiva>
 
         {/* 10 — Decisión 5 */}
-        <Diapositiva indice={9}>
+        <Diapositiva indice={12}>
           <Rotulo>09 · Decisión técnica</Rotulo>
           <Titulo>El servidor no guarda nada</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -239,7 +331,7 @@ return {
         </Diapositiva>
 
         {/* 11 — Stack */}
-        <Diapositiva indice={10}>
+        <Diapositiva indice={13}>
           <Rotulo>10 · Stack</Rotulo>
           <Titulo>Qué se usó</Titulo>
           <dl className="mt-9 grid max-w-4xl gap-x-10 gap-y-4 sm:grid-cols-2">
@@ -249,8 +341,8 @@ return {
               ["Claude Sonnet 5", "Tool use forzado y streaming"],
               ["Zod 4", "Validación de toda salida del modelo"],
               ["Tailwind CSS 4", "Sistema de diseño en tokens con @theme"],
-              ["jose · unpdf · jsPDF", "JWT, lectura de PDF, generación del dictamen"],
-              ["node:test", "31 pruebas, cero dependencias de desarrollo"],
+              ["unpdf · mammoth · exceljs", "Ingesta de PDF, Word y Excel; DXF e IFC con parsers propios"],
+              ["node:test", "36 pruebas, cero dependencias de desarrollo"],
               ["Vercel", "Despliegue continuo desde GitHub"],
             ].map(([nombre, para]) => (
               <div key={nombre} className="border-l-2 border-acento/40 pl-4">
@@ -262,7 +354,7 @@ return {
         </Diapositiva>
 
         {/* 12 — Resultados */}
-        <Diapositiva indice={11}>
+        <Diapositiva indice={14}>
           <Rotulo>11 · Verificación</Rotulo>
           <Titulo>Una ejecución real, medida</Titulo>
           <p className="mt-5 max-w-3xl text-tinta-media">
@@ -272,12 +364,12 @@ return {
           <div className="mt-9 grid gap-px bg-borde-suave sm:grid-cols-2 lg:grid-cols-4">
             <Metrica valor="1:58" etiqueta="minutos de pipeline" />
             <Metrica valor="17" etiqueta="requerimientos (7 críticos)" />
-            <Metrica valor="26" etiqueta="partidas presupuestadas" />
-            <Metrica valor="14" etiqueta="hallazgos normativos" />
+            <Metrica valor="7" etiqueta="formatos de salida" />
+            <Metrica valor="13" etiqueta="disciplinas soportadas" />
             <Metrica valor="0" etiqueta="incoherencias aritméticas" destacada />
             <Metrica valor="21/26" etiqueta="partidas con supuesto declarado" />
             <Metrica valor="$4.9 M" etiqueta="presupuesto estimado (MXN)" />
-            <Metrica valor="31/31" etiqueta="pruebas en verde" destacada />
+            <Metrica valor="36/36" etiqueta="pruebas en verde" destacada />
           </div>
           <p className="mt-8 max-w-3xl text-sm leading-relaxed text-tinta-media">
             Detectó por su cuenta lo que el documento no mencionaba: ausencia de
@@ -288,7 +380,7 @@ return {
         </Diapositiva>
 
         {/* 13 — Límites */}
-        <Diapositiva indice={12}>
+        <Diapositiva indice={15}>
           <Rotulo>12 · Honestidad</Rotulo>
           <Titulo>Lo que todavía no hace</Titulo>
           <ul className="mt-9 max-w-3xl space-y-4">
@@ -296,7 +388,8 @@ return {
               ["PDF escaneados", "Requiere texto seleccionable. Sin OCR, un plano escaneado se rechaza con un mensaje explícito."],
               ["Precios de referencia", "El modelo estima a valor de mercado; no consulta una base de precios viva."],
               ["Normativa", "El prompt obliga a poner null antes que inventar un artículo, pero toda cita debe verificarse."],
-              ["Validación profesional", "Es un análisis preliminar. No sustituye la firma de un responsable técnico, y la app lo advierte."],
+              [".rvt nativo", "No es generable sin Revit: ningún sistema lo escribe por API. Se entrega DXF e IFC, la vía real de intercambio."],
+              ["Validación profesional", "Es un anteproyecto. No sustituye la firma de un responsable técnico, y la app lo advierte."],
             ].map(([titulo, texto]) => (
               <li key={titulo} className="flex gap-4">
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-alto" aria-hidden="true" />
@@ -310,7 +403,7 @@ return {
         </Diapositiva>
 
         {/* 14 — Cierre */}
-        <Diapositiva indice={13} className="relative">
+        <Diapositiva indice={16} className="relative">
           <div className="rejilla-tecnica pointer-events-none absolute inset-0" aria-hidden="true" />
           <div className="relative">
             <Rotulo>Gracias</Rotulo>

@@ -1,6 +1,6 @@
 # ANDRES Engineering AI
 
-**Sistema multiagente que convierte un pliego de obra en un dictamen técnico: requerimientos con evidencia, presupuesto con precios unitarios y hallazgos normativos.**
+**Engineering Document Analysis & Project Intelligence** — sistema multiagente que audita documentación de obra y proyecta desde cero en trece disciplinas de ingeniería: extrae requerimientos con su evidencia, presupuesta con matrices de precio unitario, revisa el cumplimiento normativo y **dibuja los planos y diagramas del sistema**.
 
 Trabajo de Fin de Máster · Máster en Desarrollo con IA · BIG School
 Autor: **Heber Andres Acosta Jimenez** — andresacosta.mwm@gmail.com
@@ -16,7 +16,7 @@ Autor: **Heber Andres Acosta Jimenez** — andresacosta.mwm@gmail.com
 | Presentación (slides) | https://andres-engineering-ai.vercel.app/slides |
 | Vídeo de presentación | _(pendiente de publicar — ver `docs/guion-video.md`)_ |
 
-**Credenciales de prueba** (aparecen también en la propia pantalla de acceso):
+**Credenciales de prueba** (aparecen también en la pantalla de acceso):
 
 ```
 Usuario:    demo@diem.mx
@@ -27,22 +27,33 @@ Contraseña: TFMdemo2026
 
 ## 1. Descripción general
 
-Antes de decidir si compite por una obra, un equipo de ingeniería dedica entre tres y cinco días a la misma tarea: leer el pliego, extraer qué se exige, cuantificar, presupuestar y comprobar qué normativa aplica. Es un trabajo caro, repetitivo y —lo peor— propenso a que se escape justo lo que no está escrito: la partida que la ley obliga pero el documento no menciona.
+Antes de decidir si compite por una obra, un equipo de ingeniería dedica entre tres y cinco días a la misma tarea: leer el pliego, extraer qué se exige, cuantificar, presupuestar y comprobar qué normativa aplica. Es un trabajo caro, repetitivo y propenso a que se escape justo lo que no está escrito: la partida que la ley obliga pero el documento no menciona.
 
-**ANDRES Engineering AI** automatiza ese primer barrido. Se le entrega un PDF (pliego, alcance de obra o memoria descriptiva) y devuelve, en unos dos minutos:
+**ANDRES Engineering AI** hace ese trabajo en dos direcciones.
 
-1. **Los requerimientos técnicos**, cada uno con la cita textual del documento que lo respalda y la página donde aparece.
-2. **Un catálogo de conceptos** con matriz de precio unitario desglosada en materiales, mano de obra, equipo e indirectos, y los supuestos declarados cuando el documento no da una cantidad.
-3. **Los hallazgos de cumplimiento normativo** contra el marco mexicano (NOM-001-SEDE, NOM-STPS, reglamentos de construcción), incluidos los hallazgos *por ausencia*: lo que debería estar especificado y no lo está.
-4. **Un resumen ejecutivo** con el riesgo global consolidado y las acciones recomendadas, exportable a **PDF**.
+### Analizar documentación existente
 
-Además incorpora un **chat sobre el documento** con recuperación de fragmentos, que responde únicamente con lo que el texto dice y muestra en qué fragmentos se apoyó.
+Se le entregan uno o varios documentos —PDF, Word, Excel, CSV, HTML, DXF, IFC, JSON o texto— y devuelve:
 
-El resultado no sustituye a un responsable técnico: le ahorra el primer barrido y le señala dónde mirar. Toda la interfaz y el PDF generado lo advierten explícitamente.
+1. **Los requerimientos técnicos**, cada uno con la cita textual que lo respalda y su página.
+2. **Un catálogo de conceptos** con matriz de precio unitario desglosada y los supuestos declarados cuando el documento no da una cantidad.
+3. **Los hallazgos de cumplimiento normativo**, incluidos los *por ausencia*: lo que debería estar especificado y no lo está.
+4. **Un resumen ejecutivo** con riesgo global y acciones recomendadas.
+
+Incorpora además un **chat sobre el documento** que responde solo con lo que el texto dice y muestra los fragmentos en los que se apoyó.
+
+### Proyectar desde cero
+
+Se describe qué se quiere construir, se elige **disciplina** (13) y **envergadura** (pequeña, mediana o gran envergadura), y el sistema:
+
+1. **Redacta el alcance de obra** numerable a partir de la descripción.
+2. Ejecuta sobre él el mismo pipeline de análisis.
+3. **Dibuja los planos y diagramas** propios de la disciplina, con simbología normalizada, cajetín y ruteo ortogonal.
+4. Exporta todo a **PDF, Word, CSV, HTML, DXF, IFC y SVG**.
 
 ### Por qué este proyecto
 
-El máster es agnóstico en cuanto a qué construir, así que elegí un problema que conozco de primera mano por mi actividad profesional en ingeniería y dirección de proyectos. Eso permitió dos cosas que un proyecto genérico no habría permitido: escribir prompts con criterio de dominio real (un ingeniero de costos sabe que los indirectos rondan el 15-25%) y **evaluar la calidad de la salida**, que en un sistema con LLM es la parte difícil.
+Elegí un problema que conozco de primera mano por mi actividad profesional en ingeniería y dirección de proyectos. Eso permitió dos cosas que un proyecto genérico no habría permitido: escribir prompts con criterio de dominio real y, sobre todo, **evaluar la calidad de la salida**, que en un sistema con LLM es la parte difícil.
 
 ---
 
@@ -50,16 +61,17 @@ El máster es agnóstico en cuanto a qué construir, así que elegí un problema
 
 | Capa | Tecnología | Por qué |
 | --- | --- | --- |
-| Framework | **Next.js 16** (App Router) + React 19 | Server Components para no enviar al cliente lo que no hace falta, y Route Handlers para el streaming |
-| Lenguaje | **TypeScript 5** en modo estricto | Los contratos entre agentes están tipados de extremo a extremo |
-| Estilos | **Tailwind CSS 4** con `@theme` | Sistema de diseño en tokens CSS, sin archivo de configuración JS |
+| Framework | **Next.js 16** (App Router) + React 19 | Server Components, Route Handlers para streaming y Edge para proteger rutas |
+| Lenguaje | **TypeScript 5** estricto | Contratos tipados de extremo a extremo entre agentes |
+| Estilos | **Tailwind CSS 4** con `@theme` | Sistema de diseño en tokens, sin archivo de configuración JS |
 | IA | **Anthropic SDK** · `claude-sonnet-5` | Tool use forzado para salida estructurada; streaming para el chat |
 | Validación | **Zod 4** | Valida en la frontera todo lo que devuelve el modelo |
 | Autenticación | **jose** (JWT HS256) + cookie httpOnly | Sin proveedor externo: la app es *stateless* por diseño |
-| PDF entrada | **unpdf** | PDF.js compilado sin dependencias nativas, funciona en serverless |
-| PDF salida | **jsPDF** + **jspdf-autotable** | El dictamen se genera en el cliente: el documento nunca vuelve al servidor |
-| Tipografía | IBM Plex Sans / Mono | Diseñada para documentación técnica; cifras tabulares en las tablas |
-| Pruebas | **node:test** nativo | 31 pruebas sin añadir una sola dependencia de desarrollo |
+| Ingesta | **unpdf**, **mammoth**, **exceljs** + parsers propios | PDF, Word, Excel; DXF, IFC, CSV y HTML con extractores escritos para el caso |
+| Salida | **jsPDF**, OOXML y generadores propios | PDF, Word, CSV, HTML, DXF, IFC y SVG, todo en el cliente |
+| Diagramas | SVG generado por la aplicación | El modelo aporta la topología; el trazo lo pone el código |
+| Tipografía | IBM Plex Sans / Mono | Diseñada para documentación técnica; cifras tabulares |
+| Pruebas | **node:test** nativo | 36 pruebas sin una sola dependencia de desarrollo |
 | Despliegue | **Vercel** | Runtime Node.js para el pipeline, Edge para la protección de rutas |
 
 ---
@@ -83,16 +95,7 @@ npm run dev
 
 La aplicación queda en `http://localhost:3000`. Entra con las credenciales de prueba.
 
-> **Sin API key también funciona.** Si `ANTHROPIC_API_KEY` está vacía, la aplicación arranca en **modo demostración**: el pipeline recorre exactamente las mismas cuatro etapas con un caso real precargado, y la interfaz lo indica. Así se puede evaluar el flujo completo sin consumir cuota.
-
-### Para analizar documentos propios
-
-Añade tu clave a `.env.local`:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-AUTH_SECRET=$(openssl rand -hex 32)
-```
+> **Sin API key también funciona.** Si `ANTHROPIC_API_KEY` está vacía —o si la cuenta ha agotado su cuota— la aplicación recorre las mismas etapas con un caso real precargado y lo indica en la interfaz. Nunca se queda inservible.
 
 ### Comandos disponibles
 
@@ -101,7 +104,7 @@ AUTH_SECRET=$(openssl rand -hex 32)
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compilación de producción |
 | `npm start` | Sirve la compilación de producción |
-| `npm test` | 31 pruebas unitarias (node:test) |
+| `npm test` | 36 pruebas unitarias (node:test) |
 | `npm run typecheck` | Comprobación de tipos sin emitir |
 | `npm run lint` | ESLint |
 
@@ -112,138 +115,138 @@ AUTH_SECRET=$(openssl rand -hex 32)
 ```
 andres-engineering-ai/
 ├── app/
-│   ├── page.tsx                     Portada pública: problema, arquitectura, decisiones
-│   ├── login/page.tsx               Acceso con credenciales de demostración
-│   ├── app/page.tsx                 Área de trabajo (protegida)
-│   ├── layout.tsx                   Tipografía y metadatos
-│   ├── globals.css                  Sistema de diseño en tokens
+│   ├── page.tsx                       Portada pública
+│   ├── login/page.tsx                 Acceso
+│   ├── app/page.tsx                   Analizar documentos (protegida)
+│   ├── app/proyecto/page.tsx          Crear proyecto (protegida)
+│   ├── slides/page.tsx                Presentación del TFM
+│   ├── icon.png · opengraph-image.png Identidad e imagen al compartir
 │   └── api/
-│       ├── auth/login/route.ts      Firma la cookie de sesión
-│       ├── auth/logout/route.ts     La invalida
-│       ├── extraer/route.ts         PDF → texto (multipart, no persiste nada)
-│       ├── agentes/analizar/route.ts  Pipeline completo por Server-Sent Events
-│       └── chat/route.ts            Chat con recuperación de fragmentos (streaming)
+│       ├── auth/…                     Sesión
+│       ├── extraer/route.ts           Ingesta multiformato y múltiple
+│       ├── agentes/analizar/route.ts  Pipeline de análisis (SSE)
+│       ├── proyecto/generar/route.ts  Pipeline de proyecto (SSE)
+│       └── chat/route.ts              Chat con recuperación (streaming)
 │
 ├── lib/
 │   ├── agentes/
-│   │   ├── orquestador.ts           Coordina las tres etapas y emite eventos
-│   │   ├── extractor.ts             Agente 1 — requerimientos con evidencia
-│   │   ├── costos.ts                Agente 2 — presupuesto + normalización aritmética
-│   │   ├── normativo.ts             Agente 3 — hallazgos + consolidación de riesgo
-│   │   ├── sintesis.ts              Agente 4 — resumen ejecutivo
-│   │   └── comun.ts                 Fragmentos de JSON Schema compartidos
-│   ├── anthropic.ts                 Tool use forzado, validación y reintento
-│   ├── schemas.ts                   Esquemas Zod de toda salida del modelo
-│   ├── types.ts                     Contratos compartidos servidor ↔ cliente
-│   ├── rag.ts                       Fragmentación y recuperación BM25
-│   ├── auth.ts                      JWT HS256
-│   ├── limite.ts                    Limitador de peticiones por IP
-│   ├── pdf.ts                       Extracción de texto de PDF
-│   ├── exportar-pdf.ts              Generación del dictamen
-│   ├── almacen.ts                   Historial en localStorage
-│   ├── demo.ts                      Caso de demostración
-│   └── formato.ts                   Formato de moneda y fechas
+│   │   ├── orquestador.ts             Pipeline de análisis
+│   │   ├── orquestador-proyecto.ts    Pipeline de proyecto
+│   │   ├── programa.ts                Agente 1 — alcance de obra
+│   │   ├── extractor.ts               Agente 2 — requerimientos con evidencia
+│   │   ├── costos.ts                  Agente 3 — presupuesto + normalización
+│   │   ├── normativo.ts               Agente 4 — hallazgos + riesgo
+│   │   ├── proyectista.ts             Agente 5 — topología de los diagramas
+│   │   └── sintesis.ts                Agente 6 — resumen ejecutivo
+│   ├── diagramas/tipos.ts             Modelo de datos de un plano
+│   ├── extractores/index.ts           PDF, Word, Excel, CSV, HTML, DXF, IFC, JSON
+│   ├── exportadores/                  CSV, HTML, DXF, IFC, SVG y Word (OOXML)
+│   ├── disciplinas.ts                 13 disciplinas con normativa y diagramas
+│   ├── anthropic.ts                   Tool use forzado, validación y cuota
+│   ├── rag.ts                         Fragmentación y recuperación BM25
+│   └── …                              auth, límite, formato, almacén, demo
 │
 ├── components/
-│   ├── Taller.tsx                   Estado del área de trabajo, consumo del SSE
-│   ├── PanelAgentes.tsx             Progreso del pipeline en tiempo real
-│   ├── Resultados.tsx               Resumen, presupuesto, hallazgos, requerimientos
-│   ├── ChatDocumento.tsx            Chat con fuentes desplegables
-│   ├── ZonaCarga.tsx                Carga por arrastre o selección
-│   ├── FormularioAcceso.tsx         Acceso
-│   ├── Insignias.tsx                Semáforo de riesgo y disciplinas
-│   └── Marca.tsx                    Isotipo y logotipo
+│   ├── diagramas/Plano.tsx            Renderizador de planos
+│   ├── diagramas/Simbolos.tsx         Biblioteca de simbología normalizada
+│   ├── CrearProyecto.tsx              Formulario y resultados de proyecto
+│   ├── Taller.tsx                     Área de análisis de documentos
+│   └── …                              paneles, tablas, chat, exportación
 │
-├── app/slides/page.tsx              Presentación del TFM (14 diapositivas)
-├── tests/logica.test.ts             31 pruebas de la lógica determinista
-├── proxy.ts                         Protección de rutas en el Edge
-└── docs/guion-video.md              Guion cronometrado del vídeo
+└── tests/logica.test.ts               36 pruebas de la lógica determinista
 ```
 
 ---
 
 ## 5. Funcionalidades principales
 
-### 5.1 Pipeline de cuatro agentes
+### 5.1 Pipeline de agentes
 
 ```
-                 ┌──────────────┐
-   PDF ────────► │  Extractor   │  Etapa 1 (secuencial)
-                 └──────┬───────┘
-                        │ requerimientos
-              ┌─────────┴─────────┐
-              ▼                   ▼
-        ┌──────────┐        ┌────────────┐   Etapa 2 (paralelo)
-        │  Costos  │        │ Normativo  │
-        └─────┬────┘        └──────┬─────┘
-              │  partidas          │ hallazgos
-              └─────────┬──────────┘
-                        ▼
-                 ┌──────────────┐
-                 │   Síntesis   │  Etapa 3
-                 └──────┬───────┘
-                        ▼
-                    Dictamen PDF
+Analizar documentos          Crear proyecto
+─────────────────────        ────────────────────────────────
+                             programa (alcance de obra)
+                                   │
+extractor  ←── documentos    extractor
+     │                             │
+ ┌───┴────┐                 ┌──────┼──────────┐
+ ▼        ▼                 ▼      ▼          ▼
+costos  normativo         costos normativo proyectista
+ └───┬────┘                 └──────┼──────────┘
+     ▼                             ▼
+  síntesis                      síntesis
+     ▼                             ▼
+ Dictamen PDF          Dictamen + planos + 7 formatos
 ```
 
-Cada agente tiene un rol acotado, un esquema de salida obligatorio y solo el contexto que necesita. Costos y normativo no dependen el uno del otro, así que corren en paralelo con `Promise.allSettled`: si uno falla, el otro sigue y el pipeline llega igualmente a la síntesis con lo que sí se produjo.
+Cada agente tiene un rol acotado, un esquema de salida obligatorio y solo el contexto que necesita. Las etapas independientes corren con `Promise.allSettled`: si una falla, las demás siguen y el pipeline llega igualmente a la síntesis.
 
-El progreso viaja al navegador por **Server-Sent Events**, de modo que las tarjetas de los agentes se van completando en vivo en lugar de mostrar un spinner opaco durante dos minutos.
+El progreso viaja por **Server-Sent Events**, de modo que las tarjetas se completan en vivo en lugar de mostrar un spinner durante minutos.
 
-### 5.2 Salida estructurada obligatoria
+### 5.2 Agentes con perfil doctoral
 
-Ningún agente devuelve texto libre. Se declara una herramienta con su `input_schema`, se fija `tool_choice` para que el modelo esté obligado a invocarla, y el argumento devuelto se valida con Zod. Si la validación falla, se reintenta **una vez pasándole al modelo el error concreto** para que se corrija:
+Los seis agentes comparten un perfil de ingeniero con formación de posgrado y dominio transversal de las ingenierías (civil, estructural, mecánica, eléctrica, electrónica, mecatrónica, hidráulica, neumática, HVAC, industrial, aeronáutica, naval, ferroviaria y de fluidos) y de las disciplinas afines. Cada afirmación debe sostenerse en un principio físico, una norma vigente o un dato del documento; lo que no se sostiene se declara como supuesto.
+
+### 5.3 Salida estructurada obligatoria
+
+Ningún agente devuelve texto libre: se declara una herramienta con su `input_schema`, se fija `tool_choice` y el argumento se valida con Zod. Si falla, se reintenta **una vez pasándole el error concreto**:
 
 ```ts
-mensajes.push(
-  { role: "assistant", content: respuesta.content },
-  { role: "user", content: [{
-      type: "tool_result",
-      tool_use_id: bloque.id,
-      is_error: true,
-      content: `La estructura no es válida: ${...}. Vuelve a llamar a la herramienta corrigiendo esos campos.`,
-  }]},
-);
+tool_choice: { type: "tool", name: herramienta },   // el modelo no puede evadirlo
+…
+const resultado = validador.safeParse(bloque.input);
+if (resultado.success) return resultado.data;
+// si no, se reinyecta el error de validación como tool_result y se reintenta
 ```
 
-### 5.3 La aritmética no la hace el modelo
+### 5.4 La aritmética no la hace el modelo
 
-Los LLM estiman precios bien y multiplican mal. El precio unitario lo propone el modelo; el importe, el total del presupuesto y el riesgo global se calculan en código:
+Los LLM estiman precios bien y multiplican mal. El precio unitario lo propone el modelo; el importe, el total y el riesgo global se calculan en código, y si la matriz de precio unitario no cuadra se ajustan los indirectos.
 
-```ts
-// lib/agentes/costos.ts
-importe: redondear(p.cantidad * p.precioUnitario)
-```
+### 5.5 Diagramas técnicos reales
 
-Si la matriz de precio unitario no suma el precio unitario declarado, se ajustan los indirectos para que cuadre. En la ejecución real documentada más abajo, las 26 partidas generadas quedaron con aritmética exacta.
+El agente proyectista **no dibuja**: devuelve la topología del diagrama —qué elementos hay, dónde van sobre una rejilla lógica y cómo se conectan—. El renderizador de la aplicación la convierte en un plano con:
 
-### 5.4 Evidencia obligatoria
+- **Simbología normalizada** (IEC/NEMA en eléctrico, ISO 1219 en neumático, ISA 5.1 en instrumentación): más de 50 símbolos dibujados en SVG.
+- **Ruteo ortogonal** en L, como se traza un unifilar o un P&ID de verdad.
+- **Cajetín** con título, proyecto, escala y fecha, y marco de plano.
+- **Anticolisión**: separación elíptica entre elementos, con más holgura vertical porque bajo cada símbolo van su etiqueta y sus datos.
 
-El extractor está obligado por prompt a citar textualmente el documento en cada requerimiento. Sin cita, no hay requerimiento. En la interfaz, cada renglón despliega su cita y la página, para poder auditarlo contra el original.
+Esa separación entre *qué hay* (modelo) y *cómo se dibuja* (código) es lo que hace que la salida se parezca a un plano y no a un boceto.
 
-### 5.5 Chat sobre el documento (RAG léxico)
+Tipos disponibles: unifilar eléctrico, isométrico hidráulico, esquema neumático, diagrama mecánico, esquemático electrónico, P&ID, climatización, bloques, planta esquemática y esquema estructural.
 
-El documento se fragmenta con solape y se recupera con **BM25** implementado desde cero, sin dependencias ni servicios externos.
+### 5.6 Trece disciplinas, tres envergaduras
 
-**Por qué BM25 y no embeddings:** el corpus es un solo documento por sesión, así que no hay nada que amortizar indexando; en documentos técnicos la consulta y el texto comparten vocabulario literal (`NOM-001-SEDE`, `f'c=250`, `tablero`), que es justo donde el emparejamiento léxico rinde mejor; y es auditable — la interfaz muestra qué fragmentos se recuperaron y de qué página.
+Arquitectura · Civil y estructural · Mecánica · Mecatrónica · Eléctrica · Electrónica · Hidráulica y sanitaria · Neumática · HVAC · Aeronáutica · Naval · Ferroviaria · Ingeniería de fluidos.
 
-El prompt obliga a responder solo con los fragmentos entregados y a decir "el documento no especifica esto" cuando no está.
+Cada disciplina declara su normativa de referencia, sus entregables característicos y qué diagramas le son propios, de modo que el sistema no propone un unifilar en un proyecto de estructuras. La envergadura calibra el alcance, el número de partidas y cuántos planos se dibujan.
 
-### 5.6 Exportación del dictamen a PDF
+### 5.7 Ingesta múltiple y multiformato
 
-Documento de 5 páginas con encabezado, resumen ejecutivo, tabla de metadatos, recomendaciones numeradas, catálogo de conceptos con total, hallazgos con su nivel de riesgo en color y supuestos. Se genera **en el navegador**: coherente con no enviar el documento al servidor.
+Hasta 10 archivos por análisis, en PDF, Word, Excel, CSV, HTML, DXF, IFC, JSON y texto. Los formatos técnicos no se convierten a prosa: de un **DXF** se extraen capas, bloques y anotaciones; de un **IFC**, la jerarquía espacial y los elementos por tipo. Es lo que miraría primero un proyectista.
 
-### 5.7 Autenticación y protección
+### 5.8 Exportación a siete formatos
 
-- JWT HS256 firmado con `jose`, en cookie `httpOnly`, `sameSite=lax`, `secure` en producción, vigencia de 8 horas.
-- `proxy.ts` (el antiguo `middleware.ts`, renombrado en Next.js 16) protege `/app` y las tres API de negocio en el Edge, antes de renderizar.
-- Limitador de peticiones por IP en ventana deslizante: 10 accesos/5 min, 8 análisis/30 min, 30 preguntas/15 min. Evita que la cuenta de demostración pública agote la cuota de la API.
-- Validación de entrada en toda frontera: tipo MIME, tamaño máximo (12 MB), longitud mínima y máxima de texto.
-- El mensaje de error de acceso es genérico a propósito: no revela si el usuario existe.
+PDF (dictamen completo), Word (.docx generado con OOXML propio, sin librería), CSV, HTML (informe autocontenido con los planos incrustados), **DXF**, **IFC** y SVG.
 
-### 5.8 Modo demostración
+> **Sobre `.rvt`**: es un formato binario propietario que solo Revit puede escribir; ningún sistema lo genera por API. Se produce **DXF** —que AutoCAD abre y Revit importa— e **IFC**, el estándar abierto de intercambio BIM que Revit lee sin conversión. Es la vía habitual en la industria.
 
-Si el despliegue no tiene `ANTHROPIC_API_KEY`, el orquestador recorre las mismas etapas con un caso real anonimizado, marcando la salida como demostración en la interfaz y en el PDF. La aplicación nunca queda inservible por falta de cuota.
+### 5.9 Chat sobre el documento (RAG léxico)
+
+Recuperación **BM25** implementada desde cero, sin base vectorial ni servicios externos. Para un solo documento por sesión el emparejamiento léxico rinde mejor —consulta y texto comparten vocabulario literal: `NOM-001-SEDE`, `f'c=250`, `tablero`— y es auditable: la interfaz muestra qué fragmentos se usaron.
+
+### 5.10 Degradación elegante
+
+Si la cuenta agota su cuota de API, el sistema lo detecta (por mensaje, 429, 529 o 402), lo dice en la interfaz y **continúa con el caso de demostración** en lugar de romperse. Un límite de facturación no es un fallo del código y no debería dejar la herramienta inservible.
+
+### 5.11 Seguridad
+
+- JWT HS256 en cookie `httpOnly`, `sameSite=lax`, `secure` en producción, 8 horas.
+- `proxy.ts` protege el área privada y las API de negocio en el Edge.
+- Limitador por IP en ventana deslizante: 10 accesos/5 min, 8 análisis/30 min, 5 proyectos/30 min, 30 preguntas/15 min.
+- Validación en toda frontera: tipo, tamaño (15 MB por archivo), número de archivos y longitud de texto.
+- Mensaje de error de acceso genérico: no revela si el usuario existe.
 
 ---
 
@@ -251,12 +254,15 @@ Si el despliegue no tiene `ANTHROPIC_API_KEY`, el orquestador recorre las mismas
 
 | Decisión | Alternativa descartada | Motivo |
 | --- | --- | --- |
-| Servidor sin estado, historial en `localStorage` | Base de datos con los análisis | Un pliego contiene información comercial sensible. El coste asumido: el historial no se sincroniza entre dispositivos |
-| Autenticación propia con JWT | Supabase Auth / NextAuth | La app no tiene usuarios reales, solo una cuenta pública de evaluación. Un proveedor externo habría añadido dependencia y superficie sin aportar nada |
-| BM25 | Base vectorial con embeddings | Un documento por sesión; recuperación explicable; cero servicios externos |
-| SSE | WebSocket | El flujo es unidireccional servidor→cliente y no requiere infraestructura extra en Vercel |
-| Cuatro agentes especializados | Una sola llamada larga | Roles acotados producen prompts más precisos, permiten paralelizar y aíslan los fallos: si costos falla, normativo sigue |
-| Tema oscuro único | Claro/oscuro adaptativo | Es una herramienta de trabajo prolongado, no una pieza expresiva. La decisión se toma una vez y se ejecuta bien |
+| El modelo da topología, el código dibuja | Pedirle SVG al modelo | Un plano necesita simbología consistente y ruteo predecible; eso es trabajo de código, no de generación |
+| Servidor sin estado, historial en `localStorage` | Base de datos con los análisis | Un pliego contiene información comercial sensible. Coste asumido: no se sincroniza entre dispositivos |
+| Autenticación propia con JWT | Proveedor externo de identidad | Una sola cuenta pública de evaluación; un proveedor habría añadido dependencia y superficie sin aportar nada |
+| BM25 | Base vectorial con embeddings | Un documento por sesión, recuperación explicable, cero servicios externos |
+| SSE | WebSocket | Flujo unidireccional servidor→cliente, sin infraestructura extra |
+| DXF + IFC | Intentar `.rvt` | `.rvt` no es generable sin Revit; DXF e IFC son los formatos de intercambio reales |
+| OOXML a mano para Word | Librería `docx` | Un `.docx` es un ZIP con tres XML: generarlo directo evita 200 kB de bundle |
+| Degradar a demostración ante cuota agotada | Mostrar el error y parar | La herramienta debe seguir siendo evaluable aunque la cuenta se quede sin crédito |
+| Tema claro corporativo | Oscuro adaptativo | Es un entregable ejecutivo: se lee, se imprime y se lleva a un comité |
 
 ---
 
@@ -266,53 +272,55 @@ Si el despliegue no tiene `ANTHROPIC_API_KEY`, el orquestador recorre las mismas
 npm test
 ```
 
-**31 pruebas, 8 suites, todas en verde.** Cubren la lógica determinista:
+**36 pruebas, 9 suites, todas en verde.** Cubren la lógica determinista:
 
 - Normalización aritmética del presupuesto (importes, matrices descuadradas, redondeo de punto flotante).
-- Consolidación del riesgo global, incluida la escalada por acumulación de hallazgos altos.
-- Tokenización, fragmentación por páginas y recuperación BM25, con casos de consulta sin coincidencias y documento vacío.
+- Consolidación del riesgo global, incluida la escalada por acumulación.
+- Tokenización, fragmentación por páginas y recuperación BM25, con casos sin coincidencias y documento vacío.
 - Firma y verificación de sesión, token manipulado y cookie ausente.
 - Limitador de peticiones por clave.
-- Esquemas Zod frente a entradas inválidas.
-- Coherencia interna de los datos de demostración.
+- Detección de errores de cuota, distinguiéndolos de los errores de programación.
+- Esquemas Zod frente a entradas inválidas y coherencia de los datos de demostración.
 
 No se prueba la salida del modelo: no es determinista y una aserción sobre ella fallaría sin que nada estuviera roto. Lo que sí se verifica es que **cualquier cosa que el modelo devuelva quede normalizada y validada** antes de llegar a la interfaz.
 
 ---
 
-## 8. Verificación de una ejecución real
+## 8. Verificación de ejecuciones reales
 
-Ejecución completa sobre el alcance de obra de ejemplo (nave industrial de 525 m², Cancún), con `claude-sonnet-5`:
+Ejecutadas contra el despliegue de producción con `claude-sonnet-5`:
 
-| Métrica | Resultado |
-| --- | --- |
-| Tiempo total del pipeline | 1 min 58 s |
-| Requerimientos extraídos | 17 (7 críticos) |
-| Partidas presupuestadas | 26 |
-| Importes con aritmética incoherente | **0** |
-| Matrices que no suman su precio unitario | **0** |
-| Partidas con supuesto declarado | 21 de 26 |
-| Hallazgos normativos | 14 (2 críticos, 5 altos, 5 medios, 2 bajos) |
-| Presupuesto estimado | $4,902,090 MXN |
-| PDF generado | 5 páginas |
+| Métrica | Análisis de documento | Proyecto eléctrico |
+| --- | --- | --- |
+| Tiempo del pipeline | 1 min 58 s | ~3 min |
+| Requerimientos | 16 | 17 |
+| Partidas | 27 | 28 |
+| Hallazgos normativos | 14 | 14 |
+| Diagramas generados | — | 2 |
+| **Incoherencias aritméticas** | **0** | **0** |
+| Partidas con supuesto declarado | 21 de 27 | 21 de 28 |
 
-Entre los hallazgos que el sistema detectó por su cuenta y el documento fuente no mencionaba: ausencia de sistema de puesta a tierra y pararrayos, falta de diseño estructural ante viento huracanado —relevante por tratarse de zona ciclónica—, ausencia de protección contra incendio en el cuarto de máquinas y omisión de la memoria de cálculo que valide la capacidad de la subestación existente.
+Entre lo que el sistema detectó por su cuenta y el documento fuente no mencionaba: ausencia de puesta a tierra y pararrayos, falta de diseño estructural ante viento huracanado —relevante por tratarse de zona ciclónica—, ausencia de protección contra incendio en el cuarto de máquinas y omisión de la memoria de cálculo que valide la subestación existente.
+
+En el unifilar generado para una planta de tratamiento, la jerarquía resultó correcta (acometida → medición → transformador → interruptor general → tablero general → derivados) con calibres coherentes entre tramos (4/0 AWG, 350 kcmil, 250 kcmil).
 
 ---
 
 ## 9. Limitaciones conocidas
 
-- **PDF escaneados**: se requiere texto seleccionable. Un plano escaneado sin OCR se rechaza con un mensaje explícito. Integrar OCR es la siguiente evolución natural.
-- **Precios de referencia**: el agente de costos estima a valor de mercado a partir del conocimiento del modelo, no consulta una base de precios viva. Para uso contractual habría que conectarlo a un catálogo propio.
-- **Normativa**: el modelo cita el marco mexicano habitual, pero el prompt le obliga a poner `null` en el artículo antes que inventarlo. Toda referencia normativa debe verificarse.
-- **Limitador en memoria**: al ser por instancia, en un despliegue con varias instancias haría falta un almacén compartido.
-- **Documentos muy largos**: por encima de 400.000 caracteres se recorta conservando principio y final, que es donde suelen estar alcance y anexos.
+- **PDF escaneados**: se requiere texto seleccionable. Un plano escaneado sin OCR se rechaza con un mensaje explícito.
+- **DXF y DWG**: se lee DXF (texto). El DWG binario no se parsea; hay que exportar a DXF desde el CAD.
+- **`.rvt`**: no se genera, por lo explicado arriba. Se entrega DXF e IFC.
+- **Diagramas**: son esquemas de anteproyecto, no planos de ejecución. No llevan escala real ni geometría acotada.
+- **Precios**: el agente estima a valor de mercado desde el conocimiento del modelo; no consulta una base de precios viva.
+- **Normativa**: el prompt obliga a poner `null` en el artículo antes que inventarlo, pero toda referencia debe verificarse.
+- **Limitador en memoria**: por instancia; en un despliegue con varias haría falta un almacén compartido.
 
 ---
 
 ## 10. Aviso
 
-ANDRES Engineering AI produce un **análisis preliminar asistido por IA**. No sustituye el criterio ni la firma de un responsable técnico, y sus cifras no tienen validez contractual sin validación profesional. La aplicación lo advierte en la interfaz y en cada PDF que genera.
+ANDRES Engineering AI produce un **anteproyecto y un análisis preliminar asistidos por IA**. No sustituye el criterio ni la firma de un responsable técnico, y sus cifras y planos no tienen validez contractual ni constructiva sin validación profesional. La aplicación lo advierte en la interfaz y en cada documento que genera.
 
 ---
 
