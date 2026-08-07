@@ -14,7 +14,7 @@
  * progreso real en lugar de un spinner opaco.
  */
 import type { EventoAgente, Hallazgo, Partida } from "../types.ts";
-import { hayApiKey } from "../anthropic.ts";
+import { esErrorDeCuota, hayApiKey } from "../anthropic.ts";
 import { recortarDocumento } from "./comun.ts";
 import { extraerRequerimientos } from "./extractor.ts";
 import { generarPresupuesto } from "./costos.ts";
@@ -46,7 +46,22 @@ export async function* analizar(
     agente: "extractor",
     mensaje: "Leyendo el documento y extrayendo requerimientos técnicos",
   };
-  const requerimientos = await extraerRequerimientos(documento);
+  let requerimientos;
+  try {
+    requerimientos = await extraerRequerimientos(documento);
+  } catch (error) {
+    if (esErrorDeCuota(error)) {
+      yield {
+        tipo: "error",
+        agente: "extractor",
+        mensaje:
+          "La cuota de la API está agotada; el análisis continúa en modo demostración.",
+      };
+      yield* analizarEnModoDemo();
+      return;
+    }
+    throw error;
+  }
   yield { tipo: "resultado", agente: "extractor", datos: requerimientos };
 
   // Etapa 2 — costos y normativa en paralelo.

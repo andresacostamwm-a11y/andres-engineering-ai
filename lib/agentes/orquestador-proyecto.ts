@@ -16,7 +16,7 @@ import type { Hallazgo, Partida } from "../types.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
 import { fichaDisciplina } from "../disciplinas.ts";
-import { hayApiKey } from "../anthropic.ts";
+import { esErrorDeCuota, hayApiKey } from "../anthropic.ts";
 import { recortarDocumento } from "./comun.ts";
 import { redactarAlcance } from "./programa.ts";
 import { extraerRequerimientos } from "./extractor.ts";
@@ -53,7 +53,26 @@ export async function* proyectar(
     agente: "programa",
     mensaje: "Redactando el alcance de obra a partir de tu descripción",
   };
-  const { alcance, premisas } = await redactarAlcance(encargo);
+
+  let alcance: string;
+  let premisas: string[];
+  try {
+    ({ alcance, premisas } = await redactarAlcance(encargo));
+  } catch (error) {
+    // Si la cuenta no puede llamar al modelo, la aplicación no se rompe:
+    // recorre el mismo pipeline con el caso de demostración y lo señala.
+    if (esErrorDeCuota(error)) {
+      yield {
+        tipo: "error",
+        agente: "programa",
+        mensaje:
+          "La cuota de la API está agotada; el proyecto continúa en modo demostración.",
+      };
+      yield* proyectarEnModoDemo(encargo);
+      return;
+    }
+    throw error;
+  }
   yield { tipo: "alcance", alcance, premisas };
 
   const documento = recortarDocumento(alcance);

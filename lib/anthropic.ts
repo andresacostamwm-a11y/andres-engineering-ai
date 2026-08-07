@@ -22,6 +22,39 @@ export function hayApiKey(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
+/**
+ * Error que indica que la cuenta no puede llamar al modelo por cuota, límite de
+ * gasto o saturación —no por un fallo del código—. Se distingue del resto para
+ * que la aplicación pueda degradar a modo demostración en lugar de romperse:
+ * una cuota agotada no debería dejar la herramienta inservible.
+ */
+export class ErrorDeCuota extends Error {
+  constructor(mensaje: string) {
+    super(mensaje);
+    this.name = "ErrorDeCuota";
+  }
+}
+
+const SENALES_DE_CUOTA = [
+  "usage limits",
+  "credit balance",
+  "quota",
+  "rate_limit",
+  "overloaded",
+  "insufficient",
+  "billing",
+];
+
+export function esErrorDeCuota(error: unknown): boolean {
+  if (error instanceof ErrorDeCuota) return true;
+  const texto = (
+    error instanceof Error ? error.message : String(error ?? "")
+  ).toLowerCase();
+  const codigo = (error as { status?: number })?.status;
+  if (codigo === 429 || codigo === 529 || codigo === 402) return true;
+  return SENALES_DE_CUOTA.some((senal) => texto.includes(senal));
+}
+
 let clienteCache: Anthropic | null = null;
 
 function cliente(): Anthropic {
@@ -65,20 +98,30 @@ export async function ejecutarAgente<T>(opciones: OpcionesAgente<T>): Promise<T>
   const mensajes: Anthropic.MessageParam[] = [{ role: "user", content: prompt }];
 
   for (let intento = 0; intento < 2; intento++) {
-    const respuesta = await cliente().messages.create({
-      model: modelo,
-      max_tokens: maxTokens,
-      system: sistema,
-      tools: [
-        {
-          name: herramienta,
-          description: descripcionHerramienta,
-          input_schema: esquemaEntrada as Anthropic.Tool.InputSchema,
-        },
-      ],
-      tool_choice: { type: "tool", name: herramienta },
-      messages: mensajes,
-    });
+    let respuesta: Anthropic.Message;
+    try {
+      respuesta = await cliente().messages.create({
+        model: modelo,
+        max_tokens: maxTokens,
+        system: sistema,
+        tools: [
+          {
+            name: herramienta,
+            description: descripcionHerramienta,
+            input_schema: esquemaEntrada as Anthropic.Tool.InputSchema,
+          },
+        ],
+        tool_choice: { type: "tool", name: herramienta },
+        messages: mensajes,
+      });
+    } catch (error) {
+      if (esErrorDeCuota(error)) {
+        throw new ErrorDeCuota(
+          error instanceof Error ? error.message : "Cuota de la API agotada.",
+        );
+      }
+      throw error;
+    }
 
     const bloque = respuesta.content.find((c) => c.type === "tool_use");
     if (!bloque || bloque.type !== "tool_use") {

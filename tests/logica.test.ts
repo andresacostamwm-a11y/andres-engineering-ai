@@ -16,6 +16,7 @@ import { riesgoGlobal } from "../lib/agentes/normativo.ts";
 import { fragmentar, recuperar, tokenizar } from "../lib/rag.ts";
 import { crearToken, credencialesValidas, leerToken } from "../lib/auth.ts";
 import { verificarLimite } from "../lib/limite.ts";
+import { esErrorDeCuota } from "../lib/anthropic.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
@@ -251,5 +252,36 @@ describe("coherencia de los datos de demostración", () => {
 
   it("el total del resumen coincide con la suma de las partidas", () => {
     assert.equal(RESUMEN_DEMO.totalEstimado, totalPresupuesto(PARTIDAS_DEMO));
+  });
+});
+
+describe("detección de errores de cuota", () => {
+  it("reconoce el límite de uso de la API por su mensaje", () => {
+    assert.ok(
+      esErrorDeCuota(
+        new Error(
+          'You have reached your specified API usage limits. You will regain access on 2026-09-01.',
+        ),
+      ),
+    );
+  });
+
+  it("reconoce el saldo agotado", () => {
+    assert.ok(esErrorDeCuota(new Error("Your credit balance is too low")));
+  });
+
+  it("reconoce los códigos 429 y 529 aunque el mensaje no lo diga", () => {
+    assert.ok(esErrorDeCuota(Object.assign(new Error("boom"), { status: 429 })));
+    assert.ok(esErrorDeCuota(Object.assign(new Error("boom"), { status: 529 })));
+  });
+
+  it("no confunde un error de programación con uno de cuota", () => {
+    assert.equal(esErrorDeCuota(new Error("Cannot read property 'x' of undefined")), false);
+    assert.equal(esErrorDeCuota(new TypeError("fetch failed")), false);
+  });
+
+  it("tolera valores que no son Error", () => {
+    assert.equal(esErrorDeCuota(null), false);
+    assert.equal(esErrorDeCuota(undefined), false);
   });
 });

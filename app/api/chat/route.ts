@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hayApiKey, transmitirTexto } from "@/lib/anthropic";
+import { esErrorDeCuota, hayApiKey, transmitirTexto } from "@/lib/anthropic";
 import { fragmentar, recuperar } from "@/lib/rag";
 import { ipDe, verificarLimite } from "@/lib/limite";
 
@@ -98,8 +98,11 @@ export async function POST(request: Request) {
       } catch (error) {
         enviar({
           tipo: "error",
-          mensaje:
-            error instanceof Error ? error.message : "Error al consultar el modelo.",
+          mensaje: esErrorDeCuota(error)
+            ? "La cuota de la API de Anthropic está agotada, así que el chat no está disponible. El análisis y los proyectos siguen funcionando en modo demostración."
+            : error instanceof Error
+              ? error.message
+              : "Error al consultar el modelo.",
         });
       } finally {
         enviar({ tipo: "fin" });
