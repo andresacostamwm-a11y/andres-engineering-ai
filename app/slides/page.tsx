@@ -5,7 +5,7 @@ import { Diapositivas } from "@/components/Diapositivas";
 import { DiagramaPipeline } from "@/components/DiagramaPipeline";
 
 export const metadata = {
-  title: "DIEM Copilot — Presentación del TFM",
+  title: "ANDRES Engineering AI — Presentación del TFM",
   description:
     "Presentación del Trabajo de Fin de Máster: sistema multiagente de análisis de proyectos de ingeniería.",
 };

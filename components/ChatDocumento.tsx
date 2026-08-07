@@ -94,7 +94,7 @@ export function ChatDocumento({
   }
 
   return (
-    <section className="flex flex-col overflow-hidden rounded-xl border border-borde bg-superficie">
+    <section className="flex flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
       <header className="border-b border-borde-suave px-5 py-4">
         <h2 className="text-base font-semibold tracking-tight">
           Consultar el documento
@@ -105,7 +105,7 @@ export function ChatDocumento({
         </p>
       </header>
 
-      <div className="max-h-[26rem] min-h-[10rem] flex-1 space-y-4 overflow-y-auto px-5 py-4">
+      <div className="max-h-[min(28rem,calc(100dvh-26rem))] min-h-[12rem] flex-1 space-y-4 overflow-y-auto px-5 py-4">
         {mensajes.length === 0 && (
           <div>
             <p className="text-sm text-tinta-debil">

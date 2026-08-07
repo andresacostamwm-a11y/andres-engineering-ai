@@ -47,7 +47,7 @@ export function exportarDictamen(analisis: Analisis): void {
   doc.setFontSize(9);
   doc.setTextColor(...GRIS);
   doc.text(
-    `DIEM Copilot · Dictamen generado el ${fechaLarga(analisis.creadoEn)} · Documento fuente: ${analisis.nombreArchivo}`,
+    `ANDRES Engineering AI · Dictamen generado el ${fechaLarga(analisis.creadoEn)} · Documento fuente: ${analisis.nombreArchivo}`,
     margen,
     y,
   );
@@ -271,7 +271,7 @@ function numerarPaginas(doc: jsPDF, margen: number): void {
       doc.internal.pageSize.getHeight() - 24,
       { align: "right" },
     );
-    doc.text("Generado con DIEM Copilot", margen, doc.internal.pageSize.getHeight() - 24);
+    doc.text("Generado con ANDRES Engineering AI", margen, doc.internal.pageSize.getHeight() - 24);
   }
 }
 

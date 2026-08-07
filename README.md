@@ -1,4 +1,4 @@
-# DIEM Copilot
+# ANDRES Engineering AI
 
 **Sistema multiagente que convierte un pliego de obra en un dictamen técnico: requerimientos con evidencia, presupuesto con precios unitarios y hallazgos normativos.**
 
@@ -29,7 +29,7 @@ Contraseña: TFMdemo2026
 
 Antes de decidir si compite por una obra, un equipo de ingeniería dedica entre tres y cinco días a la misma tarea: leer el pliego, extraer qué se exige, cuantificar, presupuestar y comprobar qué normativa aplica. Es un trabajo caro, repetitivo y —lo peor— propenso a que se escape justo lo que no está escrito: la partida que la ley obliga pero el documento no menciona.
 
-**DIEM Copilot** automatiza ese primer barrido. Se le entrega un PDF (pliego, alcance de obra o memoria descriptiva) y devuelve, en unos dos minutos:
+**ANDRES Engineering AI** automatiza ese primer barrido. Se le entrega un PDF (pliego, alcance de obra o memoria descriptiva) y devuelve, en unos dos minutos:
 
 1. **Los requerimientos técnicos**, cada uno con la cita textual del documento que lo respalda y la página donde aparece.
 2. **Un catálogo de conceptos** con matriz de precio unitario desglosada en materiales, mano de obra, equipo e indirectos, y los supuestos declarados cuando el documento no da una cantidad.
@@ -312,7 +312,7 @@ Entre los hallazgos que el sistema detectó por su cuenta y el documento fuente 
 
 ## 10. Aviso
 
-DIEM Copilot produce un **análisis preliminar asistido por IA**. No sustituye el criterio ni la firma de un responsable técnico, y sus cifras no tienen validez contractual sin validación profesional. La aplicación lo advierte en la interfaz y en cada PDF que genera.
+ANDRES Engineering AI produce un **análisis preliminar asistido por IA**. No sustituye el criterio ni la firma de un responsable técnico, y sus cifras no tienen validez contractual sin validación profesional. La aplicación lo advierte en la interfaz y en cada PDF que genera.
 
 ---
 

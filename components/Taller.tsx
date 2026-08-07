@@ -65,21 +65,29 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
   }, []);
 
   /** Sube el PDF, extrae su texto y lanza el pipeline. */
-  const procesarArchivo = useCallback(
-    async (archivo: File) => {
+  const procesarArchivos = useCallback(
+    async (archivos: File[]) => {
       reiniciar();
       setFase("extrayendo");
 
       try {
         const cuerpo = new FormData();
-        cuerpo.append("archivo", archivo);
+        for (const archivo of archivos) cuerpo.append("archivos", archivo);
         const respuesta = await fetch("/api/extraer", { method: "POST", body: cuerpo });
         const datos = await respuesta.json();
 
         if (!respuesta.ok) {
-          setError(datos.error ?? "No se pudo procesar el PDF.");
+          setError(datos.error ?? "No se pudieron procesar los archivos.");
           setFase("vacio");
           return;
+        }
+
+        if (Array.isArray(datos.fallidos) && datos.fallidos.length > 0) {
+          setError(
+            `No se pudieron leer ${datos.fallidos.length} archivo(s): ${datos.fallidos
+              .map((f: { nombre: string; motivo: string }) => `${f.nombre} — ${f.motivo}`)
+              .join("; ")}`,
+          );
         }
 
         setDocumento({
@@ -293,7 +301,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
 
       {fase === "vacio" && (
         <ZonaCarga
-          onArchivo={procesarArchivo}
+          onArchivos={procesarArchivos}
           onEjemplo={usarEjemplo}
           ocupado={ocupado}
         />
@@ -352,13 +360,13 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
 
       {fase === "extrayendo" && (
         <p className="pulso-agente text-center text-sm text-tinta-debil">
-          Extrayendo el texto del PDF…
+          Leyendo los documentos…
         </p>
       )}
 
       {resumen && analisisActual && <PanelResumen analisis={analisisActual} />}
 
-      <div className="grid gap-6 2xl:grid-cols-[minmax(0,2.15fr)_minmax(21rem,1fr)] 2xl:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_25rem]">
         <div className="space-y-6">
           {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
           {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
@@ -367,7 +375,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
           )}
         </div>
 
-        <div className="space-y-6 2xl:sticky 2xl:top-20">
+        <aside className="space-y-4 lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pb-2">
           {documento && (
             <ChatDocumento
               documento={documento.texto}
@@ -381,7 +389,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
               onEliminar={(id) => setHistorial(eliminarAnalisis(id))}
             />
           )}
-        </div>
+        </aside>
       </div>
     </div>
   );
@@ -397,23 +405,42 @@ function Historial({
   onEliminar: (id: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
-      <header className="border-b border-borde-suave px-5 py-4">
-        <h2 className="text-base font-semibold tracking-tight">Historial</h2>
-        <p className="mt-0.5 text-xs text-tinta-debil">
-          Guardado solo en este navegador.
-        </p>
-      </header>
-      <ul className="divide-y divide-borde-suave">
+    <details
+      open
+      className="group overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-3.5">
+        <span>
+          <span className="text-sm font-semibold tracking-tight">Historial</span>
+          <span className="ml-2 cifra text-[0.6875rem] text-tinta-debil">
+            {datos.length}
+          </span>
+        </span>
+        <svg
+          viewBox="0 0 16 16"
+          className="size-4 shrink-0 text-tinta-debil transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 6l4 4 4-4" />
+        </svg>
+      </summary>
+
+      <ul className="max-h-64 divide-y divide-borde-suave overflow-y-auto border-t border-borde-suave">
         {datos.map((a) => (
-          <li key={a.id} className="flex items-center gap-2 px-5 py-3">
+          <li key={a.id} className="flex items-center gap-2 px-5 py-2.5">
             <button
               type="button"
               onClick={() => onAbrir(a)}
-              className="min-w-0 flex-1 text-left"
+              className="min-w-0 flex-1 text-left transition-colors hover:text-acento"
             >
-              <span className="block truncate text-sm">{a.nombreArchivo}</span>
-              <span className="cifra mt-0.5 block text-[0.6875rem] text-tinta-debil">
+              <span className="block truncate text-xs font-medium">
+                {a.nombreArchivo}
+              </span>
+              <span className="cifra mt-0.5 block text-[0.625rem] text-tinta-debil">
                 {fechaCorta(a.creadoEn)} · {a.partidas.length} partidas
               </span>
             </button>
@@ -421,9 +448,9 @@ function Historial({
               type="button"
               onClick={() => onEliminar(a.id)}
               aria-label={`Eliminar análisis de ${a.nombreArchivo}`}
-              className="shrink-0 rounded p-1.5 text-tinta-debil transition-colors hover:text-critico"
+              className="shrink-0 rounded p-1.5 text-tinta-debil transition-colors hover:bg-critico-tenue hover:text-critico"
             >
-              <svg viewBox="0 0 16 16" className="size-4" fill="none" aria-hidden="true">
+              <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden="true">
                 <path
                   d="M3 4.5h10M6.5 7v4M9.5 7v4M4.5 4.5 5 13h6l.5-8.5M6 4.5V3h4v1.5"
                   stroke="currentColor"
@@ -435,7 +462,7 @@ function Historial({
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }
 

@@ -82,3 +82,45 @@ export const credencialesSchema = z.object({
   usuario: z.string().min(1, "Escribe tu usuario"),
   password: z.string().min(1, "Escribe tu contraseña"),
 });
+
+/* ------------------------------------------------- Diagramas técnicos -- */
+
+export const simboloSchema = z.string().min(1);
+
+export const nodoDiagramaSchema = z.object({
+  id: z.string(),
+  etiqueta: z.string(),
+  simbolo: simboloSchema,
+  x: z.number(),
+  y: z.number(),
+  datos: z.array(z.string()),
+  ancho: z.number().nullable().optional(),
+  alto: z.number().nullable().optional(),
+});
+
+export const conexionDiagramaSchema = z.object({
+  desde: z.string(),
+  hasta: z.string(),
+  etiqueta: z.string().nullable(),
+  tipo: z.enum(["electrica", "tuberia", "aire", "ducto", "senal", "mecanica"]),
+});
+
+export const salidaDiagramaSchema = z.object({
+  tipo: z.string(),
+  titulo: z.string(),
+  descripcion: z.string(),
+  escala: z.string().nullable(),
+  nodos: z.array(nodoDiagramaSchema).min(2),
+  conexiones: z.array(conexionDiagramaSchema),
+  notas: z.array(z.string()),
+});
+
+/* ------------------------------------------------ Definición de proyecto -- */
+
+export const definicionProyectoSchema = z.object({
+  nombre: z.string().min(3, "Ponle un nombre al proyecto"),
+  descripcion: z.string().min(20, "Describe el proyecto con al menos 20 caracteres"),
+  disciplina: z.string().min(1),
+  envergadura: z.enum(["pequena", "mediana", "grande"]),
+  ubicacion: z.string().optional(),
+});

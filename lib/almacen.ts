@@ -11,7 +11,7 @@
 
 import type { Analisis } from "./types.ts";
 
-const CLAVE = "diem-copilot:historial";
+const CLAVE = "aec-copilot:historial";
 const MAXIMO = 20;
 
 function disponible(): boolean {

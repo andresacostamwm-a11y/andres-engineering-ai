@@ -1,22 +1,23 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { EXTENSIONES_ACEPTADAS } from "@/lib/extractores";
 
 export function ZonaCarga({
-  onArchivo,
+  onArchivos,
   onEjemplo,
   ocupado,
 }: {
-  onArchivo: (archivo: File) => void;
+  onArchivos: (archivos: File[]) => void;
   onEjemplo: () => void;
   ocupado: boolean;
 }) {
   const [encima, setEncima] = useState(false);
   const entradaRef = useRef<HTMLInputElement>(null);
 
-  function manejar(archivos: FileList | null) {
-    const archivo = archivos?.[0];
-    if (archivo) onArchivo(archivo);
+  function manejar(lista: FileList | null) {
+    const archivos = Array.from(lista ?? []);
+    if (archivos.length > 0) onArchivos(archivos);
   }
 
   return (
@@ -41,7 +42,8 @@ export function ZonaCarga({
         <input
           ref={entradaRef}
           type="file"
-          accept="application/pdf,.pdf"
+          accept={EXTENSIONES_ACEPTADAS}
+          multiple
           className="sr-only"
           onChange={(e) => manejar(e.target.files)}
           disabled={ocupado}
@@ -69,11 +71,11 @@ export function ZonaCarga({
         </svg>
 
         <p className="mt-4 text-base font-medium">
-          Arrastra el pliego o alcance de obra en PDF
+          Arrastra aquí tus documentos
         </p>
         <p className="mt-1 text-sm text-tinta-debil">
-          El archivo se procesa en memoria y no se almacena en el servidor.
-          Máximo 12 MB.
+          Hasta 10 archivos a la vez. Se procesan en memoria y no se almacenan
+          en el servidor.
         </p>
 
         <div className="mt-5 flex flex-wrap justify-center gap-2.5">
@@ -83,7 +85,7 @@ export function ZonaCarga({
             disabled={ocupado}
             className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
-            Seleccionar PDF
+            Seleccionar archivos
           </button>
           <button
             type="button"

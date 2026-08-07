@@ -8,7 +8,7 @@
  */
 import { SignJWT, jwtVerify } from "jose";
 
-export const NOMBRE_COOKIE = "diem_sesion";
+export const NOMBRE_COOKIE = "aec_sesion";
 const DURACION_SESION = "8h";
 
 /** Credenciales de la cuenta de demostración (sobreescribibles por entorno). */
@@ -23,7 +23,7 @@ export interface Sesion {
 function claveSecreta(): Uint8Array {
   const secreto =
     process.env.AUTH_SECRET ??
-    "diem-copilot-secreto-de-desarrollo-cambiar-en-produccion";
+    "aec-copilot-secreto-de-desarrollo-cambiar-en-produccion";
   return new TextEncoder().encode(secreto);
 }
 

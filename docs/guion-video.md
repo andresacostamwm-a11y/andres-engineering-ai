@@ -4,7 +4,7 @@
 Basta con reproducir el vídeo y narrar encima siguiendo las marcas de tiempo.
 
 **Autor:** Heber Andres Acosta Jimenez
-**Proyecto:** DIEM Copilot — TFM Máster en Desarrollo con IA, BIG School
+**Proyecto:** ANDRES Engineering AI — TFM Máster en Desarrollo con IA, BIG School
 
 ---
 
@@ -23,7 +23,7 @@ Basta con reproducir el vídeo y narrar encima siguiendo las marcas de tiempo.
 
 ### 0:00 — 0:12 · Portada
 
-> Hola, soy Heber Andrés Acosta. Este es DIEM Copilot, mi trabajo de fin de máster.
+> Hola, soy Heber Andrés Acosta. Este es ANDRES Engineering AI, mi trabajo de fin de máster.
 >
 > Es un sistema de cuatro agentes de inteligencia artificial que lee un pliego de obra y devuelve un dictamen técnico completo.
 

@@ -21,11 +21,30 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const URL_BASE = "https://diem-copilot.vercel.app";
+const DESCRIPCION =
+  "Sistema multiagente que proyecta y audita obra en trece disciplinas: extrae requerimientos con su cita, presupuesta con precios unitarios, revisa normativa y dibuja los planos del sistema.";
+
 export const metadata: Metadata = {
-  title: "DIEM Copilot — Análisis de proyectos de ingeniería con IA",
-  description:
-    "Sistema multiagente que analiza pliegos y alcances de obra: extrae requerimientos, elabora presupuesto con precios unitarios y detecta hallazgos normativos.",
+  metadataBase: new URL(URL_BASE),
+  title: "ANDRES Engineering AI — Engineering Document Analysis & Project Intelligence",
+  description: DESCRIPCION,
   authors: [{ name: "Heber Andres Acosta Jimenez" }],
+  applicationName: "ANDRES Engineering AI",
+  // Lo que se ve al compartir el enlace por WhatsApp, Telegram, correo o redes.
+  openGraph: {
+    type: "website",
+    siteName: "ANDRES Engineering AI",
+    title: "ANDRES Engineering AI",
+    description: DESCRIPCION,
+    url: URL_BASE,
+    locale: "es_MX",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ANDRES Engineering AI",
+    description: DESCRIPCION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

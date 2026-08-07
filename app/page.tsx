@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Marca } from "@/components/Marca";
 import { AGENTES } from "@/lib/pipeline-def";
@@ -43,42 +44,61 @@ export default function Inicio() {
             className="rejilla-tecnica pointer-events-none absolute inset-0"
             aria-hidden="true"
           />
-          <div className="relative mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
-            <span className="etiqueta-seccion">
-              Trabajo de Fin de Máster · Desarrollo con IA
-            </span>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+            <div>
+              <span className="etiqueta-seccion">
+                Trabajo de Fin de Máster · Desarrollo con IA
+              </span>
 
-            <h1 className="mt-4 max-w-4xl text-titular font-semibold leading-[0.98] tracking-[-0.02em]">
-              El pliego dice una cosa.
-              <br />
-              <span className="text-acento">Lo que cuesta es otra.</span>
-            </h1>
+              <h1 className="mt-4 max-w-3xl text-titular font-semibold leading-[0.98] tracking-[-0.02em]">
+                El pliego dice una cosa.
+                <br />
+                <span className="text-acento">Lo que cuesta es otra.</span>
+              </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-tinta-media">
-              DIEM Copilot lee un alcance de obra y devuelve tres cosas que hoy
-              cuestan días de trabajo: los requerimientos con su cita textual, el
-              presupuesto con matrices de precio unitario, y los hallazgos
-              normativos que el documento no menciona pero la ley exige.
-            </p>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-tinta-media">
+                ANDRES Engineering AI proyecta y audita obra en trece
+                disciplinas: extrae los requerimientos con su cita, presupuesta
+                con matrices de precio unitario, revisa la normativa y dibuja los
+                planos y diagramas del sistema.
+              </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link
-                href="/app"
-                className="rounded-md bg-acento px-6 py-3 font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
-              >
-                Probar con el documento de ejemplo
-              </Link>
-              <a
-                href="#como-funciona"
-                className="rounded-md border border-borde px-6 py-3 text-sm text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
-              >
-                Ver cómo funciona
-              </a>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/app/proyecto"
+                  className="rounded-md bg-acento px-6 py-3 font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+                >
+                  Crear un proyecto
+                </Link>
+                <Link
+                  href="/app"
+                  className="rounded-md border border-borde bg-superficie px-6 py-3 text-sm text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
+                >
+                  Analizar un documento
+                </Link>
+              </div>
+
+              <p className="cifra mt-6 text-xs text-tinta-debil">
+                Acceso de prueba: {USUARIO_DEMO} / {PASSWORD_DEMO}
+              </p>
             </div>
 
-            <p className="cifra mt-6 text-xs text-tinta-debil">
-              Acceso de prueba: {USUARIO_DEMO} / {PASSWORD_DEMO}
-            </p>
+            <figure className="relative">
+              <div className="overflow-hidden rounded-2xl border border-borde shadow-[var(--shadow-elevada)]">
+                <Image
+                  src="/marca-oficial.jpg"
+                  alt="ANDRES Engineering AI — emblema de engranaje y documento técnico con trazado de circuitos sobre un fondo de planos y estructura."
+                  width={1100}
+                  height={1100}
+                  priority
+                  className="w-full"
+                  sizes="(max-width: 1024px) 92vw, 46vw"
+                />
+              </div>
+              <figcaption className="etiqueta-seccion mt-3 text-center">
+                Trece disciplinas, un solo sistema
+              </figcaption>
+            </figure>
           </div>
         </section>
 

@@ -3,7 +3,7 @@ import { Marca } from "@/components/Marca";
 import { FormularioAcceso } from "@/components/FormularioAcceso";
 import { PASSWORD_DEMO, USUARIO_DEMO } from "@/lib/auth";
 
-export const metadata = { title: "Acceso — DIEM Copilot" };
+export const metadata = { title: "Acceso — ANDRES Engineering AI" };
 
 export default function PaginaLogin() {
   return (
