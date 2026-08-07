@@ -24,6 +24,15 @@ const COLOR_RIESGO: Record<string, [number, number, number]> = {
 };
 
 export function exportarDictamen(analisis: Analisis): void {
+  construirDictamen(analisis).save(`dictamen-${normalizar(analisis.nombreArchivo)}.pdf`);
+}
+
+/**
+ * Construye el documento y lo devuelve sin guardarlo. Separarlo del guardado
+ * permite generarlo también fuera del navegador —en una prueba o en un script—
+ * sin depender del DOM.
+ */
+export function construirDictamen(analisis: Analisis): jsPDF {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const anchoPagina = doc.internal.pageSize.getWidth();
   const margen = 48;
@@ -224,7 +233,7 @@ export function exportarDictamen(analisis: Analisis): void {
   }
 
   numerarPaginas(doc, margen);
-  doc.save(`dictamen-${normalizar(analisis.nombreArchivo)}.pdf`);
+  return doc;
 }
 
 function seccion(doc: jsPDF, titulo: string, margen: number, y: number): number {
