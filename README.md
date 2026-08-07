@@ -11,10 +11,10 @@ Autor: **Heber Andres Acosta Jimenez** — andresacosta.mwm@gmail.com
 
 | Recurso | Enlace |
 | --- | --- |
-| Aplicación desplegada | <!--DESPLIEGUE--> |
-| Repositorio | <!--REPO--> |
-| Presentación (slides) | <!--SLIDES--> |
-| Vídeo de presentación | <!--VIDEO--> |
+| Aplicación desplegada | **https://diem-copilot.vercel.app** |
+| Repositorio | https://github.com/andresacostamwm-a11y/diem-copilot |
+| Presentación (slides) | https://diem-copilot.vercel.app/slides |
+| Vídeo de presentación | _(pendiente de publicar — ver `docs/guion-video.md`)_ |
 
 **Credenciales de prueba** (aparecen también en la propia pantalla de acceso):
 
@@ -74,7 +74,7 @@ El máster es agnóstico en cuanto a qué construir, así que elegí un problema
 ### Puesta en marcha
 
 ```bash
-git clone <!--REPO_CLONE-->
+git clone https://github.com/andresacostamwm-a11y/diem-copilot.git
 cd diem-copilot
 npm install
 cp .env.example .env.local
@@ -154,9 +154,10 @@ diem-copilot/
 │   ├── Insignias.tsx                Semáforo de riesgo y disciplinas
 │   └── Marca.tsx                    Isotipo y logotipo
 │
+├── app/slides/page.tsx              Presentación del TFM (14 diapositivas)
 ├── tests/logica.test.ts             31 pruebas de la lógica determinista
 ├── proxy.ts                         Protección de rutas en el Edge
-└── docs/                            Slides y guion del vídeo
+└── docs/guion-video.md              Guion cronometrado del vídeo
 ```
 
 ---
