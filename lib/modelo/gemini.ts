@@ -48,7 +48,7 @@ export const clienteGemini: ClienteModelo = {
     return llamar(peticion, historial);
   },
 
-  async *transmitirTexto({ sistema, prompt, maxTokens = 2000 }) {
+  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false }) {
     const respuesta = await fetch(
       `${BASE}/${MODELO_GEMINI}:streamGenerateContent?alt=sse&key=${clave()}`,
       {
@@ -57,6 +57,8 @@ export const clienteGemini: ClienteModelo = {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: sistema }] },
           contents: [{ role: "user", parts: [{ text: prompt }] }],
+          // Grounding con Google Search: el modelo decide cuándo buscar.
+          ...(web ? { tools: [{ google_search: {} }] } : {}),
           generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3 },
         }),
       },

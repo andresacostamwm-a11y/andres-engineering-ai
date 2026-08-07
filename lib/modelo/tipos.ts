@@ -33,6 +33,8 @@ export interface ClienteModelo {
     sistema: string;
     prompt: string;
     maxTokens?: number;
+    /** Habilita la búsqueda web del proveedor, si la ofrece. */
+    web?: boolean;
   }): AsyncGenerator<string>;
 }
 

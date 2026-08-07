@@ -110,7 +110,7 @@ export function ChatDocumento({
           <div>
             <p className="text-sm text-tinta-debil">
               {disponible
-                ? "Pregunta cualquier cosa sobre el documento cargado."
+                ? "Pregunta sobre el proyecto o pide información externa: normas, precios, proveedores… El asistente busca en internet cuando hace falta."
                 : "El chat requiere una API key configurada en el despliegue. El análisis en modo demostración sigue disponible."}
             </p>
             {disponible && (
@@ -189,7 +189,7 @@ export function ChatDocumento({
         className="flex gap-2 border-t border-borde-suave p-3"
       >
         <label htmlFor="pregunta" className="sr-only">
-          Pregunta sobre el documento
+          Pregunta sobre el proyecto
         </label>
         <input
           id="pregunta"

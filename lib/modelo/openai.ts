@@ -53,6 +53,7 @@ export const clienteOpenai: ClienteModelo = {
     return llamar(peticion, mensajes);
   },
 
+  // OpenAI chat completions no ofrece búsqueda web; el parámetro se ignora.
   async *transmitirTexto({ sistema, prompt, maxTokens = 2000 }) {
     const respuesta = await fetch(`${BASE}/chat/completions`, {
       method: "POST",

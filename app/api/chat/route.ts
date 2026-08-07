@@ -12,15 +12,18 @@ import { ipDe, verificarLimite } from "@/lib/limite";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SISTEMA = `Eres un ingeniero de proyectos que responde preguntas sobre un documento
-técnico concreto. Respondes en español, de forma directa y breve.
+const SISTEMA = `Eres un ingeniero de proyectos que responde preguntas sobre un proyecto
+concreto. Respondes en español, de forma directa y breve.
 
 Reglas:
-- Responde ÚNICAMENTE con lo que aparece en los fragmentos proporcionados.
-- Si los fragmentos no contienen la respuesta, dilo con claridad: "El documento no
-  especifica esto". No completes con conocimiento general ni con suposiciones.
-- Cita entre comillas la parte del fragmento en la que te apoyas.
-- No inventes números, normas ni cantidades.
+- El documento del proyecto es tu fuente PRIMARIA: si los fragmentos contienen la
+  respuesta, úsalos y cita entre comillas la parte en la que te apoyas.
+- Si la pregunta requiere información externa —normas vigentes, precios de mercado,
+  proveedores, clima del sitio, criterios técnicos que el documento no trae—, usa la
+  búsqueda web y di de dónde salió el dato (nombre de la fuente o sitio).
+- Distingue siempre qué viene del documento y qué viene de internet.
+- No inventes números, normas ni cantidades: o están en el documento, o están en una
+  fuente que nombras, o declaras que no lo sabes.
 - Escribe en texto plano. No uses Markdown (nada de **negritas**, listas con guiones
   ni encabezados): la interfaz muestra el texto tal cual.`;
 
@@ -29,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "El chat sobre el documento requiere una API key de Anthropic configurada. En modo demostración solo está disponible el análisis con datos de ejemplo.",
+          "El chat requiere al menos un proveedor de IA configurado (Claude, Gemini o GPT). En modo demostración solo está disponible el análisis con datos de ejemplo.",
       },
       { status: 503 },
     );
@@ -62,14 +65,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Petición malformada." }, { status: 400 });
   }
 
+  // Si el documento no tiene fragmentos relevantes, la pregunta se responde
+  // igualmente con la búsqueda web; el modelo declara la fuente.
   const fragmentos = recuperar(fragmentar(documento), pregunta, 5);
-  if (fragmentos.length === 0) {
-    return NextResponse.json({
-      respuesta:
-        "No encontré ninguna parte del documento relacionada con esa pregunta.",
-      fuentes: [],
-    });
-  }
 
   const contexto = fragmentos
     .map(
@@ -86,20 +84,26 @@ export async function POST(request: Request) {
           codificador.encode(`data: ${JSON.stringify(dato)}\n\n`),
         );
 
-      enviar({
-        tipo: "fuentes",
-        fuentes: fragmentos.map((f) => ({
-          fragmento: f.texto.slice(0, 240),
-          pagina: f.pagina,
-        })),
-      });
+      if (fragmentos.length > 0) {
+        enviar({
+          tipo: "fuentes",
+          fuentes: fragmentos.map((f) => ({
+            fragmento: f.texto.slice(0, 240),
+            pagina: f.pagina,
+          })),
+        });
+      }
 
-      const preferencia = preferenciaDeCookie(request);
+      const preferencia = await preferenciaDeCookie(request);
       try {
         await conMotor(preferencia, async () => {
           for await (const trozo of transmitirTexto({
             sistema: SISTEMA,
-            prompt: `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`,
+            web: true,
+            maxTokens: 3000,
+            prompt: fragmentos.length > 0
+              ? `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`
+              : `El documento del proyecto no contiene fragmentos relevantes para esta pregunta; respóndela con la búsqueda web declarando la fuente.\n\nPregunta: ${pregunta}`,
           })) {
             enviar({ tipo: "texto", texto: trozo });
           }

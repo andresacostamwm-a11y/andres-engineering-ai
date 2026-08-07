@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       const enviar = (dato: unknown) =>
         controlador.enqueue(codificador.encode(`data: ${JSON.stringify(dato)}\n\n`));
 
-      const preferencia = preferenciaDeCookie(request);
+      const preferencia = await preferenciaDeCookie(request);
       try {
         await conMotor(preferencia, async () => {
           for await (const evento of proyectar(encargo)) enviar(evento);

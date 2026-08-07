@@ -36,7 +36,7 @@ export const clienteClaude: ClienteModelo = {
     return llamar(peticion, [{ role: "user", content: peticion.prompt }]);
   },
 
-  async *transmitirTexto({ sistema, prompt, maxTokens = 2000 }) {
+  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false }) {
     let flujo;
     try {
       flujo = await cliente().messages.create({
@@ -44,6 +44,18 @@ export const clienteClaude: ClienteModelo = {
         max_tokens: maxTokens,
         system: sistema,
         messages: [{ role: "user", content: prompt }],
+        // Herramienta de búsqueda web del servidor de Anthropic.
+        ...(web
+          ? {
+              tools: [
+                {
+                  type: "web_search_20250305" as const,
+                  name: "web_search" as const,
+                  max_uses: 3,
+                },
+              ],
+            }
+          : {}),
         stream: true,
       });
     } catch (error) {

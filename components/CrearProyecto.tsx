@@ -17,6 +17,7 @@ import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "@/lib/t
 import type { MemoriaProyecto } from "@/lib/tipos-proyecto";
 import { Lamina } from "./diagramas/Lamina";
 import { GenerarPlano } from "./diagramas/GenerarPlano";
+import { AccesoPlanos } from "./diagramas/AccesoPlanos";
 import { MemoriaPanel } from "./MemoriaPanel";
 import { PanelAgentesProyecto, type EstadoAgente } from "./PanelAgentesProyecto";
 import {
@@ -514,28 +515,36 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
       {diagramas.length > 0 && (
         <section className="aparecer overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
-          <header className="border-b border-borde-suave px-5 py-4 sm:px-7">
-            <h2 className="text-base font-semibold tracking-tight">
-              Planos y diagramas
-            </h2>
-            <p className="mt-0.5 text-xs text-tinta-debil">
-              {diagramas.length} lámina{diagramas.length > 1 ? "s" : ""} generada
-              {diagramas.length > 1 ? "s" : ""} con simbología normalizada.
-            </p>
+          <header className="space-y-3.5 border-b border-borde-suave px-5 py-4 sm:px-7">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight">
+                Planos y diagramas
+              </h2>
+              <p className="mt-0.5 text-xs text-tinta-debil">
+                {diagramas.length} lámina{diagramas.length > 1 ? "s" : ""} generada
+                {diagramas.length > 1 ? "s" : ""} con simbología normalizada.
+              </p>
+            </div>
+            <AccesoPlanos
+              encargo={{ nombre, descripcion, disciplina, envergadura, contexto: alcance }}
+              diagramas={diagramas}
+              onDiagrama={(d) => setDiagramas((prev) => [...prev, d])}
+            />
           </header>
 
           <div className="space-y-8 p-5 sm:p-7">
             {diagramas.map((d, i) => (
-              <Lamina
-                key={`${d.tipo}-${i}`}
-                diagrama={d}
-                proyecto={proyecto}
-                cabecera={{
-                  nombre,
-                  disciplina: ficha.nombre,
-                  fecha: new Date().toLocaleDateString("es-MX"),
-                }}
-              />
+              <div key={`${d.tipo}-${i}`} id={`lamina-${i}`} className="scroll-mt-24">
+                <Lamina
+                  diagrama={d}
+                  proyecto={proyecto}
+                  cabecera={{
+                    nombre,
+                    disciplina: ficha.nombre,
+                    fecha: new Date().toLocaleDateString("es-MX"),
+                  }}
+                />
+              </div>
             ))}
 
             {fase === "listo" && (

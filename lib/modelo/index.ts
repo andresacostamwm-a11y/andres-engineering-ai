@@ -143,6 +143,7 @@ export async function* transmitirTexto(params: {
   sistema: string;
   prompt: string;
   maxTokens?: number;
+  web?: boolean;
 }): AsyncGenerator<string> {
   const clientes = proveedoresDisponibles();
   let ultimoError: unknown = null;

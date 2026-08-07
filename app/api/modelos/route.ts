@@ -33,10 +33,14 @@ export async function GET(request: Request) {
     cache = { catalogos, expira: Date.now() + 60 * 60 * 1000 };
   }
 
-  const preferencia = preferenciaDeCookie(request);
+  const preferencia = await preferenciaDeCookie(request);
   const activo = conMotor(preferencia, () => motorActivo());
 
-  return NextResponse.json({ catalogos: cache.catalogos, activo });
+  return NextResponse.json({
+    catalogos: cache.catalogos,
+    activo,
+    eleccion: preferencia,
+  });
 }
 
 async function listarClaude(): Promise<string[]> {

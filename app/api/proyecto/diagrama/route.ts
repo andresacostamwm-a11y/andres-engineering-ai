@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const preferencia = preferenciaDeCookie(request);
+    const preferencia = await preferenciaDeCookie(request);
     const diagrama = await conMotor(preferencia, () =>
       generarDiagrama({
         tipo: peticion.tipo,
