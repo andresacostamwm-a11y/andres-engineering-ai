@@ -37,9 +37,10 @@ ATEMPO_MAXIMO = 1.12
 def clave() -> str:
     valor = os.environ.get("ELEVENLABS_API_KEY", "").strip()
 
-    # Respaldo: archivo local fuera de cualquier repositorio.
+    # Respaldo: ~/.secrets/eleven.env, directorio privado (chmod 700) que no
+    # está dentro de ningún repositorio git.
     if not valor:
-        archivo = Path.home() / ".claude" / "eleven.env"
+        archivo = Path.home() / ".secrets" / "eleven.env"
         if archivo.exists():
             for linea in archivo.read_text(encoding="utf-8").splitlines():
                 if linea.startswith("ELEVENLABS_API_KEY="):
