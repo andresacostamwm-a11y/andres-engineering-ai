@@ -12,15 +12,15 @@ import type { Analisis } from "./types.ts";
 import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "./types.ts";
 import { fechaLarga, numero, pesosExactos } from "./formato.ts";
 
-const TINTA: [number, number, number] = [23, 32, 44];
-const ACENTO: [number, number, number] = [10, 116, 140];
-const GRIS: [number, number, number] = [110, 120, 130];
+const TINTA: [number, number, number] = [31, 41, 55];
+const ACENTO: [number, number, number] = [21, 94, 133];
+const GRIS: [number, number, number] = [113, 126, 143];
 
 const COLOR_RIESGO: Record<string, [number, number, number]> = {
-  critico: [178, 42, 42],
-  alto: [190, 108, 24],
-  medio: [150, 130, 20],
-  bajo: [40, 120, 80],
+  critico: [168, 40, 38],
+  alto: [166, 96, 22],
+  medio: [140, 118, 18],
+  bajo: [30, 110, 76],
 };
 
 export function exportarDictamen(analisis: Analisis): void {
@@ -167,7 +167,7 @@ export function exportarDictamen(analisis: Analisis): void {
       ]),
       foot: [["", "TOTAL", "", "", "", pesosExactos(total)]],
       footStyles: {
-        fillColor: [235, 238, 241],
+        fillColor: [237, 242, 247],
         textColor: TINTA,
         fontStyle: "bold",
         halign: "right",

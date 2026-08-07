@@ -34,8 +34,8 @@ export function ZonaCarga({
         }}
         className={`relative rounded-xl border-2 border-dashed p-8 text-center transition-colors sm:p-12 ${
           encima
-            ? "border-acento bg-acento-tenue/30"
-            : "border-borde bg-superficie/60 hover:border-acento/50"
+            ? "border-acento bg-acento-tenue/70"
+            : "border-borde bg-superficie hover:border-acento/50"
         } ${ocupado ? "pointer-events-none opacity-50" : ""}`}
       >
         <input
@@ -81,7 +81,7 @@ export function ZonaCarga({
             type="button"
             onClick={() => entradaRef.current?.click()}
             disabled={ocupado}
-            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-fondo transition-opacity hover:opacity-90"
+            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
             Seleccionar PDF
           </button>

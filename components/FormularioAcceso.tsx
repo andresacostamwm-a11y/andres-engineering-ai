@@ -56,7 +56,7 @@ function Formulario({ usuarioInicial, passwordInicial }: Props) {
           autoComplete="username"
           value={usuario}
           onChange={(e) => setUsuario(e.target.value)}
-          className="mt-1.5 w-full rounded-md border border-borde bg-superficie px-3.5 py-2.5 text-sm focus:border-acento focus:outline-none"
+          className="mt-1.5 w-full rounded-md border border-borde bg-superficie px-3.5 py-2.5 text-sm shadow-[var(--shadow-sutil)] focus:border-acento focus:outline-none"
         />
       </div>
 
@@ -70,12 +70,12 @@ function Formulario({ usuarioInicial, passwordInicial }: Props) {
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1.5 w-full rounded-md border border-borde bg-superficie px-3.5 py-2.5 text-sm focus:border-acento focus:outline-none"
+          className="mt-1.5 w-full rounded-md border border-borde bg-superficie px-3.5 py-2.5 text-sm shadow-[var(--shadow-sutil)] focus:border-acento focus:outline-none"
         />
       </div>
 
       {error && (
-        <p role="alert" className="rounded-md border border-critico/40 bg-critico/8 px-3.5 py-2.5 text-sm">
+        <p role="alert" className="rounded-md border border-critico/25 bg-critico-tenue px-3.5 py-2.5 text-sm">
           {error}
         </p>
       )}
@@ -83,7 +83,7 @@ function Formulario({ usuarioInicial, passwordInicial }: Props) {
       <button
         type="submit"
         disabled={enviando}
-        className="w-full rounded-md bg-acento py-2.5 text-sm font-semibold text-fondo transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-md bg-acento py-2.5 text-sm font-semibold text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {enviando ? "Entrando…" : "Entrar"}
       </button>

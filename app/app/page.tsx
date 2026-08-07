@@ -14,7 +14,7 @@ export default async function PaginaTaller() {
 
   return (
     <>
-      <header className="sticky top-0 z-20 border-b border-borde bg-fondo/85 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-borde bg-superficie/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
           <Link href="/" aria-label="Inicio de DIEM Copilot">
             <Marca compacta />

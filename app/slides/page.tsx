@@ -347,7 +347,7 @@ return {
 
       <Link
         href="/"
-        className="fixed left-5 top-5 z-50 rounded-md border border-borde bg-fondo/85 px-3 py-1.5 text-xs text-tinta-media backdrop-blur transition-colors hover:border-acento/60 hover:text-tinta print:hidden sm:left-8"
+        className="fixed left-5 top-5 z-50 rounded-md border border-borde bg-superficie/85 px-3 py-1.5 text-xs text-tinta-media backdrop-blur transition-colors hover:border-acento/60 hover:text-tinta print:hidden sm:left-8"
       >
         ← Inicio
       </Link>

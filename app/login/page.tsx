@@ -25,7 +25,7 @@ export default function PaginaLogin() {
           passwordInicial={PASSWORD_DEMO}
         />
 
-        <div className="mt-6 rounded-lg border border-borde bg-superficie px-4 py-3.5">
+        <div className="mt-6 rounded-lg border border-borde bg-superficie px-4 py-3.5 shadow-[var(--shadow-tarjeta)]">
           <p className="etiqueta-seccion">Credenciales de prueba</p>
           <dl className="mt-2 space-y-1 text-sm">
             <div className="flex justify-between gap-3">

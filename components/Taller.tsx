@@ -300,7 +300,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
       )}
 
       {documento && (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{documento.nombre}</p>
             <p className="cifra mt-0.5 text-[0.6875rem] text-tinta-debil">
@@ -314,7 +314,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
               <button
                 type="button"
                 onClick={() => exportarDictamen(analisisActual)}
-                className="rounded-md bg-acento px-3.5 py-2 text-sm font-medium text-fondo transition-opacity hover:opacity-90"
+                className="rounded-md bg-acento px-3.5 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
               >
                 Descargar dictamen PDF
               </button>
@@ -397,7 +397,7 @@ function Historial({
   onEliminar: (id: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-borde bg-superficie">
+    <section className="overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
       <header className="border-b border-borde-suave px-5 py-4">
         <h2 className="text-base font-semibold tracking-tight">Historial</h2>
         <p className="mt-0.5 text-xs text-tinta-debil">
@@ -448,8 +448,8 @@ function Aviso({
 }) {
   const estilo =
     tono === "error"
-      ? "border-critico/40 bg-critico/8 text-tinta"
-      : "border-acento/35 bg-acento-tenue/30 text-tinta-media";
+      ? "border-critico/25 bg-critico-tenue text-tinta"
+      : "border-acento/35 bg-acento-tenue/70 text-tinta-media";
   return (
     <p role={tono === "error" ? "alert" : "status"} className={`rounded-lg border px-4 py-3 text-sm leading-relaxed ${estilo}`}>
       {children}

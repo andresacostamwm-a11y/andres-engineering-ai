@@ -62,7 +62,7 @@ export function Diapositivas({ total }: { total: number }) {
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 print:hidden"
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-        <span className="cifra pointer-events-auto rounded-full border border-borde bg-fondo/90 px-3 py-1 text-xs text-tinta-debil backdrop-blur">
+        <span className="cifra pointer-events-auto rounded-full border border-borde bg-superficie/92 px-3 py-1 text-xs text-tinta-debil backdrop-blur">
           {String(actual + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
         </span>
 
@@ -108,7 +108,7 @@ function Boton({
       onClick={onClick}
       disabled={desactivado}
       aria-label={etiqueta}
-      className="rounded-full border border-borde bg-fondo/90 p-2 text-tinta-media backdrop-blur transition-colors hover:border-acento/60 hover:text-tinta disabled:opacity-30"
+      className="rounded-full border border-borde bg-superficie/92 p-2 text-tinta-media backdrop-blur transition-colors hover:border-acento/60 hover:text-tinta disabled:opacity-30"
     >
       <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
         {children}

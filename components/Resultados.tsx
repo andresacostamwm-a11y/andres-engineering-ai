@@ -1,9 +1,10 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import type { Analisis, Hallazgo, Partida, Requerimiento } from "@/lib/types";
+import type { Analisis, Disciplina, Hallazgo, NivelRiesgo, Partida, Requerimiento } from "@/lib/types";
 import { ETIQUETA_DISCIPLINA } from "@/lib/types";
 import { numero, pesos, pesosExactos } from "@/lib/formato";
+import { Contador } from "./Contador";
 import {
   InsigniaCritico,
   InsigniaDisciplina,
@@ -17,8 +18,8 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
   if (!resumen) return null;
 
   return (
-    <section className="aparecer overflow-hidden rounded-xl border border-borde bg-superficie">
-      <div className="border-b border-borde-suave bg-superficie-alta/60 px-5 py-4 sm:px-7">
+    <section className="aparecer overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
+      <div className="border-b border-borde-suave bg-gradient-to-br from-acento-tenue/70 to-superficie px-5 py-5 sm:px-7">
         <span className="etiqueta-seccion">Resumen ejecutivo</span>
         <h2 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">
           {resumen.titulo}
@@ -30,12 +31,17 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
       </div>
 
       <dl className="grid grid-cols-2 divide-x divide-borde-suave border-b border-borde-suave lg:grid-cols-4">
-        <Metrica etiqueta="Presupuesto estimado" valor={pesos(resumen.totalEstimado)} destacada />
-        <Metrica etiqueta="Requerimientos" valor={String(analisis.requerimientos.length)} />
-        <Metrica etiqueta="Partidas" valor={String(analisis.partidas.length)} />
+        <Metrica
+          etiqueta="Presupuesto estimado"
+          valor={resumen.totalEstimado}
+          formato="pesos"
+          destacada
+        />
+        <Metrica etiqueta="Requerimientos" valor={analisis.requerimientos.length} />
+        <Metrica etiqueta="Partidas" valor={analisis.partidas.length} />
         <div className="px-5 py-4 sm:px-7">
           <dt className="etiqueta-seccion">Riesgo global</dt>
-          <dd className="mt-2">
+          <dd className="mt-2.5">
             <InsigniaRiesgo riesgo={resumen.riesgoGlobal} grande />
           </dd>
         </div>
@@ -51,11 +57,14 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
 
         <div>
           <h3 className="etiqueta-seccion">Acciones recomendadas</h3>
-          <ol className="mt-2.5 space-y-2.5">
+          <ol className="escalonado mt-2.5 space-y-2.5">
             {resumen.recomendaciones.map((rec, i) => (
-              <li key={i} className="flex gap-3 text-sm leading-relaxed text-tinta-media">
-                <span className="cifra mt-0.5 shrink-0 text-xs text-acento">
-                  {String(i + 1).padStart(2, "0")}
+              <li
+                key={i}
+                className="flex gap-3 text-sm leading-relaxed text-tinta-media"
+              >
+                <span className="cifra mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-acento-tenue text-[0.625rem] font-semibold text-acento">
+                  {i + 1}
                 </span>
                 {rec}
               </li>
@@ -65,14 +74,16 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
       </div>
 
       {resumen.supuestos.length > 0 && (
-        <div className="border-t border-borde-suave bg-superficie-alta/40 px-5 py-5 sm:px-7">
+        <div className="border-t border-borde-suave bg-superficie-alta px-5 py-5 sm:px-7">
           <h3 className="etiqueta-seccion">
             Supuestos asumidos ({resumen.supuestos.length})
           </h3>
-          <ul className="mt-2.5 grid gap-1.5 text-sm text-tinta-debil sm:grid-cols-2">
+          <ul className="mt-2.5 grid gap-1.5 text-sm text-tinta-media sm:grid-cols-2">
             {resumen.supuestos.map((s, i) => (
               <li key={i} className="flex gap-2">
-                <span aria-hidden="true">—</span>
+                <span className="text-laton" aria-hidden="true">
+                  —
+                </span>
                 {s}
               </li>
             ))}
@@ -86,21 +97,27 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
 function Metrica({
   etiqueta,
   valor,
+  formato = "entero",
   destacada = false,
 }: {
   etiqueta: string;
-  valor: string;
+  valor: number;
+  formato?: "entero" | "pesos";
   destacada?: boolean;
 }) {
   return (
     <div className="px-5 py-4 sm:px-7">
       <dt className="etiqueta-seccion">{etiqueta}</dt>
       <dd
-        className={`cifra mt-1.5 font-semibold ${
-          destacada ? "text-2xl text-acento" : "text-2xl"
+        className={`cifra mt-1.5 text-2xl font-semibold ${
+          destacada ? "text-acento" : "text-tinta"
         }`}
       >
-        {valor}
+        {formato === "pesos" ? (
+          <Contador hasta={valor} prefijo="$" duracion={1100} />
+        ) : (
+          <Contador hasta={valor} />
+        )}
       </dd>
     </div>
   );
@@ -110,15 +127,26 @@ function Metrica({
 
 export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
   const [expandido, setExpandido] = useState<string | null>(null);
+  const [soloCriticos, setSoloCriticos] = useState(false);
+
+  const visibles = soloCriticos ? datos.filter((r) => r.critico) : datos;
+  const criticos = datos.filter((r) => r.critico).length;
   if (datos.length === 0) return null;
 
   return (
     <Bloque
       titulo="Requerimientos detectados"
-      subtitulo={`${datos.filter((r) => r.critico).length} de ${datos.length} marcados como críticos. Cada renglón conserva la cita del documento.`}
+      subtitulo={`${criticos} de ${datos.length} marcados como críticos. Cada renglón conserva la cita del documento.`}
+      accion={
+        <Interruptor
+          activo={soloCriticos}
+          onCambio={() => setSoloCriticos((v) => !v)}
+          etiqueta="Solo críticos"
+        />
+      }
     >
       <ul className="divide-y divide-borde-suave">
-        {datos.map((req) => {
+        {visibles.map((req) => {
           const abierto = expandido === req.id;
           return (
             <li key={req.id}>
@@ -126,7 +154,7 @@ export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
                 type="button"
                 onClick={() => setExpandido(abierto ? null : req.id)}
                 aria-expanded={abierto}
-                className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-superficie-alta/60 sm:px-7"
+                className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-acento-tenue/40 sm:px-7"
               >
                 <span className="cifra mt-0.5 shrink-0 text-xs text-tinta-debil">
                   {req.id}
@@ -138,7 +166,7 @@ export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
                   <span className="mt-2 flex flex-wrap items-center gap-2">
                     <InsigniaDisciplina disciplina={req.disciplina} />
                     {req.critico && <InsigniaCritico />}
-                    <span className="text-[0.6875rem] text-tinta-debil">
+                    <span className="text-[0.6875rem] font-medium text-acento">
                       {abierto ? "Ocultar evidencia" : "Ver evidencia"}
                     </span>
                   </span>
@@ -146,7 +174,7 @@ export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
               </button>
 
               {abierto && (
-                <blockquote className="mx-5 mb-4 border-l-2 border-acento/60 bg-superficie-alta/50 px-4 py-3 text-sm italic text-tinta-media sm:mx-7">
+                <blockquote className="aparecer mx-5 mb-4 rounded-r-md border-l-[3px] border-laton bg-laton-tenue px-4 py-3 text-sm italic text-tinta-media sm:mx-7">
                   “{req.evidencia}”
                   {req.pagina !== null && (
                     <cite className="mt-1.5 block not-italic text-[0.6875rem] text-tinta-debil">
@@ -165,20 +193,34 @@ export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
 
 /* ------------------------------------------------------------ Presupuesto -- */
 
+type Orden = "clave" | "importe";
+
 export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
   const [detalle, setDetalle] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState<Disciplina | null>(null);
+  const [orden, setOrden] = useState<Orden>("clave");
 
-  const total = useMemo(
-    () => datos.reduce((s, p) => s + p.importe, 0),
-    [datos],
-  );
+  const total = useMemo(() => datos.reduce((s, p) => s + p.importe, 0), [datos]);
+
   const porDisciplina = useMemo(() => {
-    const mapa = new Map<string, number>();
+    const mapa = new Map<Disciplina, number>();
     for (const p of datos) {
       mapa.set(p.disciplina, (mapa.get(p.disciplina) ?? 0) + p.importe);
     }
     return [...mapa.entries()].sort((a, b) => b[1] - a[1]);
   }, [datos]);
+
+  const visibles = useMemo(() => {
+    const filtradas = filtro ? datos.filter((p) => p.disciplina === filtro) : datos;
+    return [...filtradas].sort((a, b) =>
+      orden === "importe" ? b.importe - a.importe : a.clave.localeCompare(b.clave),
+    );
+  }, [datos, filtro, orden]);
+
+  const totalVisible = useMemo(
+    () => visibles.reduce((s, p) => s + p.importe, 0),
+    [visibles],
+  );
 
   if (datos.length === 0) return null;
 
@@ -186,49 +228,95 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
     <Bloque
       titulo="Catálogo de conceptos"
       subtitulo={`${datos.length} partidas. Toca una fila para ver su matriz de precio unitario.`}
-    >
-      {/* Distribución del importe por disciplina: una barra apilada dice más
-          que un pastel de siete rebanadas. */}
-      <div className="border-b border-borde-suave px-5 py-4 sm:px-7">
-        <div className="flex h-2.5 overflow-hidden rounded-full bg-superficie-alta">
-          {porDisciplina.map(([disciplina, importe], i) => (
-            <span
-              key={disciplina}
-              className="h-full"
-              style={{
-                width: `${(importe / total) * 100}%`,
-                backgroundColor: `color-mix(in oklch, var(--color-acento) ${92 - i * 12}%, var(--color-superficie-alta))`,
-              }}
-              title={`${ETIQUETA_DISCIPLINA[disciplina as keyof typeof ETIQUETA_DISCIPLINA]}: ${pesos(importe)}`}
-            />
+      accion={
+        <div className="flex items-center gap-1 rounded-lg border border-borde bg-superficie-alta p-0.5">
+          {(["clave", "importe"] as const).map((modo) => (
+            <button
+              key={modo}
+              type="button"
+              onClick={() => setOrden(modo)}
+              className={`rounded-md px-2.5 py-1 text-[0.6875rem] font-medium transition-colors ${
+                orden === modo
+                  ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
+                  : "text-tinta-debil hover:text-tinta"
+              }`}
+            >
+              {modo === "clave" ? "Por clave" : "Por importe"}
+            </button>
           ))}
         </div>
-        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-          {porDisciplina.map(([disciplina, importe], i) => (
-            <li
-              key={disciplina}
-              className="flex items-center gap-1.5 text-[0.6875rem] text-tinta-media"
-            >
-              <span
-                className="size-2 rounded-sm"
+      }
+    >
+      {/* Distribución por disciplina. Cada segmento filtra la tabla al pulsarlo:
+          la leyenda deja de ser decorativa y se convierte en el control. */}
+      <div className="border-b border-borde-suave px-5 py-4 sm:px-7">
+        <div className="flex h-3 overflow-hidden rounded-full bg-superficie-honda">
+          {porDisciplina.map(([disciplina, importe], i) => {
+            const activo = filtro === null || filtro === disciplina;
+            return (
+              <button
+                key={disciplina}
+                type="button"
+                onClick={() => setFiltro(filtro === disciplina ? null : disciplina)}
+                className="crecer-ancho h-full transition-opacity duration-300"
                 style={{
-                  backgroundColor: `color-mix(in oklch, var(--color-acento) ${92 - i * 12}%, var(--color-superficie-alta))`,
+                  width: `${(importe / total) * 100}%`,
+                  backgroundColor: tonoDisciplina(i),
+                  opacity: activo ? 1 : 0.25,
+                  animationDelay: `${i * 70}ms`,
                 }}
-                aria-hidden="true"
+                aria-label={`Filtrar por ${ETIQUETA_DISCIPLINA[disciplina]}: ${pesos(importe)}`}
+                title={`${ETIQUETA_DISCIPLINA[disciplina]} · ${pesos(importe)}`}
               />
-              {ETIQUETA_DISCIPLINA[disciplina as keyof typeof ETIQUETA_DISCIPLINA]}
-              <span className="cifra text-tinta-debil">
-                {Math.round((importe / total) * 100)}%
-              </span>
+            );
+          })}
+        </div>
+
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+          {porDisciplina.map(([disciplina, importe], i) => {
+            const activo = filtro === disciplina;
+            return (
+              <li key={disciplina}>
+                <button
+                  type="button"
+                  onClick={() => setFiltro(activo ? null : disciplina)}
+                  className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.6875rem] transition-colors ${
+                    activo
+                      ? "bg-acento-tenue font-semibold text-acento"
+                      : "text-tinta-media hover:bg-superficie-alta"
+                  }`}
+                >
+                  <span
+                    className="size-2 rounded-sm"
+                    style={{ backgroundColor: tonoDisciplina(i) }}
+                    aria-hidden="true"
+                  />
+                  {ETIQUETA_DISCIPLINA[disciplina]}
+                  <span className="cifra text-tinta-debil">
+                    {Math.round((importe / total) * 100)}%
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+          {filtro && (
+            <li>
+              <button
+                type="button"
+                onClick={() => setFiltro(null)}
+                className="rounded-full px-2 py-0.5 text-[0.6875rem] font-medium text-acento underline-offset-2 hover:underline"
+              >
+                Quitar filtro
+              </button>
             </li>
-          ))}
+          )}
         </ul>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[44rem] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-borde bg-superficie-alta/50 text-left">
+            <tr className="border-b border-borde bg-superficie-alta text-left">
               <Th className="w-[4.5rem]">Clave</Th>
               <Th>Concepto</Th>
               <Th className="w-20 text-center">Unidad</Th>
@@ -238,66 +326,69 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-borde-suave">
-            {datos.map((p) => {
+            {visibles.map((p) => {
               const abierto = detalle === p.clave;
               return (
                 <Fragment key={p.clave}>
-                <tr
-                  onClick={() => setDetalle(abierto ? null : p.clave)}
-                  className={`cursor-pointer transition-colors hover:bg-superficie-alta/60 ${
-                    abierto ? "bg-superficie-alta/70" : ""
-                  }`}
-                >
-                  <td className="cifra px-5 py-2.5 text-xs text-tinta-debil sm:px-7">
-                    {p.clave}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <span className="block leading-snug">{p.concepto}</span>
-                    {p.supuesto && (
-                      <span className="mt-1 block text-[0.6875rem] text-alto">
-                        Supuesto: {p.supuesto}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 text-center text-xs text-tinta-media">
-                    {p.unidad}
-                  </td>
-                  <td className="cifra px-3 py-2.5 text-right">
-                    {numero(p.cantidad)}
-                  </td>
-                  <td className="cifra px-3 py-2.5 text-right text-tinta-media">
-                    {pesosExactos(p.precioUnitario)}
-                  </td>
-                  <td className="cifra px-5 py-2.5 text-right font-medium sm:px-7">
-                    {pesosExactos(p.importe)}
-                  </td>
-                </tr>
-                {abierto && (
-                  <tr className="bg-superficie-alta/40">
-                    <td colSpan={6} className="px-5 py-4 sm:px-7">
-                      <span className="etiqueta-seccion">
-                        Matriz de precio unitario · {pesosExactos(p.precioUnitario)}
-                      </span>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-4">
-                        <Componente etiqueta="Materiales" valor={p.matriz.materiales} pu={p.precioUnitario} />
-                        <Componente etiqueta="Mano de obra" valor={p.matriz.manoObra} pu={p.precioUnitario} />
-                        <Componente etiqueta="Equipo" valor={p.matriz.equipo} pu={p.precioUnitario} />
-                        <Componente etiqueta="Indirectos" valor={p.matriz.indirectos} pu={p.precioUnitario} />
-                      </div>
+                  <tr
+                    onClick={() => setDetalle(abierto ? null : p.clave)}
+                    className={`cursor-pointer transition-colors ${
+                      abierto ? "bg-acento-tenue/60" : "hover:bg-superficie-alta"
+                    }`}
+                  >
+                    <td className="cifra px-5 py-2.5 text-xs text-tinta-debil sm:px-7">
+                      {p.clave}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span className="block leading-snug">{p.concepto}</span>
+                      {p.supuesto && (
+                        <span className="mt-1 block text-[0.6875rem] text-laton">
+                          Supuesto: {p.supuesto}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-center text-xs text-tinta-media">
+                      {p.unidad}
+                    </td>
+                    <td className="cifra px-3 py-2.5 text-right">
+                      {numero(p.cantidad)}
+                    </td>
+                    <td className="cifra px-3 py-2.5 text-right text-tinta-media">
+                      {pesosExactos(p.precioUnitario)}
+                    </td>
+                    <td className="cifra px-5 py-2.5 text-right font-semibold sm:px-7">
+                      {pesosExactos(p.importe)}
                     </td>
                   </tr>
-                )}
+
+                  {abierto && (
+                    <tr className="bg-superficie-alta">
+                      <td colSpan={6} className="px-5 py-4 sm:px-7">
+                        <span className="etiqueta-seccion">
+                          Matriz de precio unitario · {pesosExactos(p.precioUnitario)}
+                        </span>
+                        <div className="escalonado mt-3 grid gap-3 sm:grid-cols-4">
+                          <Componente etiqueta="Materiales" valor={p.matriz.materiales} pu={p.precioUnitario} />
+                          <Componente etiqueta="Mano de obra" valor={p.matriz.manoObra} pu={p.precioUnitario} />
+                          <Componente etiqueta="Equipo" valor={p.matriz.equipo} pu={p.precioUnitario} />
+                          <Componente etiqueta="Indirectos" valor={p.matriz.indirectos} pu={p.precioUnitario} />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </Fragment>
               );
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-acento/40 bg-superficie-alta/70">
+            <tr className="border-t-2 border-acento/30 bg-acento-tenue/50">
               <td colSpan={5} className="px-5 py-3.5 text-right font-semibold sm:px-7">
-                Total estimado
+                {filtro
+                  ? `Subtotal · ${ETIQUETA_DISCIPLINA[filtro]}`
+                  : "Total estimado"}
               </td>
               <td className="cifra px-5 py-3.5 text-right text-lg font-semibold text-acento sm:px-7">
-                {pesosExactos(total)}
+                {pesosExactos(totalVisible)}
               </td>
             </tr>
           </tfoot>
@@ -305,6 +396,21 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
       </div>
     </Bloque>
   );
+}
+
+/** Escala del azul institucional al latón, sin repetir tonos entre disciplinas. */
+function tonoDisciplina(indice: number): string {
+  const tonos = [
+    "oklch(46% 0.115 232)",
+    "oklch(56% 0.1 216)",
+    "oklch(64% 0.085 200)",
+    "oklch(70% 0.075 178)",
+    "oklch(72% 0.075 140)",
+    "oklch(70% 0.08 100)",
+    "oklch(66% 0.09 75)",
+    "oklch(74% 0.05 250)",
+  ];
+  return tonos[indice % tonos.length];
 }
 
 function Componente({
@@ -318,12 +424,12 @@ function Componente({
 }) {
   const porcentaje = pu > 0 ? Math.round((valor / pu) * 100) : 0;
   return (
-    <div className="rounded-md border border-borde-suave bg-superficie px-3 py-2.5">
+    <div className="rounded-lg border border-borde bg-superficie px-3 py-2.5 shadow-[var(--shadow-sutil)]">
       <p className="etiqueta-seccion">{etiqueta}</p>
-      <p className="cifra mt-1 font-medium">{pesosExactos(valor)}</p>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-superficie-alta">
+      <p className="cifra mt-1 font-semibold">{pesosExactos(valor)}</p>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-superficie-honda">
         <div
-          className="h-full rounded-full bg-acento/70"
+          className="crecer-ancho h-full rounded-full bg-acento"
           style={{ width: `${porcentaje}%` }}
         />
       </div>
@@ -334,16 +440,33 @@ function Componente({
 
 /* --------------------------------------------------------------- Hallazgos -- */
 
-const ORDEN_RIESGO = { critico: 0, alto: 1, medio: 2, bajo: 3 } as const;
+const ORDEN_RIESGO: Record<NivelRiesgo, number> = {
+  critico: 0,
+  alto: 1,
+  medio: 2,
+  bajo: 3,
+};
 
 export function ListaHallazgos({ datos }: { datos: Hallazgo[] }) {
-  const ordenados = useMemo(
-    () => [...datos].sort((a, b) => ORDEN_RIESGO[a.riesgo] - ORDEN_RIESGO[b.riesgo]),
-    [datos],
-  );
-  if (datos.length === 0) return null;
+  const [riesgoActivo, setRiesgoActivo] = useState<NivelRiesgo | null>(null);
 
-  const criticos = datos.filter((h) => h.riesgo === "critico").length;
+  const conteos = useMemo(() => {
+    const mapa = new Map<NivelRiesgo, number>();
+    for (const h of datos) mapa.set(h.riesgo, (mapa.get(h.riesgo) ?? 0) + 1);
+    return mapa;
+  }, [datos]);
+
+  const visibles = useMemo(() => {
+    const filtrados = riesgoActivo
+      ? datos.filter((h) => h.riesgo === riesgoActivo)
+      : datos;
+    return [...filtrados].sort(
+      (a, b) => ORDEN_RIESGO[a.riesgo] - ORDEN_RIESGO[b.riesgo],
+    );
+  }, [datos, riesgoActivo]);
+
+  if (datos.length === 0) return null;
+  const criticos = conteos.get("critico") ?? 0;
 
   return (
     <Bloque
@@ -353,16 +476,40 @@ export function ListaHallazgos({ datos }: { datos: Hallazgo[] }) {
           ? `${criticos} hallazgo${criticos > 1 ? "s" : ""} crítico${criticos > 1 ? "s" : ""} de ${datos.length}. Los críticos impiden recibir la obra.`
           : `${datos.length} hallazgos, ninguno crítico.`
       }
+      accion={
+        <div className="flex flex-wrap gap-1.5">
+          {(["critico", "alto", "medio", "bajo"] as const)
+            .filter((r) => conteos.has(r))
+            .map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRiesgoActivo(riesgoActivo === r ? null : r)}
+                className={`transition-opacity ${
+                  riesgoActivo && riesgoActivo !== r ? "opacity-40" : ""
+                }`}
+                aria-pressed={riesgoActivo === r}
+              >
+                <span className="pointer-events-none flex items-center gap-1">
+                  <InsigniaRiesgo riesgo={r} />
+                  <span className="cifra text-[0.6875rem] text-tinta-debil">
+                    {conteos.get(r)}
+                  </span>
+                </span>
+              </button>
+            ))}
+        </div>
+      }
     >
       <ul className="divide-y divide-borde-suave">
-        {ordenados.map((h) => (
-          <li key={h.id} className="px-5 py-4 sm:px-7">
+        {visibles.map((h) => (
+          <li key={h.id} className="aparecer px-5 py-4 sm:px-7">
             <div className="flex flex-wrap items-center gap-2.5">
               <InsigniaRiesgo riesgo={h.riesgo} />
-              <h3 className="text-sm font-medium">{h.titulo}</h3>
+              <h3 className="text-sm font-semibold">{h.titulo}</h3>
             </div>
 
-            <p className="cifra mt-1.5 text-[0.6875rem] text-acento">
+            <p className="cifra mt-1.5 text-[0.6875rem] font-medium text-acento">
               {h.norma}
               {h.articulo ? ` · ${h.articulo}` : ""}
             </p>
@@ -371,8 +518,10 @@ export function ListaHallazgos({ datos }: { datos: Hallazgo[] }) {
               {h.descripcion}
             </p>
 
-            <p className="mt-2.5 flex gap-2.5 rounded-md border-l-2 border-acento/50 bg-superficie-alta/50 px-3.5 py-2.5 text-sm text-tinta-media">
-              <span className="etiqueta-seccion shrink-0 pt-0.5">Acción</span>
+            <p className="mt-2.5 flex gap-2.5 rounded-r-md border-l-[3px] border-acento bg-acento-tenue/60 px-3.5 py-2.5 text-sm text-tinta-media">
+              <span className="etiqueta-seccion shrink-0 pt-0.5 text-acento">
+                Acción
+              </span>
               {h.recomendacion}
             </p>
           </li>
@@ -387,20 +536,58 @@ export function ListaHallazgos({ datos }: { datos: Hallazgo[] }) {
 function Bloque({
   titulo,
   subtitulo,
+  accion,
   children,
 }: {
   titulo: string;
   subtitulo: string;
+  accion?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="aparecer overflow-hidden rounded-xl border border-borde bg-superficie">
-      <header className="border-b border-borde-suave px-5 py-4 sm:px-7">
-        <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>
-        <p className="mt-0.5 text-xs text-tinta-debil">{subtitulo}</p>
+    <section className="aparecer overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
+      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-borde-suave px-5 py-4 sm:px-7">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>
+          <p className="mt-0.5 text-xs text-tinta-debil">{subtitulo}</p>
+        </div>
+        {accion}
       </header>
       {children}
     </section>
+  );
+}
+
+function Interruptor({
+  activo,
+  onCambio,
+  etiqueta,
+}: {
+  activo: boolean;
+  onCambio: () => void;
+  etiqueta: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      onClick={onCambio}
+      className="flex items-center gap-2 text-xs font-medium text-tinta-media transition-colors hover:text-tinta"
+    >
+      <span
+        className={`relative h-5 w-9 rounded-full transition-colors duration-300 ${
+          activo ? "bg-acento" : "bg-superficie-honda"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 size-4 rounded-full bg-superficie shadow-[var(--shadow-sutil)] transition-transform duration-300 ${
+            activo ? "translate-x-4.5" : "translate-x-0.5"
+          }`}
+        />
+      </span>
+      {etiqueta}
+    </button>
   );
 }
 
@@ -414,7 +601,7 @@ function Th({
   return (
     <th
       scope="col"
-      className={`px-3 py-2.5 text-[0.6875rem] font-medium uppercase tracking-wider text-tinta-debil first:pl-5 last:pr-5 sm:first:pl-7 sm:last:pr-7 ${className}`}
+      className={`px-3 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-tinta-debil first:pl-5 last:pr-5 sm:first:pl-7 sm:last:pr-7 ${className}`}
     >
       {children}
     </th>

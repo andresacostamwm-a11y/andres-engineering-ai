@@ -1,53 +1,72 @@
 @import "tailwindcss";
 
 /*
- * Sistema de diseño DIEM Copilot.
+ * Sistema de diseño DIEM Copilot — dirección ejecutiva corporativa.
  *
- * Dirección visual: instrumental técnico. La referencia no es una landing SaaS
- * sino el software con el que se trabaja un proyecto de obra — plano, tabla de
- * cantidades, tablero de control. De ahí el tema oscuro único (no adaptativo:
- * es una herramienta de escritorio prolongado), la rejilla técnica de fondo, la
- * numeración monoespaciada de las tablas y el ámbar reservado exclusivamente a
- * la señalización de riesgo.
+ * Referencia visual: el informe que se lleva a un comité de dirección, no el
+ * panel de un desarrollador. De ahí el fondo claro con papel cálido, el azul
+ * petróleo como color institucional, el latón para los acentos de valor, y la
+ * jerarquía construida con elevación y espacio en blanco en lugar de bordes
+ * duros. El semáforo de riesgo mantiene su código de color, calibrado para
+ * cumplir contraste AA sobre superficie clara.
  */
 
 @theme {
-  /* Superficies: azul-pizarra profundo, no negro puro. */
-  --color-fondo: oklch(17% 0.018 250);
-  --color-superficie: oklch(21% 0.02 250);
-  --color-superficie-alta: oklch(25% 0.022 250);
-  --color-borde: oklch(32% 0.024 250);
-  --color-borde-suave: oklch(27% 0.02 250);
+  /* Superficies: blanco frío con un punto de calidez, no blanco puro. */
+  --color-fondo: oklch(98.2% 0.004 250);
+  --color-superficie: oklch(100% 0 0);
+  --color-superficie-alta: oklch(97% 0.005 250);
+  --color-superficie-honda: oklch(95.2% 0.007 250);
+  --color-borde: oklch(90% 0.008 250);
+  --color-borde-suave: oklch(93.5% 0.006 250);
 
-  /* Texto. */
-  --color-tinta: oklch(96% 0.005 250);
-  --color-tinta-media: oklch(76% 0.015 250);
-  --color-tinta-debil: oklch(60% 0.018 250);
+  /* Texto: azul-pizarra, nunca negro puro. */
+  --color-tinta: oklch(24% 0.024 250);
+  --color-tinta-media: oklch(45% 0.018 250);
+  --color-tinta-debil: oklch(59% 0.014 250);
 
-  /* Acento: cian técnico, el color de la línea viva en un plano. */
-  --color-acento: oklch(76% 0.14 200);
-  --color-acento-fuerte: oklch(84% 0.15 200);
-  --color-acento-tenue: oklch(30% 0.05 210);
+  /* Acento institucional: azul petróleo profundo. */
+  --color-acento: oklch(46% 0.115 232);
+  --color-acento-fuerte: oklch(38% 0.12 235);
+  --color-acento-claro: oklch(62% 0.1 228);
+  --color-acento-tenue: oklch(95.5% 0.022 232);
 
-  /* Semáforo de riesgo. Solo se usa para riesgo, nunca decorativo. */
-  --color-critico: oklch(64% 0.2 22);
-  --color-alto: oklch(74% 0.16 55);
-  --color-medio: oklch(80% 0.13 90);
-  --color-bajo: oklch(72% 0.12 155);
+  /* Latón: reservado a cifras de valor y detalles de jerarquía. */
+  --color-laton: oklch(50% 0.095 72);
+  --color-laton-tenue: oklch(96% 0.03 80);
+
+  /* Semáforo de riesgo, calibrado para contraste AA sobre superficie clara. */
+  --color-critico: oklch(48% 0.19 25);
+  --color-critico-tenue: oklch(95.5% 0.03 25);
+  --color-alto: oklch(53% 0.14 55);
+  --color-alto-tenue: oklch(96% 0.04 65);
+  --color-medio: oklch(54% 0.11 90);
+  --color-medio-tenue: oklch(96.5% 0.045 95);
+  --color-bajo: oklch(48% 0.11 155);
+  --color-bajo-tenue: oklch(95.5% 0.035 155);
 
   --font-sans: var(--font-sans-app), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-app), ui-monospace, monospace;
 
-  /* Escala tipográfica con contraste real entre extremos. */
   --text-micro: 0.6875rem;
   --text-titular: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
 
+  /* Elevación: en un tema claro la jerarquía la construye la sombra. */
+  --shadow-sutil: 0 1px 2px oklch(24% 0.024 250 / 0.05),
+    0 1px 3px oklch(24% 0.024 250 / 0.04);
+  --shadow-tarjeta: 0 1px 2px oklch(24% 0.024 250 / 0.05),
+    0 4px 12px -2px oklch(24% 0.024 250 / 0.07);
+  --shadow-elevada: 0 2px 4px oklch(24% 0.024 250 / 0.05),
+    0 12px 28px -6px oklch(24% 0.024 250 / 0.12);
+  --shadow-acento: 0 6px 20px -6px oklch(46% 0.115 232 / 0.32);
+
   --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-suave: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
   background-color: var(--color-fondo);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -57,13 +76,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Rejilla técnica de fondo: sugiere papel milimétrico sin competir con el texto. */
+/* Rejilla técnica: en claro se percibe como papel milimétrico, casi al límite
+   de lo visible, que es exactamente lo que debe hacer. */
 .rejilla-tecnica {
   background-image:
-    linear-gradient(to right, color-mix(in oklch, var(--color-borde) 45%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklch, var(--color-borde) 45%, transparent) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 85% 60% at 50% 0%, #000 20%, transparent 78%);
+    linear-gradient(to right, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 15%, transparent 76%);
 }
 
 /* Cifras alineadas en columna: imprescindible en tablas de presupuesto. */
@@ -81,17 +101,27 @@ body {
   color: var(--color-tinta-debil);
 }
 
-/* Foco visible y consistente en toda la aplicación (WCAG 2.4.7). */
+/* Superficie elevada estándar de la aplicación. */
+.tarjeta {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-tarjeta);
+}
+
+/* Foco visible y consistente (WCAG 2.4.7). */
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--color-acento);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
+/* ------------------------------------------------------------ Movimiento -- */
+
 @keyframes aparecer {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -100,39 +130,73 @@ body {
 }
 
 .aparecer {
-  animation: aparecer 0.4s var(--ease-salida) both;
+  animation: aparecer 0.45s var(--ease-salida) both;
 }
 
+/* Entrada escalonada: cada elemento entra un poco después del anterior. */
+.escalonado > * {
+  animation: aparecer 0.45s var(--ease-salida) both;
+}
+.escalonado > *:nth-child(1) { animation-delay: 0.04s; }
+.escalonado > *:nth-child(2) { animation-delay: 0.10s; }
+.escalonado > *:nth-child(3) { animation-delay: 0.16s; }
+.escalonado > *:nth-child(4) { animation-delay: 0.22s; }
+.escalonado > *:nth-child(5) { animation-delay: 0.28s; }
+.escalonado > *:nth-child(6) { animation-delay: 0.34s; }
+
 @keyframes pulso-agente {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.82); }
 }
 
 .pulso-agente {
-  animation: pulso-agente 1.4s ease-in-out infinite;
+  animation: pulso-agente 1.4s var(--ease-suave) infinite;
 }
 
 @keyframes barrido {
   from { transform: translateX(-100%); }
-  to { transform: translateX(400%); }
+  to { transform: translateX(420%); }
 }
 
 .barrido::after {
   content: "";
   position: absolute;
   inset-block: 0;
-  inline-size: 25%;
+  inline-size: 24%;
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in oklch, var(--color-acento) 55%, transparent),
+    var(--color-acento),
     transparent
   );
-  animation: barrido 1.6s linear infinite;
+  animation: barrido 1.5s linear infinite;
 }
 
-/* Respeta la preferencia del sistema: la app es una herramienta de trabajo,
-   no una pieza expresiva, así que aquí sí se desactiva el movimiento. */
+/* Crecimiento de barras de datos al entrar en pantalla. */
+@keyframes crecer-ancho {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.crecer-ancho {
+  transform-origin: left;
+  animation: crecer-ancho 0.85s var(--ease-salida) both;
+}
+
+/* Realce al pasar el puntero sobre una superficie accionable. */
+.elevable {
+  transition:
+    box-shadow 0.25s var(--ease-suave),
+    transform 0.25s var(--ease-suave),
+    border-color 0.25s var(--ease-suave);
+}
+
+.elevable:hover {
+  box-shadow: var(--shadow-elevada);
+  transform: translateY(-2px);
+  border-color: var(--color-acento-claro);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -141,13 +205,17 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .elevable:hover {
+    transform: none;
+  }
 }
 
 ::selection {
-  background: color-mix(in oklch, var(--color-acento) 30%, transparent);
+  background: var(--color-acento-tenue);
+  color: var(--color-acento-fuerte);
 }
 
-/* Barra de desplazamiento discreta y coherente con el tema. */
+/* Barra de desplazamiento discreta. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-borde) transparent;

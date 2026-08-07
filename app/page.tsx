@@ -29,7 +29,7 @@ export default function Inicio() {
           <Marca />
           <Link
             href="/app"
-            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-fondo transition-opacity hover:opacity-90"
+            className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
           >
             Entrar a la aplicación
           </Link>
@@ -64,7 +64,7 @@ export default function Inicio() {
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
                 href="/app"
-                className="rounded-md bg-acento px-6 py-3 font-medium text-fondo transition-opacity hover:opacity-90"
+                className="rounded-md bg-acento px-6 py-3 font-medium text-white shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
               >
                 Probar con el documento de ejemplo
               </Link>
@@ -86,7 +86,7 @@ export default function Inicio() {
         <section className="border-b border-borde">
           <div className="mx-auto grid max-w-6xl gap-px bg-borde-suave sm:grid-cols-3">
             {PROBLEMA.map((item) => (
-              <article key={item.dato} className="bg-fondo px-5 py-9 sm:px-8">
+              <article key={item.dato} className="bg-superficie px-5 py-9 sm:px-8">
                 <p className="cifra text-3xl font-semibold text-acento">
                   {item.dato}
                 </p>
@@ -111,11 +111,11 @@ export default function Inicio() {
               porque ninguno depende del otro.
             </p>
 
-            <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ol className="escalonado mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {AGENTES.map((agente, i) => (
                 <li
                   key={agente.id}
-                  className="relative rounded-lg border border-borde bg-superficie p-5"
+                  className="elevable relative rounded-xl border border-borde bg-superficie p-5 shadow-[var(--shadow-tarjeta)]"
                 >
                   <span className="etiqueta-seccion">{agente.etapa}</span>
                   <p className="mt-2.5 flex items-baseline gap-2 text-lg font-semibold">
