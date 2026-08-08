@@ -7,6 +7,18 @@ const SUGERENCIAS = [
   "¿Qué plazo de ejecución se establece?",
   "¿Qué se especifica sobre la instalación eléctrica?",
   "¿Qué entregables se exigen al cierre?",
+  "¿Qué alcance tiene la instalación hidráulica y sanitaria?",
+  "¿Qué se dice del sistema contra incendio?",
+  "¿Qué capacidad tiene la subestación o acometida?",
+  "¿Qué normativa aplica a este proyecto?",
+  "¿Cuáles son las partidas más caras y por qué?",
+  "¿Qué riesgos o penalizaciones menciona el documento?",
+  "¿Qué garantías se exigen al contratista?",
+  "¿Qué supuestos habría que confirmar antes de firmar?",
+  "¿Qué condiciones del sitio afectan la construcción?",
+  "¿Cuál es el precio de mercado actual del cable THW 4/0 AWG?",
+  "¿Qué dice la NOM-001-SEDE vigente sobre tierra física?",
+  "¿Qué proveedores hay en México para tableros de 480 V?",
 ];
 
 export function ChatDocumento({
@@ -19,6 +31,7 @@ export function ChatDocumento({
   const [mensajes, setMensajes] = useState<MensajeChat[]>([]);
   const [pregunta, setPregunta] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [expandido, setExpandido] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,17 +108,34 @@ export function ChatDocumento({
 
   return (
     <section className="flex flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-tarjeta)]">
-      <header className="border-b border-borde-suave px-5 py-4">
-        <h2 className="text-base font-semibold tracking-tight">
-          Consultar el documento
-        </h2>
-        <p className="mt-0.5 text-xs text-tinta-debil">
-          Recuperación BM25 sobre el texto original. Responde solo con lo que el
-          documento dice.
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-borde-suave px-5 py-4 sm:px-7">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight">
+            Consultar el proyecto
+          </h2>
+          <p className="mt-0.5 text-xs text-tinta-debil">
+            El documento es la fuente primaria; el asistente busca en internet
+            cuando la pregunta lo necesita y declara la fuente.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpandido((v) => !v)}
+          aria-pressed={expandido}
+          className="flex items-center gap-1.5 rounded-md border border-borde px-3 py-1.5 text-xs font-medium text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
+        >
+          <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {expandido ? (
+              <path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" />
+            ) : (
+              <path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" />
+            )}
+          </svg>
+          {expandido ? "Reducir" : "Vista panorámica"}
+        </button>
       </header>
 
-      <div className="max-h-[min(28rem,calc(100dvh-26rem))] min-h-[12rem] flex-1 space-y-4 overflow-y-auto px-5 py-4">
+      <div className={`${expandido ? "h-[62dvh]" : "h-[22rem]"} space-y-4 overflow-y-auto px-5 py-4 transition-[height] duration-300 sm:px-7`}>
         {mensajes.length === 0 && (
           <div>
             <p className="text-sm text-tinta-debil">
@@ -114,13 +144,13 @@ export function ChatDocumento({
                 : "El chat requiere una API key configurada en el despliegue. El análisis en modo demostración sigue disponible."}
             </p>
             {disponible && (
-              <ul className="mt-3 space-y-1.5">
+              <ul className="mt-3 flex flex-wrap gap-2">
                 {SUGERENCIAS.map((s) => (
                   <li key={s}>
                     <button
                       type="button"
                       onClick={() => preguntar(s)}
-                      className="w-full rounded-md border border-borde-suave px-3 py-2 text-left text-xs text-tinta-media transition-colors hover:border-acento/50 hover:text-tinta"
+                      className="rounded-full border border-borde-suave px-3.5 py-2 text-left text-xs text-tinta-media transition-colors hover:border-acento/50 hover:text-tinta"
                     >
                       {s}
                     </button>
@@ -141,7 +171,7 @@ export function ChatDocumento({
                 {mensaje.contenido}
               </p>
             ) : (
-              <div className="max-w-[92%]">
+              <div className="max-w-[85ch]">
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-tinta-media">
                   {mensaje.contenido || (
                     <span className="pulso-agente text-tinta-debil">
@@ -186,7 +216,7 @@ export function ChatDocumento({
           e.preventDefault();
           preguntar(pregunta);
         }}
-        className="flex gap-2 border-t border-borde-suave p-3"
+        className="flex gap-2 border-t border-borde-suave p-3 sm:px-7 sm:py-4"
       >
         <label htmlFor="pregunta" className="sr-only">
           Pregunta sobre el proyecto
@@ -197,7 +227,7 @@ export function ChatDocumento({
           onChange={(e) => setPregunta(e.target.value)}
           disabled={!disponible || cargando}
           placeholder={disponible ? "Escribe tu pregunta…" : "No disponible en modo demostración"}
-          className="flex-1 rounded-md border border-borde bg-superficie px-3 py-2 text-sm placeholder:text-tinta-debil focus:border-acento focus:outline-none disabled:opacity-50"
+          className="flex-1 rounded-md border border-borde bg-superficie px-4 py-2.5 text-sm placeholder:text-tinta-debil focus:border-acento focus:outline-none disabled:opacity-50"
         />
         <button
           type="submit"

@@ -19,6 +19,9 @@ import { Lamina } from "./diagramas/Lamina";
 import { GenerarPlano } from "./diagramas/GenerarPlano";
 import { AccesoPlanos } from "./diagramas/AccesoPlanos";
 import { MemoriaPanel } from "./MemoriaPanel";
+import { ChatDocumento } from "./ChatDocumento";
+import { ConsultaWeb } from "./ConsultaWeb";
+import { SalaControl } from "./SalaControl";
 import { PanelAgentesProyecto, type EstadoAgente } from "./PanelAgentesProyecto";
 import {
   ListaHallazgos,
@@ -51,9 +54,11 @@ const EJEMPLOS: Record<string, string> = {
 };
 
 type Fase = "formulario" | "generando" | "listo";
+type Vista = "informe" | "sala";
 
 export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [fase, setFase] = useState<Fase>("formulario");
+  const [vista, setVista] = useState<Vista>("informe");
   const [error, setError] = useState<string | null>(null);
 
   const [nombre, setNombre] = useState("");
@@ -495,6 +500,125 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         </p>
       )}
 
+      {fase === "listo" && proyecto && (
+        <div
+          className="flex gap-1 self-start rounded-lg border border-borde bg-superficie-alta p-0.5"
+          role="group"
+          aria-label="Modo de vista"
+        >
+          <button
+            type="button"
+            onClick={() => setVista("informe")}
+            aria-pressed={vista === "informe"}
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              vista === "informe"
+                ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
+                : "text-tinta-debil hover:text-tinta"
+            }`}
+          >
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M2.5 4h11M2.5 8h11M2.5 12h11" />
+            </svg>
+            Informe
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista("sala")}
+            aria-pressed={vista === "sala"}
+            title="Dividir la pantalla en 4 paneles: chat, información, internet y planos"
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              vista === "sala"
+                ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
+                : "text-tinta-debil hover:text-tinta"
+            }`}
+          >
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <rect x="2" y="2" width="5" height="5" rx="1" />
+              <rect x="9" y="2" width="5" height="5" rx="1" />
+              <rect x="2" y="9" width="5" height="5" rx="1" />
+              <rect x="9" y="9" width="5" height="5" rx="1" />
+            </svg>
+            4 pantallas
+          </button>
+        </div>
+      )}
+
+      {vista === "sala" && fase === "listo" && proyecto ? (
+        <SalaControl
+          paneles={[
+            {
+              id: "chat",
+              etiqueta: "Chat",
+              contenido: (
+                <ChatDocumento documento={alcance} disponible={apiDisponible} />
+              ),
+            },
+            {
+              id: "info",
+              etiqueta: "Información del proyecto",
+              contenido: (
+                <div className="space-y-4">
+                  {resumen && (
+                    <PanelResumen
+                      analisis={{
+                        id: proyecto.id,
+                        nombreArchivo: proyecto.nombre,
+                        creadoEn: proyecto.creadoEn,
+                        paginas: 0,
+                        caracteres: alcance.length,
+                        texto: alcance,
+                        resumen,
+                        requerimientos,
+                        partidas,
+                        hallazgos,
+                        modoDemo,
+                      }}
+                    />
+                  )}
+                  {memoria && <MemoriaPanel proyecto={proyecto} />}
+                  {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+                  {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
+                  {requerimientos.length > 0 && (
+                    <TablaRequerimientos datos={requerimientos} />
+                  )}
+                </div>
+              ),
+            },
+            {
+              id: "internet",
+              etiqueta: "Acceso a internet",
+              contenido: <ConsultaWeb />,
+            },
+            {
+              id: "planos",
+              etiqueta: "Planos",
+              contenido: (
+                <section className="space-y-5 rounded-xl border border-borde bg-superficie p-4 shadow-[var(--shadow-tarjeta)] sm:p-5">
+                  <AccesoPlanos
+                    encargo={{ nombre, descripcion, disciplina, envergadura, contexto: alcance }}
+                    diagramas={diagramas}
+                    onDiagrama={(d) => setDiagramas((prev) => [...prev, d])}
+                  />
+                  {diagramas.map((d, i) => (
+                    <div key={`sala-${d.tipo}-${i}`} id={`lamina-${i}`} className="scroll-mt-4">
+                      <Lamina
+                        diagrama={d}
+                        proyecto={proyecto}
+                        cabecera={{
+                          nombre,
+                          disciplina: ficha.nombre,
+                          fecha: new Date().toLocaleDateString("es-MX"),
+                        }}
+                      />
+                    </div>
+                  ))}
+                </section>
+              ),
+            },
+          ]}
+        />
+      ) : (
+        <>
       {resumen && proyecto && (
         <PanelResumen
           analisis={{
@@ -593,6 +717,8 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             </pre>
           </div>
         </details>
+      )}
+        </>
       )}
     </div>
   );

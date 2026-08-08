@@ -48,26 +48,29 @@ export async function POST(request: Request) {
 
   let pregunta: string;
   let documento: string;
+  let modoWeb: boolean;
   try {
     const cuerpo = (await request.json()) as {
       pregunta?: unknown;
       documento?: unknown;
+      modo?: unknown;
     };
     if (typeof cuerpo.pregunta !== "string" || !cuerpo.pregunta.trim()) {
       return NextResponse.json({ error: "Falta la pregunta." }, { status: 400 });
     }
-    if (typeof cuerpo.documento !== "string" || !cuerpo.documento.trim()) {
+    modoWeb = cuerpo.modo === "web";
+    if (!modoWeb && (typeof cuerpo.documento !== "string" || !cuerpo.documento.trim())) {
       return NextResponse.json({ error: "Falta el documento." }, { status: 400 });
     }
     pregunta = cuerpo.pregunta.slice(0, 1000);
-    documento = cuerpo.documento;
+    documento = typeof cuerpo.documento === "string" ? cuerpo.documento : "";
   } catch {
     return NextResponse.json({ error: "Petición malformada." }, { status: 400 });
   }
 
-  // Si el documento no tiene fragmentos relevantes, la pregunta se responde
-  // igualmente con la búsqueda web; el modelo declara la fuente.
-  const fragmentos = recuperar(fragmentar(documento), pregunta, 5);
+  // Si el documento no tiene fragmentos relevantes —o la consulta es en modo
+  // web puro—, la pregunta se responde con la búsqueda web declarando la fuente.
+  const fragmentos = modoWeb ? [] : recuperar(fragmentar(documento), pregunta, 5);
 
   const contexto = fragmentos
     .map(
@@ -103,7 +106,7 @@ export async function POST(request: Request) {
             maxTokens: 3000,
             prompt: fragmentos.length > 0
               ? `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`
-              : `El documento del proyecto no contiene fragmentos relevantes para esta pregunta; respóndela con la búsqueda web declarando la fuente.\n\nPregunta: ${pregunta}`,
+              : `${modoWeb ? "Consulta directa a internet, sin documento adjunto" : "El documento del proyecto no contiene fragmentos relevantes para esta pregunta"}; respóndela con la búsqueda web declarando la fuente.\n\nPregunta: ${pregunta}`,
           })) {
             enviar({ tipo: "texto", texto: trozo });
           }

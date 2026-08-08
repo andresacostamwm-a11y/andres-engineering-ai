@@ -22,6 +22,8 @@ import {
   TablaRequerimientos,
 } from "./Resultados";
 import { ChatDocumento } from "./ChatDocumento";
+import { ConsultaWeb } from "./ConsultaWeb";
+import { SalaControl } from "./SalaControl";
 import { ZonaCarga } from "./ZonaCarga";
 
 const ESTADOS_INICIALES: Record<AgenteId, EstadoAgente> = {
@@ -32,9 +34,11 @@ const ESTADOS_INICIALES: Record<AgenteId, EstadoAgente> = {
 };
 
 type Fase = "vacio" | "extrayendo" | "analizando" | "listo";
+type Vista = "informe" | "sala";
 
 export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
   const [fase, setFase] = useState<Fase>("vacio");
+  const [vista, setVista] = useState<Vista>("informe");
   const [error, setError] = useState<string | null>(null);
   const [documento, setDocumento] = useState<{
     texto: string;
@@ -364,33 +368,125 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
         </p>
       )}
 
-      {resumen && analisisActual && <PanelResumen analisis={analisisActual} />}
+      {fase === "listo" && analisisActual && (
+        <div
+          className="flex gap-1 self-start rounded-lg border border-borde bg-superficie-alta p-0.5"
+          role="group"
+          aria-label="Modo de vista"
+        >
+          <button
+            type="button"
+            onClick={() => setVista("informe")}
+            aria-pressed={vista === "informe"}
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              vista === "informe"
+                ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
+                : "text-tinta-debil hover:text-tinta"
+            }`}
+          >
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M2.5 4h11M2.5 8h11M2.5 12h11" />
+            </svg>
+            Informe
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista("sala")}
+            aria-pressed={vista === "sala"}
+            title="Dividir la pantalla en 4 paneles: chat, información, internet y planos"
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              vista === "sala"
+                ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
+                : "text-tinta-debil hover:text-tinta"
+            }`}
+          >
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <rect x="2" y="2" width="5" height="5" rx="1" />
+              <rect x="9" y="2" width="5" height="5" rx="1" />
+              <rect x="2" y="9" width="5" height="5" rx="1" />
+              <rect x="9" y="9" width="5" height="5" rx="1" />
+            </svg>
+            4 pantallas
+          </button>
+        </div>
+      )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_25rem]">
-        <div className="space-y-6">
+      {vista === "sala" && fase === "listo" && analisisActual && documento ? (
+        <SalaControl
+          paneles={[
+            {
+              id: "chat",
+              etiqueta: "Chat",
+              contenido: (
+                <ChatDocumento
+                  documento={documento.texto}
+                  disponible={apiDisponible}
+                />
+              ),
+            },
+            {
+              id: "info",
+              etiqueta: "Información del proyecto",
+              contenido: (
+                <div className="space-y-4">
+                  {resumen && <PanelResumen analisis={analisisActual} />}
+                  {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+                  {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
+                  {requerimientos.length > 0 && (
+                    <TablaRequerimientos datos={requerimientos} />
+                  )}
+                </div>
+              ),
+            },
+            {
+              id: "internet",
+              etiqueta: "Acceso a internet",
+              contenido: <ConsultaWeb />,
+            },
+            {
+              id: "planos",
+              etiqueta: "Planos",
+              contenido: (
+                <section className="flex h-full min-h-[16rem] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-borde bg-superficie/60 px-6 py-10 text-center">
+                  <p className="text-sm font-medium">
+                    Los planos se dibujan al proyectar desde cero
+                  </p>
+                  <p className="max-w-sm text-xs leading-relaxed text-tinta-media">
+                    El análisis de documentos audita lo que ya existe. Para
+                    generar el paquete completo de láminas —unifilar, hidráulico,
+                    HVAC, sanitario…— crea el proyecto con este alcance.
+                  </p>
+                  <a
+                    href="/app/proyecto"
+                    className="rounded-md bg-acento px-4 py-2 text-sm font-medium text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+                  >
+                    Crear proyecto con planos
+                  </a>
+                </section>
+              ),
+            },
+          ]}
+        />
+      ) : (
+        <>
+          {resumen && analisisActual && <PanelResumen analisis={analisisActual} />}
           {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
           {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
-          {requerimientos.length > 0 && (
-            <TablaRequerimientos datos={requerimientos} />
-          )}
-        </div>
+          {requerimientos.length > 0 && <TablaRequerimientos datos={requerimientos} />}
 
-        <aside className="space-y-4 lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pb-2">
-          {documento && (
-            <ChatDocumento
-              documento={documento.texto}
-              disponible={apiDisponible}
-            />
+          {documento && fase !== "vacio" && (
+            <ChatDocumento documento={documento.texto} disponible={apiDisponible} />
           )}
-          {historial.length > 0 && (
-            <Historial
-              datos={historial}
-              onAbrir={abrirDelHistorial}
-              onEliminar={(id) => setHistorial(eliminarAnalisis(id))}
-            />
-          )}
-        </aside>
-      </div>
+        </>
+      )}
+
+      {historial.length > 0 && (
+        <Historial
+          datos={historial}
+          onAbrir={abrirDelHistorial}
+          onEliminar={(id) => setHistorial(eliminarAnalisis(id))}
+        />
+      )}
     </div>
   );
 }
