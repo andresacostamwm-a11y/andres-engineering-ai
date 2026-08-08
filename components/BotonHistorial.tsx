@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Analisis } from "@/lib/types";
 import type { Proyecto } from "@/lib/tipos-proyecto";
@@ -98,7 +99,7 @@ export function BotonHistorial() {
         Historial
       </button>
 
-      {abierto && (
+      {abierto && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[oklch(15%_0.02_244_/_0.6)] p-4 backdrop-blur-sm sm:p-8"
           role="dialog"
@@ -258,7 +259,8 @@ export function BotonHistorial() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
