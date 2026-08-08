@@ -56,7 +56,20 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
   const [modoDemo, setModoDemo] = useState(false);
   const [historial, setHistorial] = useState<Analisis[]>([]);
 
-  useEffect(() => setHistorial(leerHistorial()), []);
+  useEffect(() => {
+    const guardados = leerHistorial();
+    setHistorial(guardados);
+
+    // Si el historial global pidió abrir un análisis, se restaura completo.
+    const id = sessionStorage.getItem("aec-copilot:abrir-analisis");
+    if (id) {
+      sessionStorage.removeItem("aec-copilot:abrir-analisis");
+      const analisis = guardados.find((a) => a.id === id);
+      if (analisis) abrirDelHistorial(analisis);
+    }
+    // abrirDelHistorial es estable dentro del componente.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const reiniciar = useCallback(() => {
     setEstados(ESTADOS_INICIALES);
@@ -393,7 +406,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
             type="button"
             onClick={() => setVista("sala")}
             aria-pressed={vista === "sala"}
-            title="Dividir la pantalla en 4 paneles: chat, información, internet y planos"
+            title="Pantalla dividida: chat, información, internet y planos, en 3 o 4 partes"
             className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
               vista === "sala"
                 ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
@@ -406,7 +419,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
               <rect x="2" y="9" width="5" height="5" rx="1" />
               <rect x="9" y="9" width="5" height="5" rx="1" />
             </svg>
-            4 pantallas
+            Pantalla dividida
           </button>
         </div>
       )}

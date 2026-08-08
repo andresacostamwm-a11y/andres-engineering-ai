@@ -10,6 +10,7 @@
 "use client";
 
 import type { Analisis } from "./types.ts";
+import type { Proyecto } from "./tipos-proyecto.ts";
 
 const CLAVE = "aec-copilot:historial";
 const MAXIMO = 20;
@@ -61,4 +62,49 @@ export function eliminarAnalisis(id: string): Analisis[] {
 export function limpiarHistorial(): void {
   if (!disponible()) return;
   window.localStorage.removeItem(CLAVE);
+}
+
+/* --------------------------------------------- Historial de proyectos -- */
+
+const CLAVE_PROYECTOS = "aec-copilot:proyectos";
+const MAXIMO_PROYECTOS = 20;
+
+export function leerProyectos(): Proyecto[] {
+  if (!disponible()) return [];
+  try {
+    const crudo = window.localStorage.getItem(CLAVE_PROYECTOS);
+    if (!crudo) return [];
+    const datos = JSON.parse(crudo) as unknown;
+    return Array.isArray(datos) ? (datos as Proyecto[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarProyecto(proyecto: Proyecto): Proyecto[] {
+  if (!disponible()) return [];
+  const historial = [
+    proyecto,
+    ...leerProyectos().filter((p) => p.id !== proyecto.id),
+  ].slice(0, MAXIMO_PROYECTOS);
+
+  try {
+    window.localStorage.setItem(CLAVE_PROYECTOS, JSON.stringify(historial));
+  } catch {
+    // Cuota agotada: se conserva solo el proyecto más reciente.
+    try {
+      window.localStorage.setItem(CLAVE_PROYECTOS, JSON.stringify([proyecto]));
+      return [proyecto];
+    } catch {
+      return historial;
+    }
+  }
+  return historial;
+}
+
+export function eliminarProyecto(id: string): Proyecto[] {
+  if (!disponible()) return [];
+  const historial = leerProyectos().filter((p) => p.id !== id);
+  window.localStorage.setItem(CLAVE_PROYECTOS, JSON.stringify(historial));
+  return historial;
 }

@@ -4,6 +4,7 @@ import { Marca } from "@/components/Marca";
 import { CerrarSesion } from "@/components/CerrarSesion";
 import { SelectorTema } from "@/components/SelectorTema";
 import { SelectorMotor } from "@/components/SelectorMotor";
+import { BotonHistorial } from "@/components/BotonHistorial";
 import { CrearProyecto } from "@/components/CrearProyecto";
 import { hayApiKey } from "@/lib/modelo";
 import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
@@ -27,6 +28,7 @@ export default async function PaginaProyecto() {
           </Link>
 
           <nav className="flex items-center gap-4">
+            <BotonHistorial />
             <SelectorMotor />
             <SelectorTema />
             <Link

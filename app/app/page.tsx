@@ -7,6 +7,7 @@ import { NOMBRE_COOKIE, leerToken } from "@/lib/auth";
 import { CerrarSesion } from "@/components/CerrarSesion";
 import { SelectorTema } from "@/components/SelectorTema";
 import { SelectorMotor } from "@/components/SelectorMotor";
+import { BotonHistorial } from "@/components/BotonHistorial";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function PaginaTaller() {
           </Link>
 
           <div className="flex items-center gap-4">
+            <BotonHistorial />
             <SelectorMotor />
             <SelectorTema />
             <span className="hidden text-xs text-tinta-debil sm:inline">

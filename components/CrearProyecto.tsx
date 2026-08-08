@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Diagrama } from "@/lib/diagramas/tipos";
 import type {
   AgenteProyecto,
@@ -30,6 +30,7 @@ import {
   TablaRequerimientos,
 } from "./Resultados";
 import { ExportarProyecto } from "./ExportarProyecto";
+import { guardarProyecto, leerProyectos } from "@/lib/almacen";
 
 const ESTADOS_INICIALES: Record<AgenteProyecto, EstadoAgente> = {
   programa: "pendiente",
@@ -82,6 +83,40 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [modoDemo, setModoDemo] = useState(false);
 
   const ficha = DISCIPLINAS.find((d) => d.id === disciplina)!;
+
+  // Si el historial global pidió abrir un proyecto, se restaura completo.
+  useEffect(() => {
+    const id = sessionStorage.getItem("aec-copilot:abrir-proyecto");
+    if (!id) return;
+    sessionStorage.removeItem("aec-copilot:abrir-proyecto");
+    const guardado = leerProyectos().find((p) => p.id === id);
+    if (!guardado) return;
+
+    setNombre(guardado.nombre);
+    setDescripcion(guardado.descripcion);
+    setDisciplina(guardado.disciplina);
+    setEnvergadura(guardado.envergadura);
+    setUbicacion(guardado.ubicacion);
+    setAlcance(guardado.alcance);
+    setPremisas(guardado.premisas);
+    setRequerimientos(guardado.requerimientos);
+    setPartidas(guardado.partidas);
+    setHallazgos(guardado.hallazgos);
+    setDiagramas(guardado.diagramas);
+    setMemoria(guardado.memoria);
+    setResumen(guardado.resumen);
+    setModoDemo(guardado.modoDemo);
+    setEstados({
+      programa: "listo",
+      extractor: "listo",
+      costos: guardado.partidas.length > 0 ? "listo" : "error",
+      normativo: guardado.hallazgos.length > 0 ? "listo" : "error",
+      proyectista: guardado.diagramas.length > 0 ? "listo" : "error",
+      memoria: guardado.memoria ? "listo" : "error",
+      sintesis: guardado.resumen ? "listo" : "error",
+    });
+    setFase("listo");
+  }, []);
 
   const generar = useCallback(async () => {
     setError(null);
@@ -164,6 +199,25 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           aplicar(JSON.parse(parte.slice(6)) as EventoProyecto, acumulado);
         }
       }
+
+      guardarProyecto({
+        id: `${Date.now()}`,
+        nombre,
+        descripcion,
+        disciplina,
+        envergadura,
+        ubicacion,
+        creadoEn: new Date().toISOString(),
+        alcance: acumulado.alcance,
+        premisas: acumulado.premisas,
+        requerimientos: acumulado.requerimientos,
+        partidas: acumulado.partidas,
+        hallazgos: acumulado.hallazgos,
+        diagramas: acumulado.diagramas,
+        memoria: acumulado.memoria,
+        resumen: acumulado.resumen,
+        modoDemo: acumulado.demo,
+      });
 
       setFase("listo");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -525,7 +579,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             type="button"
             onClick={() => setVista("sala")}
             aria-pressed={vista === "sala"}
-            title="Dividir la pantalla en 4 paneles: chat, información, internet y planos"
+            title="Pantalla dividida: chat, información, internet y planos, en 3 o 4 partes"
             className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
               vista === "sala"
                 ? "bg-superficie text-acento shadow-[var(--shadow-sutil)]"
@@ -538,7 +592,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
               <rect x="2" y="9" width="5" height="5" rx="1" />
               <rect x="9" y="9" width="5" height="5" rx="1" />
             </svg>
-            4 pantallas
+            Pantalla dividida
           </button>
         </div>
       )}
