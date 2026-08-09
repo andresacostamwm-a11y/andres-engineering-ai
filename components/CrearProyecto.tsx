@@ -55,6 +55,10 @@ import {
 import { ExportarProyecto } from "./ExportarProyecto";
 import { guardarProyecto, leerProyectos } from "@/lib/almacen";
 
+/** Aviso para un proyecto guardado antes de que existiera una etapa. */
+const SIN_ETAPA =
+  "Este proyecto se generó antes de que existiera esta etapa. Vuelve a generarlo para incluirla.";
+
 const ESTADOS_INICIALES: Record<AgenteProyecto, EstadoAgente> = {
   programa: "pendiente",
   extractor: "pendiente",
@@ -184,9 +188,17 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       proyectista: guardado.diagramas.length > 0 ? "listo" : "error",
       memoria: guardado.memoria ? "listo" : "error",
       sintesis: guardado.resumen ? "listo" : "error",
-      programacion: guardado.programa ? "listo" : "error",
-      riesgos: guardado.viabilidad ? "listo" : "error",
-      verificador: guardado.verificacion ? "listo" : "error",
+      // Estas tres etapas no existían cuando se guardaron los proyectos más
+      // antiguos. Marcarlas en rojo las hacía parecer un fallo; quedan
+      // pendientes y el mensaje explica por qué.
+      programacion: guardado.programa ? "listo" : "pendiente",
+      riesgos: guardado.viabilidad ? "listo" : "pendiente",
+      verificador: guardado.verificacion ? "listo" : "pendiente",
+    });
+    setMensajes({
+      ...(guardado.programa ? {} : { programacion: SIN_ETAPA }),
+      ...(guardado.viabilidad ? {} : { riesgos: SIN_ETAPA }),
+      ...(guardado.verificacion ? {} : { verificador: SIN_ETAPA }),
     });
     setFase("listo");
   }, []);
