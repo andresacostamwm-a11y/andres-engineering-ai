@@ -17,6 +17,7 @@ const doc = construirDictamen({
   modoDemo: true,
 });
 
-const bytes = doc.output("arraybuffer");
+const pdf = await doc;
+const bytes = pdf.output("arraybuffer");
 writeFileSync(process.argv[2] ?? "/tmp/dictamen.pdf", Buffer.from(bytes));
-console.log("PDF generado:", (bytes as ArrayBuffer).byteLength, "bytes ·", doc.getNumberOfPages(), "páginas");
+console.log("PDF generado:", (bytes as ArrayBuffer).byteLength, "bytes ·", pdf.getNumberOfPages(), "páginas");

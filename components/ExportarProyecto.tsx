@@ -52,6 +52,14 @@ export function ExportarProyecto({ proyecto }: { proyecto: Proyecto }) {
           hallazgos: proyecto.hallazgos,
           economia: proyecto.economia,
           modoDemo: proyecto.modoDemo,
+        },
+        {
+          // El dictamen se ilustra con las láminas del proyecto y se completa
+          // con la memoria y las cotizaciones registradas.
+          svgs: svgsDelDocumento(),
+          titulos: proyecto.diagramas.map((d) => d.titulo),
+          memoria: proyecto.memoria,
+          cotizaciones: leerCotizaciones(proyecto.id),
         }),
     },
     {

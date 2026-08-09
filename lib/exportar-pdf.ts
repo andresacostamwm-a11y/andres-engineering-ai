@@ -13,6 +13,19 @@ import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "./types.ts";
 import { fechaLarga, numero, dineroExacto } from "./formato.ts";
 import { MONEDA_POR_DEFECTO } from "./moneda/tipos.ts";
 import { filasFichaEconomica } from "./moneda/ficha.ts";
+import type { Cotizacion } from "./moneda/tipos.ts";
+import type { MemoriaProyecto } from "./tipos-proyecto.ts";
+import { dibujarDesglose, laminaAPng } from "./pdf-graficos.ts";
+
+/** Material del proyecto que el dictamen ilustra, cuando existe. */
+export interface ExtrasDictamen {
+  /** Láminas ya serializadas a SVG independiente. */
+  svgs?: string[];
+  /** Título de cada lámina, en el mismo orden que `svgs`. */
+  titulos?: string[];
+  memoria?: MemoriaProyecto | null;
+  cotizaciones?: Cotizacion[];
+}
 
 const TINTA: [number, number, number] = [31, 41, 55];
 const ACENTO: [number, number, number] = [21, 94, 133];
@@ -25,8 +38,12 @@ const COLOR_RIESGO: Record<string, [number, number, number]> = {
   bajo: [30, 110, 76],
 };
 
-export function exportarDictamen(analisis: Analisis): void {
-  construirDictamen(analisis).save(`dictamen-${normalizar(analisis.nombreArchivo)}.pdf`);
+export async function exportarDictamen(
+  analisis: Analisis,
+  extras: ExtrasDictamen = {},
+): Promise<void> {
+  const doc = await construirDictamen(analisis, extras);
+  doc.save(`dictamen-${normalizar(analisis.nombreArchivo)}.pdf`);
 }
 
 /**
@@ -34,7 +51,10 @@ export function exportarDictamen(analisis: Analisis): void {
  * permite generarlo también fuera del navegador —en una prueba o en un script—
  * sin depender del DOM.
  */
-export function construirDictamen(analisis: Analisis): jsPDF {
+export async function construirDictamen(
+  analisis: Analisis,
+  extras: ExtrasDictamen = {},
+): Promise<jsPDF> {
   const moneda = analisis.economia?.moneda ?? MONEDA_POR_DEFECTO;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const anchoPagina = doc.internal.pageSize.getWidth();
@@ -204,6 +224,12 @@ export function construirDictamen(analisis: Analisis): jsPDF {
 
   // --- Hallazgos normativos ---
   if (analisis.hallazgos.length > 0) {
+    // Desglose visual: qué disciplina se lleva el presupuesto.
+    y = saltarSiHaceFalta(doc, y, 40 + analisis.partidas.length * 4, margen);
+    y = seccion(doc, "Distribución del presupuesto por disciplina", margen, y);
+    y = dibujarDesglose(doc, analisis.partidas, moneda, margen, y, ACENTO, TINTA, GRIS);
+    y += 14;
+
     y = seccion(doc, "Hallazgos de cumplimiento normativo", margen, y);
     autoTable(doc, {
       startY: y,
@@ -247,6 +273,161 @@ export function construirDictamen(analisis: Analisis): jsPDF {
       doc.text(lineas, margen + 6, y);
       y += lineas.length * 12 + 4;
     });
+  }
+
+  // --- Cotizaciones de proveedor ---
+  const cotizaciones = extras.cotizaciones ?? [];
+  if (cotizaciones.length > 0) {
+    y = seccion(doc, "Cotizaciones de proveedor", margen, y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...GRIS);
+    doc.text(
+      "Ofertas reales con su tipo de cambio de emisión. No son las estimaciones del presupuesto.",
+      margen,
+      y,
+    );
+    y += 14;
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      margin: { left: margen, right: margen },
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+      head: [["Proveedor", "Concepto", "Original", "Convertido", "TC aplicado", "Fecha · vigencia"]],
+      body: cotizaciones.map((c) => [
+        c.proveedor,
+        c.concepto,
+        dineroExacto(c.importeOriginal),
+        dineroExacto(c.importeConvertido),
+        c.tipoCambio.origen === c.tipoCambio.destino
+          ? "misma moneda"
+          : `${c.tipoCambio.tasa} · ${c.tipoCambio.fuente}`,
+        `${fechaLarga(c.fecha)}${c.vigencia ? ` · vence ${fechaLarga(c.vigencia)}` : ""}`,
+      ]),
+    });
+    y = posicionFinal(doc) + 20;
+  }
+
+  // --- Memoria técnica ---
+  const memoria = extras.memoria;
+  if (memoria) {
+    doc.addPage();
+    y = margen;
+    y = seccion(doc, "Memoria técnica del proyecto", margen, y);
+
+    for (const [titulo, texto] of [
+      ["Objeto", memoria.objeto],
+      ["Antecedentes", memoria.antecedentes],
+    ] as const) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...TINTA);
+      y = saltarSiHaceFalta(doc, y, 30, margen);
+      doc.text(titulo, margen, y);
+      y += 13;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const lineas = doc.splitTextToSize(texto, anchoUtil);
+      y = saltarSiHaceFalta(doc, y, lineas.length * 12 + 8, margen);
+      doc.text(lineas, margen, y);
+      y += lineas.length * 12 + 12;
+    }
+
+    if (memoria.normativa.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        theme: "plain",
+        margin: { left: margen, right: margen },
+        styles: { fontSize: 8.5, cellPadding: 3, textColor: TINTA },
+        head: [["Normativa aplicable"]],
+        headStyles: { fontStyle: "bold", textColor: ACENTO },
+        body: memoria.normativa.map((n) => [n]),
+      });
+      y = posicionFinal(doc) + 16;
+    }
+
+    for (const sistema of memoria.sistemas) {
+      y = saltarSiHaceFalta(doc, y, 60, margen);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...ACENTO);
+      doc.text(sistema.nombre, margen, y);
+      y += 14;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...TINTA);
+      const desc = doc.splitTextToSize(sistema.descripcion, anchoUtil);
+      y = saltarSiHaceFalta(doc, y, desc.length * 12 + 8, margen);
+      doc.text(desc, margen, y);
+      y += desc.length * 12 + 10;
+
+      if (sistema.criterios.length > 0) {
+        for (const criterio of sistema.criterios) {
+          const l = doc.splitTextToSize(`— ${criterio}`, anchoUtil - 10);
+          y = saltarSiHaceFalta(doc, y, l.length * 11 + 4, margen);
+          doc.text(l, margen + 8, y);
+          y += l.length * 11 + 3;
+        }
+        y += 6;
+      }
+
+      if (sistema.calculos.length > 0) {
+        autoTable(doc, {
+          startY: y,
+          theme: "grid",
+          margin: { left: margen, right: margen },
+          styles: { fontSize: 7.5, cellPadding: 3.5, valign: "top" },
+          headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+          columnStyles: {
+            0: { cellWidth: 105 },
+            1: { cellWidth: 120 },
+            2: { cellWidth: 140 },
+            3: { cellWidth: 134 },
+          },
+          head: [["Concepto", "Método", "Datos", "Resultado"]],
+          body: sistema.calculos.map((c) => [c.concepto, c.metodo, c.datos, c.resultado]),
+        });
+        y = posicionFinal(doc) + 16;
+      }
+    }
+  }
+
+  // --- Láminas ---
+  // Cada plano ocupa su página en horizontal: en vertical el cajetín queda
+  // ilegible al reducirlo al ancho útil.
+  const svgs = extras.svgs ?? [];
+  for (const [indice, svg] of svgs.entries()) {
+    const lamina = await laminaAPng(svg);
+    if (!lamina) continue;
+
+    doc.addPage("a4", "landscape");
+    const anchoPagina = doc.internal.pageSize.getWidth();
+    const altoPagina = doc.internal.pageSize.getHeight();
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...ACENTO);
+    const titulo = extras.titulos?.[indice] ?? `Lámina ${indice + 1}`;
+    doc.text(titulo.toUpperCase(), margen, margen + 6);
+
+    const disponibleAncho = anchoPagina - margen * 2;
+    const disponibleAlto = altoPagina - margen * 2 - 22;
+    const escala = Math.min(disponibleAncho / lamina.ancho, disponibleAlto / lamina.alto);
+    const ancho = lamina.ancho * escala;
+    const alto = lamina.alto * escala;
+
+    doc.addImage(
+      lamina.dataUrl,
+      "PNG",
+      margen + (disponibleAncho - ancho) / 2,
+      margen + 18,
+      ancho,
+      alto,
+      undefined,
+      "FAST",
+    );
   }
 
   numerarPaginas(doc, margen);
