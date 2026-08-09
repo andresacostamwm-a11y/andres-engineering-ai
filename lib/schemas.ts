@@ -159,6 +159,8 @@ export const definicionProyectoSchema = z.object({
   nombre: z.string().min(3, "Ponle un nombre al proyecto"),
   descripcion: z.string().min(20, "Describe el proyecto con al menos 20 caracteres"),
   disciplina: z.string().min(1),
+  /** Todas las disciplinas elegidas. Si falta, se asume solo la principal. */
+  disciplinas: z.array(z.string().min(1)).min(1).max(13).optional(),
   envergadura: z.enum(["pequena", "mediana", "grande"]),
   ubicacion: z.string().optional(),
 });

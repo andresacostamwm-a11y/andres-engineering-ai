@@ -36,7 +36,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (!IDS_DISCIPLINA.has(validacion.data.disciplina as DisciplinaProyecto)) {
+    const idsPedidos = validacion.data.disciplinas ?? [validacion.data.disciplina];
+    if (idsPedidos.some((d) => !IDS_DISCIPLINA.has(d as DisciplinaProyecto))) {
       return NextResponse.json({ error: "Disciplina desconocida." }, { status: 400 });
     }
 
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
       nombre: validacion.data.nombre.slice(0, 160),
       descripcion: validacion.data.descripcion.slice(0, 8000),
       disciplina: validacion.data.disciplina as DisciplinaProyecto,
+      disciplinas: idsPedidos as DisciplinaProyecto[],
       envergadura: validacion.data.envergadura,
       ubicacion: validacion.data.ubicacion?.slice(0, 200),
       documentosAdjuntos:

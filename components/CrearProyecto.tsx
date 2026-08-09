@@ -16,7 +16,7 @@ import type {
   DisciplinaProyecto,
   Envergadura,
 } from "@/lib/disciplinas";
-import { DISCIPLINAS, ENVERGADURAS, ETIQUETA_DIAGRAMA } from "@/lib/disciplinas";
+import { diagramasDe, normativaDe, DISCIPLINAS, ENVERGADURAS, ETIQUETA_DIAGRAMA } from "@/lib/disciplinas";
 import { EXTENSIONES_ACEPTADAS } from "@/lib/extractores";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "@/lib/types";
 import type { MemoriaProyecto } from "@/lib/tipos-proyecto";
@@ -69,7 +69,16 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [disciplina, setDisciplina] = useState<DisciplinaProyecto>("electrica");
+  // Selección múltiple: un proyecto real cruza especialidades. La primera de la
+  // lista es la principal y es la que fija el tono del alcance y de la memoria.
+  const [disciplinas, setDisciplinas] = useState<DisciplinaProyecto[]>(["electrica"]);
+  const disciplina = disciplinas[0] ?? "electrica";
+
+  function alternarDisciplina(id: DisciplinaProyecto) {
+    setDisciplinas((previas) =>
+      previas.includes(id) ? previas.filter((d) => d !== id) : [...previas, id],
+    );
+  }
   const [envergadura, setEnvergadura] = useState<Envergadura>("mediana");
   const [ubicacion, setUbicacion] = useState("");
   const [adjuntos, setAdjuntos] = useState<File[]>([]);
@@ -89,6 +98,8 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [economia, setEconomia] = useState<Economia | null>(null);
 
   const ficha = DISCIPLINAS.find((d) => d.id === disciplina)!;
+  const diagramasUnidos = diagramasDe(disciplinas);
+  const normativaUnida = normativaDe(disciplinas);
 
   // Si el historial global pidió abrir un proyecto, se restaura completo.
   useEffect(() => {
@@ -100,7 +111,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
     setNombre(guardado.nombre);
     setDescripcion(guardado.descripcion);
-    setDisciplina(guardado.disciplina);
+    setDisciplinas(guardado.disciplinas ?? [guardado.disciplina]);
     setEnvergadura(guardado.envergadura);
     setUbicacion(guardado.ubicacion);
     setAlcance(guardado.alcance);
@@ -177,6 +188,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           nombre,
           descripcion,
           disciplina,
+          disciplinas,
           envergadura,
           ubicacion,
           documentosAdjuntos,
@@ -212,6 +224,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         nombre,
         descripcion,
         disciplina,
+        disciplinas,
         envergadura,
         ubicacion,
         creadoEn: new Date().toISOString(),
@@ -233,7 +246,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       setError("Se interrumpió la conexión durante la generación.");
       setFase("formulario");
     }
-  }, [nombre, descripcion, disciplina, envergadura, ubicacion, adjuntos]);
+  }, [nombre, descripcion, disciplina, disciplinas, envergadura, ubicacion, adjuntos]);
 
   function aplicar(
     evento: EventoProyecto,
@@ -305,6 +318,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           nombre,
           descripcion,
           disciplina,
+          disciplinas,
           envergadura,
           ubicacion,
           creadoEn: new Date().toISOString(),
@@ -416,24 +430,43 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
           <div className="mt-5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {DISCIPLINAS.map((d) => {
-              const activa = disciplina === d.id;
+              const activa = disciplinas.includes(d.id);
+              const principal = disciplinas[0] === d.id;
               return (
                 <button
                   key={d.id}
                   type="button"
-                  onClick={() => setDisciplina(d.id)}
+                  onClick={() => alternarDisciplina(d.id)}
                   aria-pressed={activa}
+                  title={activa ? `Quitar ${d.nombre}` : `Añadir ${d.nombre}`}
                   className={`rounded-lg border p-3.5 text-left transition-all ${
                     activa
                       ? "border-acento bg-acento-tenue shadow-[var(--shadow-sutil)]"
                       : "border-borde bg-superficie hover:border-acento/50"
                   }`}
                 >
-                  <span
-                    className={`block text-sm font-semibold ${activa ? "text-acento" : ""}`}
-                  >
-                    {d.nombre}
+                  <span className="flex items-start justify-between gap-2">
+                    <span
+                      className={`block text-sm font-semibold ${activa ? "text-acento" : ""}`}
+                    >
+                      {d.nombre}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={`mt-0.5 shrink-0 rounded-full border px-1.5 text-xs leading-5 ${
+                        activa
+                          ? "border-acento/40 bg-acento/15 text-acento"
+                          : "border-borde text-tinta-debil"
+                      }`}
+                    >
+                      {activa ? "−" : "+"}
+                    </span>
                   </span>
+                  {principal && (
+                    <span className="mt-1 block text-[0.625rem] uppercase tracking-wider text-acento/80">
+                      Principal
+                    </span>
+                  )}
                   <span className="mt-0.5 block text-xs leading-relaxed text-tinta-media">
                     {d.descripcion}
                   </span>
@@ -442,10 +475,24 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             })}
           </div>
 
+          {disciplinas.length === 0 && (
+            <p
+              role="alert"
+              className="mt-4 rounded-md border border-critico/25 bg-critico-tenue px-3.5 py-2.5 text-sm"
+            >
+              Elige al menos una disciplina: determina la normativa aplicable y qué
+              planos se dibujan.
+            </p>
+          )}
+
+          {disciplinas.length > 0 && (
           <div className="mt-5 rounded-lg border border-borde-suave bg-superficie-alta px-4 py-3.5">
-            <p className="etiqueta-seccion">Paquete completo de láminas</p>
+            <p className="etiqueta-seccion">
+              Paquete completo de láminas
+              {disciplinas.length > 1 && ` · ${disciplinas.length} disciplinas`}
+            </p>
             <ul className="mt-2 flex flex-wrap gap-2">
-              {ficha.diagramas.map((t) => (
+              {diagramasUnidos.map((t) => (
                   <li
                     key={t}
                     className="rounded-full border border-acento/25 bg-superficie px-2.5 py-1 text-xs font-medium text-acento"
@@ -456,9 +503,10 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             </ul>
             <p className="mt-3 text-xs text-tinta-media">
               Además de estas láminas podrás pedir cualquier otra del catálogo al
-              terminar. Normativa de referencia: {ficha.normativa.join(" · ")}
+              terminar. Normativa de referencia: {normativaUnida.join(" · ")}
             </p>
           </div>
+          )}
         </section>
 
         <section className="tarjeta p-6 sm:p-8">
@@ -520,7 +568,13 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           <button
             type="button"
             onClick={generar}
-            className="rounded-md bg-acento px-7 py-3 font-semibold text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90"
+            disabled={disciplinas.length === 0}
+            title={
+              disciplinas.length === 0
+                ? "Elige al menos una disciplina"
+                : undefined
+            }
+            className="rounded-md bg-acento px-7 py-3 font-semibold text-sobre-acento shadow-[var(--shadow-acento)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Generar proyecto
           </button>

@@ -290,3 +290,25 @@ export const ETIQUETA_DIAGRAMA: Record<TipoDiagrama, string> = {
   planta: "Planta esquemática",
   estructural: "Esquema estructural",
 };
+
+/**
+ * Une los diagramas de varias disciplinas sin repetir, respetando el orden de
+ * prioridad: primero los de la disciplina principal, luego los que aporten las
+ * demás. Un proyecto real cruza especialidades y necesita las láminas de todas.
+ */
+export function diagramasDe(ids: DisciplinaProyecto[]): TipoDiagrama[] {
+  const vistos = new Set<TipoDiagrama>();
+  for (const id of ids) {
+    for (const tipo of fichaDisciplina(id).diagramas) vistos.add(tipo);
+  }
+  return [...vistos];
+}
+
+/** Une la normativa de referencia de varias disciplinas, sin repetir. */
+export function normativaDe(ids: DisciplinaProyecto[]): string[] {
+  const vistos = new Set<string>();
+  for (const id of ids) {
+    for (const norma of fichaDisciplina(id).normativa) vistos.add(norma);
+  }
+  return [...vistos];
+}

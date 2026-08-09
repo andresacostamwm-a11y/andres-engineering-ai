@@ -68,7 +68,10 @@ export interface Proyecto {
   id: string;
   nombre: string;
   descripcion: string;
+  /** Disciplina principal. Se conserva por compatibilidad con el historial. */
   disciplina: DisciplinaProyecto;
+  /** Todas las disciplinas elegidas. La primera es la principal. */
+  disciplinas?: DisciplinaProyecto[];
   envergadura: Envergadura;
   ubicacion: string;
   creadoEn: string;

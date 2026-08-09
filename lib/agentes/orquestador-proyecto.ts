@@ -15,7 +15,7 @@ import type { EventoProyecto, MemoriaProyecto } from "../tipos-proyecto.ts";
 import type { Hallazgo, Partida } from "../types.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
-import { fichaDisciplina } from "../disciplinas.ts";
+import { diagramasDe, fichaDisciplina, normativaDe } from "../disciplinas.ts";
 import { esErrorDeCuota, hayApiKey } from "../modelo/index.ts";
 import { recortarDocumento } from "./comun.ts";
 import { redactarAlcance } from "./programa.ts";
@@ -33,6 +33,8 @@ export interface EncargoProyecto {
   nombre: string;
   descripcion: string;
   disciplina: DisciplinaProyecto;
+  /** Todas las elegidas. La primera es la principal. */
+  disciplinas?: DisciplinaProyecto[];
   envergadura: Envergadura;
   ubicacion?: string;
   documentosAdjuntos?: string;
@@ -49,6 +51,10 @@ export async function* proyectar(
   }
 
   const ficha = fichaDisciplina(encargo.disciplina);
+  // Un proyecto puede cruzar especialidades: se dibujan las láminas de todas.
+  const elegidas = encargo.disciplinas?.length
+    ? encargo.disciplinas
+    : [encargo.disciplina];
 
   // Etapa 1 — programa: de la descripción del cliente al alcance de obra.
   yield {
@@ -98,7 +104,7 @@ export async function* proyectar(
   // Etapa 3 — costos, normativa, memoria y el paquete COMPLETO de planos,
   // todos en paralelo: un proyecto entrega todas sus instalaciones, no una
   // muestra. La envergadura calibra la densidad de cada plano, no cuántos hay.
-  const tiposDiagrama = ficha.diagramas;
+  const tiposDiagrama = diagramasDe(elegidas);
 
   yield { tipo: "inicio", agente: "costos", mensaje: "Elaborando el catálogo de conceptos" };
   yield { tipo: "inicio", agente: "normativo", mensaje: "Revisando el cumplimiento normativo" };
