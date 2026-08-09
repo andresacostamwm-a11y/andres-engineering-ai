@@ -13,7 +13,10 @@ import type { Proyecto } from "../tipos-proyecto.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types.ts";
 import { fichaDisciplina } from "../disciplinas.ts";
-import { pesosExactos } from "../formato.ts";
+import { dineroExacto } from "../formato.ts";
+import { MONEDA_POR_DEFECTO } from "../moneda/tipos.ts";
+import { equivalenteUsd, filasFichaEconomica } from "../moneda/ficha.ts";
+import type { Cotizacion } from "../moneda/tipos.ts";
 
 export function descargar(contenido: string | Blob, nombre: string, tipo: string): void {
   const blob =
@@ -40,26 +43,57 @@ export function nombreBase(proyecto: Proyecto): string {
 
 /* ------------------------------------------------------------------- CSV -- */
 
-export function exportarCsv(proyecto: Proyecto): void {
+export function exportarCsv(proyecto: Proyecto, cotizaciones: Cotizacion[] = []): void {
+  const moneda = proyecto.economia?.moneda ?? MONEDA_POR_DEFECTO;
   const escapar = (v: string | number) => {
     const s = String(v);
     return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
 
+  const total = proyecto.partidas.reduce((s, p) => s + p.importe, 0);
+  const usdDe = (valor: number) =>
+    equivalenteUsd({ valor, moneda }, proyecto.economia)?.valor ?? "";
+
   const filas: string[][] = [
-    ["Clave", "Concepto", "Disciplina", "Unidad", "Cantidad", "Precio unitario",
-     "Materiales", "Mano de obra", "Equipo", "Indirectos", "Importe", "Supuesto"],
+    // La ficha económica va arriba: sin ella las cifras no se pueden auditar.
+    ...filasFichaEconomica(proyecto.economia).map(([k, v]) => [k, v]),
+    [],
+    ["Clave", "Concepto", "Disciplina", "Unidad", "Cantidad",
+     `Precio unitario (${moneda})`, "Materiales", "Mano de obra", "Equipo",
+     "Indirectos", `Importe (${moneda})`, "Importe (USD)", "Supuesto"],
     ...proyecto.partidas.map((p) => [
       p.clave, p.concepto, ETIQUETA_DISCIPLINA[p.disciplina], p.unidad,
       String(p.cantidad), String(p.precioUnitario),
       String(p.matriz.materiales), String(p.matriz.manoObra),
       String(p.matriz.equipo), String(p.matriz.indirectos),
-      String(p.importe), p.supuesto ?? "",
+      String(p.importe), String(usdDe(p.importe)), p.supuesto ?? "",
     ]),
     [],
     ["", "TOTAL", "", "", "", "", "", "", "", "",
-     String(proyecto.partidas.reduce((s, p) => s + p.importe, 0)), ""],
+     String(total), String(usdDe(total)), ""],
   ];
+
+  // Las cotizaciones reales van aparte de las estimaciones: mezclarlas en la
+  // misma tabla invitaría a compararlas como si fueran lo mismo.
+  if (cotizaciones.length > 0) {
+    filas.push(
+      [],
+      ["COTIZACIONES DE PROVEEDOR (ofertas reales, no estimaciones)"],
+      ["Proveedor", "Concepto", "País", "Partida", "Importe original", "Moneda original",
+       `Importe convertido (${moneda})`, "Tipo de cambio", "Fuente del TC",
+       "Fecha del TC", "Fecha de cotización", "Vigencia", "Notas"],
+      ...cotizaciones.map((c) => [
+        c.proveedor, c.concepto, c.pais, c.clavePartida ?? "",
+        String(c.importeOriginal.valor), c.importeOriginal.moneda,
+        String(c.importeConvertido.valor),
+        String(c.tipoCambio.tasa), c.tipoCambio.fuente,
+        new Date(c.tipoCambio.fecha).toLocaleString("es-MX"),
+        new Date(c.fecha).toLocaleDateString("es-MX"),
+        c.vigencia ? new Date(c.vigencia).toLocaleDateString("es-MX") : "sin declarar",
+        c.notas ?? "",
+      ]),
+    );
+  }
 
   // BOM para que Excel en Windows reconozca UTF-8 y no rompa los acentos.
   const csv = "﻿" + filas.map((f) => f.map(escapar).join(",")).join("\r\n");
@@ -68,7 +102,12 @@ export function exportarCsv(proyecto: Proyecto): void {
 
 /* ------------------------------------------------------------------ HTML -- */
 
-export function exportarHtml(proyecto: Proyecto, svgs: string[]): void {
+export function exportarHtml(
+  proyecto: Proyecto,
+  svgs: string[],
+  cotizaciones: Cotizacion[] = [],
+): void {
+  const moneda = proyecto.economia?.moneda ?? MONEDA_POR_DEFECTO;
   const total = proyecto.partidas.reduce((s, p) => s + p.importe, 0);
   const ficha = fichaDisciplina(proyecto.disciplina);
   const e = escaparHtml;
@@ -90,6 +129,16 @@ export function exportarHtml(proyecto: Proyecto, svgs: string[]): void {
   h2 { font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--acento);
        border-bottom:1px solid var(--borde); padding-bottom:8px; margin:40px 0 16px }
   .meta { color:var(--media); font-size:14px }
+  table.cotizaciones { width:100%; border-collapse:collapse; margin:10px 0 24px; font-size:13px }
+  table.cotizaciones th { text-align:left; padding:7px 10px; border-bottom:2px solid var(--linea);
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--media) }
+  table.cotizaciones td { padding:7px 10px; border-bottom:1px solid var(--linea) }
+  table.cotizaciones .n { text-align:right; font-variant-numeric:tabular-nums }
+  p.nota { font-size:12px; color:var(--media); margin:0 0 8px }
+  table.ficha-economica { width:100%; border-collapse:collapse; margin:12px 0 26px }
+  table.ficha-economica th { text-align:left; width:230px; font-weight:600; padding:7px 12px;
+    border-bottom:1px solid var(--linea); vertical-align:top }
+  table.ficha-economica td { padding:7px 12px; border-bottom:1px solid var(--linea) }
   .rejilla { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
              background:var(--borde); border:1px solid var(--borde); margin:24px 0 }
   .rejilla div { background:#fff; padding:14px 16px }
@@ -126,11 +175,29 @@ export function exportarHtml(proyecto: Proyecto, svgs: string[]): void {
 
 ${proyecto.resumen ? `
 <dl class="rejilla">
-  <div><dt>Presupuesto estimado</dt><dd>${pesosExactos(proyecto.resumen.totalEstimado)}</dd></div>
+  <div><dt>Presupuesto estimado</dt><dd>${dineroExacto({ valor: proyecto.resumen.totalEstimado, moneda })}${(() => {
+    const usd = equivalenteUsd({ valor: proyecto.resumen!.totalEstimado, moneda }, proyecto.economia);
+    return usd ? `<br><small>${dineroExacto(usd)}</small>` : "";
+  })()}</dd></div>
   <div><dt>Requerimientos</dt><dd>${proyecto.requerimientos.length}</dd></div>
   <div><dt>Partidas</dt><dd>${proyecto.partidas.length}</dd></div>
   <div><dt>Riesgo global</dt><dd><span class="riesgo ${proyecto.resumen.riesgoGlobal}">${ETIQUETA_RIESGO[proyecto.resumen.riesgoGlobal]}</span></dd></div>
 </dl>
+
+${cotizaciones.length > 0 ? `
+<h2>Cotizaciones de proveedor</h2>
+<p class="nota">Ofertas reales con su tipo de cambio de emisión. No son las estimaciones del presupuesto.</p>
+<table class="cotizaciones">
+  <thead><tr><th>Proveedor</th><th>Concepto</th><th class="n">Original</th><th class="n">Convertido (${moneda})</th><th>TC aplicado</th><th>Fecha · vigencia</th></tr></thead>
+  <tbody>
+${cotizaciones.map((c) => `    <tr><td>${e(c.proveedor)}</td><td>${e(c.concepto)}</td><td class="n">${c.importeOriginal.valor} ${c.importeOriginal.moneda}</td><td class="n">${c.importeConvertido.valor} ${c.importeConvertido.moneda}</td><td>${c.tipoCambio.tasa} · ${e(c.tipoCambio.fuente)}</td><td>${new Date(c.fecha).toLocaleDateString("es-MX")}${c.vigencia ? ` · vence ${new Date(c.vigencia).toLocaleDateString("es-MX")}` : ""}</td></tr>`).join("\n")}
+  </tbody>
+</table>` : ""}
+
+<h2>Condiciones económicas</h2>
+<table class="ficha-economica">
+${filasFichaEconomica(proyecto.economia).map(([k, v]) => `  <tr><th>${e(k)}</th><td>${e(v)}</td></tr>`).join("\n")}
+</table>
 
 <h2>Resumen ejecutivo</h2>
 <p>${e(proyecto.resumen.sintesis)}</p>
@@ -173,9 +240,9 @@ ${proyecto.partidas.length > 0 ? `<h2>Catálogo de conceptos</h2>
     <td>${e(p.concepto)}${p.supuesto ? `<span class="sup">Supuesto: ${e(p.supuesto)}</span>` : ""}</td>
     <td>${e(p.unidad)}</td>
     <td class="n">${p.cantidad.toLocaleString("es-MX")}</td>
-    <td class="n">${pesosExactos(p.precioUnitario)}</td>
-    <td class="n">${pesosExactos(p.importe)}</td></tr>`).join("")}</tbody>
-  <tfoot><tr><td colspan="5" style="text-align:right">TOTAL</td><td class="n">${pesosExactos(total)}</td></tr></tfoot>
+    <td class="n">${dineroExacto({ valor: p.precioUnitario, moneda })}</td>
+    <td class="n">${dineroExacto({ valor: p.importe, moneda })}</td></tr>`).join("")}</tbody>
+  <tfoot><tr><td colspan="5" style="text-align:right">TOTAL</td><td class="n">${dineroExacto({ valor: total, moneda })}</td></tr></tfoot>
 </table>` : ""}
 
 ${proyecto.hallazgos.length > 0 ? `<h2>Hallazgos normativos</h2>

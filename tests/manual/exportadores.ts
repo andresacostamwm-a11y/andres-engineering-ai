@@ -16,7 +16,7 @@ const capturado: Record<string, string> = {};
 (globalThis as any).Blob = class { __texto: string; constructor(p: any[]) { this.__texto = p.join(""); } } as any;
 
 const proyecto: Proyecto = {
-  id: "t", nombre: "Prueba PTAR Tulum", descripcion: "d",
+  id: "t", nombre: "Prueba PTAR Tulum", descripcion: "d", economia: null,
   disciplina: "hidraulica", envergadura: "mediana", ubicacion: "Tulum",
   creadoEn: new Date(0).toISOString(), alcance: PROYECTO_DEMO.alcance,
   premisas: PROYECTO_DEMO.premisas, requerimientos: PROYECTO_DEMO.requerimientos,

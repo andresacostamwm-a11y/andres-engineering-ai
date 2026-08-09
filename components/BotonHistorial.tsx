@@ -12,7 +12,8 @@ import {
   leerProyectos,
 } from "@/lib/almacen";
 import { fichaDisciplina } from "@/lib/disciplinas";
-import { fechaCorta, pesosExactos } from "@/lib/formato";
+import { dineroExacto, fechaCorta } from "@/lib/formato";
+import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
 
 /**
  * Historial completo de la aplicación: todos los proyectos generados y todos
@@ -195,7 +196,7 @@ export function BotonHistorial() {
                             <span className="cifra mt-0.5 block text-[0.6875rem] text-tinta-debil">
                               {fichaDisciplina(p.disciplina).nombre} ·{" "}
                               {fechaCorta(p.creadoEn)} · {p.diagramas.length} láminas
-                              {p.resumen ? ` · ${pesosExactos(p.resumen.totalEstimado)}` : ""}
+                              {p.resumen ? ` · ${dineroExacto({ valor: p.resumen.totalEstimado, moneda: p.economia?.moneda ?? MONEDA_POR_DEFECTO })}` : ""}
                               {p.modoDemo ? " · demo" : ""}
                             </span>
                           </button>
@@ -237,7 +238,7 @@ export function BotonHistorial() {
                             </span>
                             <span className="cifra mt-0.5 block text-[0.6875rem] text-tinta-debil">
                               {fechaCorta(a.creadoEn)} · {a.partidas.length} partidas
-                              {a.resumen ? ` · ${pesosExactos(a.resumen.totalEstimado)}` : ""}
+                              {a.resumen ? ` · ${dineroExacto({ valor: a.resumen.totalEstimado, moneda: a.economia?.moneda ?? MONEDA_POR_DEFECTO })}` : ""}
                               {a.modoDemo ? " · demo" : ""}
                             </span>
                           </button>

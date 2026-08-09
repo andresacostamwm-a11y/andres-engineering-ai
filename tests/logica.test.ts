@@ -21,6 +21,9 @@ import { aEsquemaGemini } from "../lib/modelo/esquema.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
+import { deducirPais, PAIS_POR_DEFECTO } from "../lib/moneda/paises.ts";
+import { aMoneda, convertir, sumar, variacion } from "../lib/moneda/conversion.ts";
+import { compararProveedores } from "../lib/moneda/comparacion.ts";
 
 const partidaBase: Partida = {
   clave: "01.01",
@@ -226,8 +229,17 @@ describe("esquemas de validación", () => {
     assert.equal(partidaSchema.safeParse(invalida).success, false);
   });
 
-  it("rechaza una moneda distinta de MXN", () => {
-    const invalido = { ...RESUMEN_DEMO, moneda: "USD" };
+  it("acepta cualquier moneda oficial soportada, no solo la mexicana", () => {
+    // El presupuesto se emite en la moneda del país donde se construye: un
+    // proyecto en Bogotá es válido en COP y uno en Madrid en EUR.
+    for (const moneda of ["MXN", "USD", "EUR", "COP"]) {
+      const valido = { ...RESUMEN_DEMO, moneda };
+      assert.equal(resumenEjecutivoSchema.safeParse(valido).success, true, moneda);
+    }
+  });
+
+  it("rechaza una moneda que no es un código ISO soportado", () => {
+    const invalido = { ...RESUMEN_DEMO, moneda: "DOLARES" };
     assert.equal(resumenEjecutivoSchema.safeParse(invalido).success, false);
   });
 });
@@ -345,5 +357,168 @@ describe("conversión de esquema a Gemini", () => {
 
   it("reconoce el agotamiento de cuota de Gemini", () => {
     assert.ok(esErrorDeCuota(new Error("Gemini 429: RESOURCE_EXHAUSTED")));
+  });
+});
+
+describe("moneda: deducción de país", () => {
+  it("deduce México y su moneda desde una ubicación mexicana", () => {
+    const { pais, deducido } = deducirPais("Tulum, Quintana Roo");
+    assert.equal(pais.codigo, "MX");
+    assert.equal(pais.moneda, "MXN");
+    assert.equal(deducido, true);
+  });
+
+  it("deduce la moneda propia de cada país del proyecto", () => {
+    assert.equal(deducirPais("Bogotá, Colombia").pais.moneda, "COP");
+    assert.equal(deducirPais("Madrid, España").pais.moneda, "EUR");
+    assert.equal(deducirPais("Houston, Texas").pais.moneda, "USD");
+  });
+
+  it("gana la pista más específica cuando una ciudad se repite entre países", () => {
+    // "La Paz" existe en México (BCS) y en Bolivia: la pista larga debe imponerse.
+    assert.equal(deducirPais("La Paz").pais.codigo, "MX");
+    assert.equal(deducirPais("La Paz Bolivia").pais.codigo, "BO");
+  });
+
+  it("no confunde una pista corta metida dentro de otra palabra", () => {
+    // "especificar" contiene "ica" (Ica, Perú) y "calidad" contiene "cali"
+    // (Cali, Colombia): sin límites de palabra la moneda saldría equivocada.
+    assert.equal(deducirPais("Zona industrial sin especificar").deducido, false);
+    assert.equal(deducirPais("obra de calidad en Monterrey").pais.codigo, "MX");
+  });
+
+  it("marca como no deducido cuando la ubicación no dice nada", () => {
+    const { pais, deducido } = deducirPais("Zona industrial sin especificar");
+    assert.equal(deducido, false);
+    assert.equal(pais.codigo, PAIS_POR_DEFECTO.codigo);
+  });
+});
+
+describe("moneda: conversión", () => {
+  const tc = {
+    origen: "MXN" as const,
+    destino: "USD" as const,
+    tasa: 0.0583,
+    fecha: "2026-08-08T00:00:00.000Z",
+    consultado: "2026-08-08T00:00:00.000Z",
+    fuente: "prueba",
+    url: null,
+  };
+
+  it("convierte aplicando la tasa", () => {
+    const r = convertir({ valor: 1000, moneda: "MXN" }, tc);
+    assert.equal(r.valor, 58.3);
+    assert.equal(r.moneda, "USD");
+  });
+
+  it("invierte el tipo de cambio si se le pasa al revés", () => {
+    const r = convertir({ valor: 58.3, moneda: "USD" }, tc);
+    assert.equal(r.moneda, "MXN");
+    assert.ok(Math.abs(r.valor - 1000) < 0.5);
+  });
+
+  it("rechaza un tipo de cambio que no corresponde al par", () => {
+    assert.throws(() => convertir({ valor: 100, moneda: "EUR" }, tc));
+  });
+
+  it("no convierte dos veces: a la misma moneda devuelve el mismo importe", () => {
+    const r = aMoneda({ valor: 1000, moneda: "MXN" }, "MXN", tc);
+    assert.equal(r.valor, 1000);
+    assert.equal(r.tipoCambio.tasa, 1);
+  });
+
+  it("impide sumar monedas distintas dentro de un total", () => {
+    assert.throws(() =>
+      sumar([{ valor: 10, moneda: "MXN" }, { valor: 10, moneda: "USD" }], "MXN"),
+    );
+  });
+
+  it("calcula la variación entre el TC de la cotización y el vigente", () => {
+    const actual = { ...tc, tasa: 0.0612 };
+    assert.equal(variacion(tc, actual), 4.97);
+  });
+});
+
+describe("comparación de proveedores", () => {
+  const tcMxn = (tasa: number, fecha: string) => ({
+    origen: "MXN" as const, destino: "USD" as const, tasa,
+    fecha, consultado: fecha, fuente: "prueba", url: null,
+  });
+
+  const cot = (
+    id: string, proveedor: string, valor: number, moneda: "MXN" | "USD",
+    tasa: number, vigencia: string | null = null,
+  ) => ({
+    id, clavePartida: null, concepto: "Bomba", proveedor, pais: "MX",
+    importeOriginal: { valor, moneda },
+    fecha: "2026-08-01T00:00:00.000Z",
+    vigencia,
+    tipoCambio: tcMxn(tasa, "2026-08-01T00:00:00.000Z"),
+    importeConvertido: { valor, moneda },
+    notas: null,
+  });
+
+  it("normaliza a una sola moneda antes de decidir quién es más barato", () => {
+    // 100.000 MXN a 0,058 son 5.800 USD: más caro que los 5.000 USD del otro,
+    // aunque el número '100000' sea mucho mayor que '5000'.
+    const r = compararProveedores(
+      [cot("a", "Nacional", 100_000, "MXN", 0.058), cot("b", "Importador", 5_000, "USD", 0.058)],
+      "USD",
+      "emision",
+    );
+    assert.equal(r.propuestas[0].cotizacion.proveedor, "Importador");
+    assert.equal(r.propuestas[0].masBarata, true);
+    assert.equal(r.propuestas[1].masBarata, false);
+    assert.ok(r.propuestas[1].sobrecoste > 15);
+  });
+
+  it("conserva el importe original junto al normalizado", () => {
+    const r = compararProveedores([cot("a", "Nacional", 100_000, "MXN", 0.058)], "USD", "emision");
+    assert.equal(r.propuestas[0].original.valor, 100_000);
+    assert.equal(r.propuestas[0].original.moneda, "MXN");
+    assert.equal(r.propuestas[0].normalizado.moneda, "USD");
+    assert.equal(r.propuestas[0].normalizado.valor, 5800);
+  });
+
+  it("con base común aplica el mismo tipo de cambio a todas", () => {
+    const comun = tcMxn(0.05, "2026-08-08T00:00:00.000Z");
+    const r = compararProveedores(
+      [cot("a", "A", 100_000, "MXN", 0.058), cot("b", "B", 100_000, "MXN", 0.062)],
+      "USD",
+      "comun",
+      comun,
+    );
+    // Mismo importe y mismo TC común: idéntico resultado pese a TC de emisión distintos.
+    assert.equal(r.propuestas[0].normalizado.valor, 5000);
+    assert.equal(r.propuestas[1].normalizado.valor, 5000);
+    assert.equal(r.propuestas[0].tipoCambioAplicado.tasa, 0.05);
+  });
+
+  it("exige tipo de cambio común cuando esa es la base", () => {
+    assert.throws(() =>
+      compararProveedores([cot("a", "A", 1, "MXN", 0.058)], "USD", "comun"),
+    );
+  });
+
+  it("marca las cotizaciones vencidas sin excluirlas del listado", () => {
+    const r = compararProveedores(
+      [cot("a", "A", 1_000, "USD", 0.058, "2026-07-01T00:00:00.000Z")],
+      "USD",
+      "emision",
+      undefined,
+      "2026-08-08T00:00:00.000Z",
+    );
+    assert.equal(r.propuestas[0].vencida, true);
+    assert.equal(r.propuestas.length, 1);
+  });
+
+  it("no descarta en silencio lo que no puede convertir: lo declara", () => {
+    const enEuros = {
+      ...cot("c", "Europeo", 4_000, "USD", 0.058),
+      importeOriginal: { valor: 4_000, moneda: "EUR" as const },
+    };
+    const r = compararProveedores([enEuros], "USD", "emision");
+    assert.ok(r.propuestas[0].incomparable);
+    assert.equal(r.comparables, 0);
   });
 });

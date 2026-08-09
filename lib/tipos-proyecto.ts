@@ -1,5 +1,6 @@
 /** Tipos del flujo de proyecto nuevo. */
 import type { Diagrama } from "./diagramas/tipos.ts";
+import type { Economia } from "./moneda/tipos.ts";
 import type { DisciplinaProyecto, Envergadura } from "./disciplinas.ts";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "./types.ts";
 
@@ -60,7 +61,7 @@ export type EventoProyecto =
   | { tipo: "resultado"; agente: "sintesis"; datos: ResumenEjecutivo }
   | { tipo: "diagrama"; diagrama: Diagrama }
   | { tipo: "error"; agente: AgenteProyecto; mensaje: string }
-  | { tipo: "fin"; modoDemo: boolean };
+  | { tipo: "fin"; modoDemo: boolean; economia: Economia | null };
 
 /** Proyecto completo, tal como se guarda en el historial del navegador. */
 export interface Proyecto {
@@ -79,5 +80,7 @@ export interface Proyecto {
   diagramas: Diagrama[];
   memoria: MemoriaProyecto | null;
   resumen: ResumenEjecutivo | null;
+  /** Condiciones económicas con las que se costeó el proyecto. */
+  economia: Economia | null;
   modoDemo: boolean;
 }

@@ -20,6 +20,8 @@ import { extraerRequerimientos } from "./extractor.ts";
 import { generarPresupuesto } from "./costos.ts";
 import { revisarNormativa } from "./normativo.ts";
 import { sintetizar } from "./sintesis.ts";
+import { construirEconomia, paisDelProyecto } from "../moneda/economia.ts";
+import type { Economia } from "../moneda/tipos.ts";
 import {
   HALLAZGOS_DEMO,
   PARTIDAS_DEMO,
@@ -39,6 +41,8 @@ export async function* analizar(
 
   const documento = recortarDocumento(documentoCrudo);
   const contexto = recortarDocumento(documentoCrudo, 12_000);
+  // El país sale del propio documento: un pliego casi siempre nombra su plaza.
+  const { pais, pista, deducido } = paisDelProyecto("", documentoCrudo);
 
   // Etapa 1 — extracción.
   yield {
@@ -77,13 +81,15 @@ export async function* analizar(
   };
 
   const [resCostos, resNormativo] = await Promise.allSettled([
-    generarPresupuesto(requerimientos, contexto),
+    generarPresupuesto(requerimientos, contexto, pais),
     revisarNormativa(requerimientos, contexto),
   ]);
 
   let partidas: Partida[] = [];
+  let mercado = `Mercado de la construcción de ${pais.nombre}`;
   if (resCostos.status === "fulfilled") {
-    partidas = resCostos.value;
+    partidas = resCostos.value.partidas;
+    mercado = resCostos.value.mercado;
     yield { tipo: "resultado", agente: "costos", datos: partidas };
   } else {
     yield {
@@ -123,7 +129,14 @@ export async function* analizar(
     yield { tipo: "error", agente: "sintesis", mensaje: mensajeDeError(error) };
   }
 
-  yield { tipo: "fin", modoDemo: false };
+  const economia: Economia = await construirEconomia({
+    pais,
+    pistaPais: pista,
+    paisDeducido: deducido,
+    mercado,
+  });
+
+  yield { tipo: "fin", modoDemo: false, economia };
 }
 
 /** Recorre el mismo pipeline con datos fijos cuando no hay API key. */
@@ -159,7 +172,14 @@ async function* analizarEnModoDemo(): AsyncGenerator<EventoAgente> {
   await espera(1200);
   yield { tipo: "resultado", agente: "sintesis", datos: RESUMEN_DEMO };
 
-  yield { tipo: "fin", modoDemo: true };
+  const { pais, pista, deducido } = paisDelProyecto("");
+  const economia = await construirEconomia({
+    pais,
+    pistaPais: pista,
+    paisDeducido: deducido,
+    mercado: `Mercado de la construcción de ${pais.nombre} (caso de demostración)`,
+  });
+  yield { tipo: "fin", modoDemo: true, economia };
 }
 
 function mensajeDeError(error: unknown): string {

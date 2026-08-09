@@ -75,7 +75,7 @@ Elegí un problema que conozco de primera mano por mi actividad profesional en i
 | Diagramas | SVG generado por la aplicación | El modelo aporta la topología; el trazo lo pone el código |
 | Iconografía | **lucide-react**, `clsx` | Interfaz consistente sin librería de componentes |
 | Tipografía | IBM Plex Sans / Mono | Diseñada para documentación técnica; cifras tabulares |
-| Pruebas | **node:test** nativo con `--experimental-strip-types` | 41 pruebas sin una sola dependencia de desarrollo |
+| Pruebas | **node:test** nativo con `--experimental-strip-types` | 59 pruebas sin una sola dependencia de desarrollo |
 | Despliegue | **Vercel** | Runtime Node.js para el pipeline, Edge para la protección de rutas |
 
 ---
@@ -125,7 +125,7 @@ Todas son opcionales: sin ninguna, la aplicación arranca y funciona en modo dem
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compilación de producción |
 | `npm start` | Sirve la compilación de producción |
-| `npm test` | 41 pruebas unitarias en 10 suites (node:test) |
+| `npm test` | 59 pruebas unitarias en 13 suites (node:test) |
 | `npm run typecheck` | Comprobación de tipos sin emitir |
 | `npm run lint` | ESLint |
 
@@ -152,6 +152,7 @@ andres-engineering-ai/
 │       ├── modelos/route.ts           Catálogo en vivo de motores disponibles
 │       ├── modelos/elegir/route.ts    Cambio de motor con contraseña
 │       ├── historial/clave/route.ts   Apertura del historial con contraseña
+│       ├── tipo-cambio/route.ts       Tipo de cambio vigente (caché compartida)
 │       └── chat/route.ts              Chat con recuperación y modo internet
 │
 ├── lib/
@@ -174,6 +175,14 @@ andres-engineering-ai/
 │   │   ├── esquema.ts                 Traducción de JSON Schema al dialecto de Gemini
 │   │   ├── preferencia.ts             Motor elegido por cookie firmada (AsyncLocalStorage)
 │   │   └── tipos.ts                   Contrato común a todo proveedor
+│   ├── moneda/
+│   │   ├── paises.ts                  19 países con su moneda oficial y locale
+│   │   ├── tipoCambio.ts              Consulta a dos fuentes con relevo
+│   │   ├── conversion.ts              Aritmética de moneda, sin red y probada
+│   │   ├── comparacion.ts             Normalización y comparación de proveedores
+│   │   ├── economia.ts                Ficha económica del presupuesto
+│   │   └── ficha.ts                   Ficha en texto, común a los 4 formatos
+│   ├── cotizaciones.ts                Cotizaciones de proveedor en el navegador
 │   ├── diagramas/tipos.ts             Modelo de datos de un plano (63 símbolos)
 │   ├── extractores/index.ts           PDF, Word, Excel, CSV, HTML, DXF, IFC, JSON, texto
 │   ├── exportadores/                  CSV, HTML, DXF, IFC, SVG y Word (OOXML)
@@ -197,6 +206,8 @@ andres-engineering-ai/
 │   ├── ConsultaWeb.tsx                Consulta directa a internet con fuente
 │   ├── BotonHistorial.tsx             Historial de proyectos y análisis
 │   ├── SelectorMotor.tsx              Elección de motor IA con contraseña
+│   ├── PanelTipoCambio.tsx            Ficha económica y actualización del TC
+│   ├── Cotizaciones.tsx               Registro y comparación de proveedores
 │   ├── SelectorTema.tsx               Conmutador holográfico / ejecutivo claro
 │   ├── Taller.tsx                     Área de análisis de documentos
 │   ├── Diapositivas.tsx               Navegación de la presentación
@@ -267,11 +278,56 @@ Cambiar de motor exige contraseña (`CLAVE_MOTOR`). El servidor la valida en `/a
 
 Los LLM estiman precios bien y multiplican mal. El precio unitario lo propone el modelo; el importe, el total y el riesgo global se calculan en código, y si la matriz de precio unitario no cuadra se ajustan los indirectos.
 
-### 5.7 Memoria técnica
+### 5.7 Moneda del país, tipo de cambio y trazabilidad económica
+
+Un presupuesto se cotiza en la moneda del país donde se construye: una obra en
+Bogotá va en pesos colombianos y una en Madrid en euros. El sistema **deduce el
+país** de la ubicación del proyecto —o del propio texto del documento, que casi
+siempre nombra su plaza— y a partir de ahí fija la moneda principal de todo el
+presupuesto. La deducción exige coincidencia de palabra completa: sin eso,
+«especificar» activaría Ica (Perú) y «calidad» activaría Cali (Colombia), y un
+país mal deducido cambia la moneda de todas las cifras.
+
+Junto a la moneda local se muestra siempre el **equivalente en dólares**, nunca
+una cantidad sin su moneda. El tipo de cambio se consulta a dos fuentes públicas
+con relevo —ExchangeRate-API y, si falla, Frankfurter del Banco Central Europeo—
+y se guarda con su tasa, fecha, hora de consulta, fuente y URL. Si ninguna
+responde, el presupuesto se emite igual y lo declara: es preferible una cifra sin
+equivalente que un equivalente inventado.
+
+Cada presupuesto congela su **ficha económica**: país, moneda, fecha base de
+precios, mercado de referencia y el tipo de cambio de emisión. El botón
+*Actualizar tipo de cambio* trae el vigente y muestra la variación porcentual al
+lado, sin reescribir nunca el histórico. Esa ficha viaja completa a los cuatro
+formatos de exportación, de modo que un presupuesto se pueda auditar sin abrir la
+aplicación.
+
+Tres reglas están impuestas en código, no en el prompt: una cifra no se convierte
+dos veces, un tipo de cambio que no corresponde al par produce un error en lugar
+de una cifra plausible, y sumar monedas distintas dentro de un total falla.
+
+### 5.8 Cotizaciones de proveedor y comparación normalizada
+
+Las estimaciones del agente de costos y las ofertas reales de un proveedor son
+cosas distintas, y la aplicación no las mezcla. Cada cotización guarda proveedor,
+país, moneda e importe original, importe convertido, fecha, vigencia, y el **tipo
+de cambio del día de emisión**, que queda congelado aunque el mercado cambie
+después.
+
+Antes de decidir qué proveedor es más barato, todas las propuestas se normalizan
+a una misma moneda y se muestra el valor original junto al normalizado. Hay dos
+bases de normalización y se eligen de forma explícita porque responden a
+preguntas distintas: con el tipo de cambio de cada cotización se sabe *cuánto
+costaba cada una cuando se emitió*; con un tipo de cambio común de hoy se sabe
+*cuánto cuesta cada una ahora*, que es lo que procede para adjudicar. Las
+cotizaciones vencidas se marcan, y lo que no se puede convertir se declara con su
+motivo en vez de desaparecer del listado.
+
+### 5.9 Memoria técnica
 
 El agente de memoria produce el documento que un despacho entrega junto a los planos: objeto, antecedentes, normativa aplicable y, por instalación, memoria descriptiva y de cálculo en tabla concepto / método / datos / resultado. Se exporta a PDF propio, Word y HTML. Es lo que convierte un anteproyecto dibujado en un anteproyecto defendible.
 
-### 5.8 Diagramas técnicos reales
+### 5.10 Diagramas técnicos reales
 
 El agente proyectista **no dibuja**: devuelve la topología del diagrama —qué elementos hay, dónde van sobre una rejilla lógica y cómo se conectan—. El renderizador de la aplicación la convierte en un plano con:
 
@@ -284,7 +340,7 @@ Esa separación entre *qué hay* (modelo) y *cómo se dibuja* (código) es lo qu
 
 Diez tipos disponibles: unifilar eléctrico, isométrico hidráulico, esquema neumático, diagrama mecánico, esquemático electrónico, P&ID, climatización, bloques, planta esquemática y esquema estructural.
 
-### 5.9 Paquete completo de láminas y planos bajo demanda
+### 5.11 Paquete completo de láminas y planos bajo demanda
 
 Un proyecto no genera una o dos láminas de muestra: genera **todo el paquete de la disciplina, en paralelo**, porque ninguna depende de otra. La envergadura calibra la densidad de cada lámina, no cuántas hay.
 
@@ -292,49 +348,49 @@ Sobre eso, una **botonera por especialidad** —civiles, eléctricos, electróni
 
 Cada lámina trae sus propias descargas —**SVG, DXF y PNG**— sin pasar por el menú global.
 
-### 5.10 Maqueta 3D navegable
+### 5.12 Maqueta 3D navegable
 
 Cada lámina se puede ver como maqueta 3D: el mismo modelo topológico que dibuja el plano, extruido en volúmenes según la familia del símbolo (torre, tanque, equipo, instrumento, área). `three.js` se carga con import dinámico solo al abrir la vista, para no imponer 150 kB a quien nunca la use. La órbita automática está siempre activa y el botón la pausa.
 
-### 5.11 Trece disciplinas, tres envergaduras
+### 5.13 Trece disciplinas, tres envergaduras
 
 Arquitectura · Civil y estructural · Mecánica · Mecatrónica · Eléctrica · Electrónica · Hidráulica y sanitaria · Neumática · HVAC · Aeronáutica · Naval · Ferroviaria · Ingeniería de fluidos.
 
 Cada disciplina declara su normativa de referencia, sus entregables característicos y qué diagramas le son propios, de modo que el sistema no propone un unifilar en un proyecto de estructuras. La envergadura —pequeña, mediana o gran envergadura— calibra el alcance, el número de partidas y la densidad de cada lámina.
 
-### 5.12 Ingesta múltiple y multiformato
+### 5.14 Ingesta múltiple y multiformato
 
 Hasta 10 archivos por análisis, en PDF, Word (`.docx`), Excel (`.xlsx`, `.xls`), CSV, HTML, DXF, IFC, JSON y texto (`.txt`, `.md`). Los formatos técnicos no se convierten a prosa: de un **DXF** se extraen capas, bloques y anotaciones; de un **IFC**, la jerarquía espacial y los elementos por tipo. Es lo que miraría primero un proyectista.
 
-### 5.13 Exportación a siete formatos
+### 5.15 Exportación a siete formatos
 
 PDF (dictamen completo y memoria técnica), Word (.docx generado con OOXML propio, sin librería), CSV, HTML (informe autocontenido con los planos incrustados), **DXF**, **IFC** y SVG.
 
 > **Sobre `.rvt`**: es un formato binario propietario que solo Revit puede escribir; ningún sistema lo genera por API. Se produce **DXF** —que AutoCAD abre y Revit importa— e **IFC**, el estándar abierto de intercambio BIM que Revit lee sin conversión. Es la vía habitual en la industria.
 
-### 5.14 Chat sobre el documento (RAG léxico) y consulta a internet
+### 5.16 Chat sobre el documento (RAG léxico) y consulta a internet
 
 Recuperación **BM25** implementada desde cero, sin base vectorial ni servicios externos. Para un solo documento por sesión el emparejamiento léxico rinde mejor —consulta y texto comparten vocabulario literal: `NOM-001-SEDE`, `f'c=250`, `tablero`— y es auditable: la interfaz muestra qué fragmentos se usaron.
 
 Cuando el documento no cubre la pregunta, o en el modo de consulta directa, el chat sale a internet declarando la fuente: búsqueda web nativa en Claude (`web_search`) y *grounding* con Google Search en Gemini.
 
-### 5.15 Sala de control de cuatro pantallas
+### 5.17 Sala de control de cuatro pantallas
 
 Un botón divide la pantalla en cuatro paneles —chat, información del proyecto, acceso a internet y planos— cada uno con su propio scroll y con opción de ocultarse o ampliarse. Cuatro distribuciones: cuadrícula 2×2, tres columnas, panel principal con fila inferior y lista a lo ancho.
 
-### 5.16 Historial de proyectos
+### 5.18 Historial de proyectos
 
 Los proyectos y análisis se guardan en el navegador (últimos 20) y se reabren desde un modal en la cabecera, protegido por contraseña (`CLAVE_HISTORIAL`). El servidor la valida en `/api/historial/clave`; la autorización vive en `sessionStorage` y caduca al cerrar la pestaña.
 
-### 5.17 Dos temas visuales
+### 5.19 Dos temas visuales
 
 **Holográfico** (predeterminado) y **ejecutivo claro**, conmutables desde la cabecera. La elección se guarda en el navegador y un script en `layout.tsx` la aplica antes de pintar, así que no hay parpadeo al cargar. El tema claro es el que se usa para imprimir y llevar a un comité; el holográfico es la identidad visual del proyecto.
 
-### 5.18 Degradación elegante
+### 5.20 Degradación elegante
 
 Si todos los proveedores agotan su cuota, el sistema lo detecta (por mensaje, 429, 529 o 402), lo dice en la interfaz y **continúa con el caso de demostración** en lugar de romperse. Un límite de facturación no es un fallo del código y no debería dejar la herramienta inservible.
 
-### 5.19 Seguridad
+### 5.21 Seguridad
 
 - JWT HS256 en cookie `httpOnly`, `sameSite=lax`, `secure` en producción, 8 horas.
 - `proxy.ts` protege el área privada y las API de negocio en el Edge.
@@ -386,7 +442,7 @@ Si todos los proveedores agotan su cuota, el sistema lo detecta (por mensaje, 42
 npm test
 ```
 
-**41 pruebas, 10 suites, todas en verde.** Cubren la lógica determinista:
+**59 pruebas, 13 suites, todas en verde.** Cubren la lógica determinista:
 
 | Suite | Qué verifica |
 | --- | --- |
@@ -400,6 +456,9 @@ npm test
 | `coherencia de los datos de demostración` | Cada matriz suma su precio unitario y el total cuadra con las partidas |
 | `detección de errores de cuota` | Distingue el agotamiento de cuota de un error de programación |
 | `conversión de esquema a Gemini` | `nullable` de JSON Schema a OpenAPI, claves no reconocidas, `enum`/`required`/arrays anidados y cuota agotada de Gemini |
+| `moneda: deducción de país` | Moneda por país, pista más específica y falsos positivos por subcadena |
+| `moneda: conversión` | Tasa aplicada, inversión, par incorrecto, doble conversión, suma de monedas distintas y variación |
+| `comparación de proveedores` | Normalización antes de decidir, base de emisión frente a base común, vigencia e incomparables |
 
 En `tests/manual/` hay además guiones de comprobación manual (costos, diagrama, exportadores, PDF y programa) para inspeccionar salidas que no tiene sentido asertar automáticamente.
 
@@ -448,7 +507,9 @@ Estimado sobre ~30k tokens de entrada y ~30k de salida:
 - **`.rvt`**: no se genera, por lo explicado arriba. Se entrega DXF e IFC.
 - **Diagramas**: son esquemas de anteproyecto, no planos de ejecución. No llevan escala real ni geometría acotada.
 - **Maqueta 3D**: es una representación esquemática de la topología, no un modelo BIM ni geometría constructiva.
-- **Precios**: el agente estima a valor de mercado desde el conocimiento del modelo; no consulta una base de precios viva.
+- **Precios**: el agente estima a valor de mercado desde el conocimiento del modelo; no consulta una base de precios viva. Declara país, plaza y fecha, y el sistema distingue estimación de cotización real, pero una estimación no es un precio verificado.
+- **Tipo de cambio**: depende de fuentes públicas gratuitas. Si ninguna responde, el presupuesto se emite sin equivalente en dólares y lo declara.
+- **Cotizaciones**: viven en el navegador, como el historial. No se sincronizan entre dispositivos.
 - **Normativa**: el prompt obliga a poner `null` en el artículo antes que inventarlo, pero toda referencia debe verificarse.
 - **Calidad entre proveedores**: el relevo garantiza disponibilidad, no equivalencia. Gemini 2.5 Flash es el respaldo económico y su salida es más escueta que la de Claude Sonnet 5. Las cifras verificadas de la sección 8 corresponden a ejecuciones con Claude.
 - **Búsqueda web**: disponible en Claude y Gemini; OpenAI ignora la petición y responde solo con su conocimiento.

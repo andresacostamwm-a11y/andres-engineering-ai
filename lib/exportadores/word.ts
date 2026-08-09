@@ -9,12 +9,15 @@
 import type { Proyecto } from "../tipos-proyecto.ts";
 import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "../types.ts";
 import { fichaDisciplina } from "../disciplinas.ts";
-import { pesosExactos } from "../formato.ts";
+import { dineroExacto } from "../formato.ts";
+import { MONEDA_POR_DEFECTO } from "../moneda/tipos.ts";
+import { filasFichaEconomica } from "../moneda/ficha.ts";
 import { descargar, nombreBase } from "./index.ts";
 
 const ACENTO = "155E85";
 
 export async function exportarWord(proyecto: Proyecto): Promise<void> {
+  const moneda = proyecto.economia?.moneda ?? MONEDA_POR_DEFECTO;
   const ficha = fichaDisciplina(proyecto.disciplina);
   const cuerpo: string[] = [];
 
@@ -36,7 +39,7 @@ export async function exportarWord(proyecto: Proyecto): Promise<void> {
         [["Presupuesto estimado", "Requerimientos", "Partidas", "Riesgo global"]],
         [
           [
-            pesosExactos(proyecto.resumen.totalEstimado),
+            dineroExacto({ valor: proyecto.resumen.totalEstimado, moneda }),
             String(proyecto.requerimientos.length),
             String(proyecto.partidas.length),
             ETIQUETA_RIESGO[proyecto.resumen.riesgoGlobal],
@@ -46,6 +49,17 @@ export async function exportarWord(proyecto: Proyecto): Promise<void> {
       ),
     );
     cuerpo.push(parrafo(proyecto.resumen.sintesis, { espacioAntes: 160, espacioDespues: 160 }));
+
+    // Sin la ficha económica el documento no se puede auditar: qué moneda, qué
+    // tipo de cambio, de qué fecha y de qué fuente.
+    cuerpo.push(titulo("Condiciones económicas"));
+    cuerpo.push(
+      tabla(
+        [["Concepto", "Valor"]],
+        filasFichaEconomica(proyecto.economia).map(([k, v]) => [k, v]),
+        [3200, 5600],
+      ),
+    );
 
     cuerpo.push(titulo("Acciones recomendadas"));
     proyecto.resumen.recomendaciones.forEach((r, i) =>
@@ -118,10 +132,10 @@ export async function exportarWord(proyecto: Proyecto): Promise<void> {
             p.supuesto ? `${p.concepto}\nSupuesto: ${p.supuesto}` : p.concepto,
             p.unidad,
             p.cantidad.toLocaleString("es-MX"),
-            pesosExactos(p.precioUnitario),
-            pesosExactos(p.importe),
+            dineroExacto({ valor: p.precioUnitario, moneda }),
+            dineroExacto({ valor: p.importe, moneda }),
           ]),
-          ["", "TOTAL", "", "", "", pesosExactos(total)],
+          ["", "TOTAL", "", "", "", dineroExacto({ valor: total, moneda })],
         ],
         [900, 3600, 900, 1100, 1400, 1500],
       ),

@@ -1,5 +1,10 @@
 "use client";
 
+import type { Economia } from "@/lib/moneda/tipos";
+import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
+import { PanelTipoCambio } from "./PanelTipoCambio";
+import { Cotizaciones } from "./Cotizaciones";
+
 import { useCallback, useEffect, useState } from "react";
 import type {
   AgenteId,
@@ -54,6 +59,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
   const [hallazgos, setHallazgos] = useState<Hallazgo[]>([]);
   const [resumen, setResumen] = useState<ResumenEjecutivo | null>(null);
   const [modoDemo, setModoDemo] = useState(false);
+  const [economia, setEconomia] = useState<Economia | null>(null);
   const [historial, setHistorial] = useState<Analisis[]>([]);
 
   useEffect(() => {
@@ -155,6 +161,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
       partidas: [] as Partida[],
       hallazgos: [] as Hallazgo[],
       resumen: null as ResumenEjecutivo | null,
+      economia: null as Economia | null,
       demo: false,
     };
 
@@ -202,6 +209,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
         requerimientos: acumulado.requerimientos,
         partidas: acumulado.partidas,
         hallazgos: acumulado.hallazgos,
+        economia: acumulado.economia,
         modoDemo: acumulado.demo,
       };
       setHistorial(guardarAnalisis(analisis));
@@ -219,6 +227,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
       partidas: Partida[];
       hallazgos: Hallazgo[];
       resumen: ResumenEjecutivo | null;
+      economia: Economia | null;
       demo: boolean;
     },
   ) {
@@ -253,6 +262,8 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
 
       case "fin":
         acumulado.demo = evento.modoDemo;
+        acumulado.economia = evento.economia;
+        setEconomia(evento.economia);
         setModoDemo(evento.modoDemo);
         break;
     }
@@ -294,6 +305,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
           requerimientos,
           partidas,
           hallazgos,
+          economia,
           modoDemo,
         }
       : null;
@@ -443,7 +455,15 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
               contenido: (
                 <div className="space-y-4">
                   {resumen && <PanelResumen analisis={analisisActual} />}
-                  {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+                  {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
+          {partidas.length > 0 && analisisActual && (
+            <Cotizaciones proyectoId={analisisActual.id} economia={economia} />
+          )}
+                  {partidas.length > 0 && <TablaPresupuesto
+                      datos={partidas}
+                      moneda={economia?.moneda ?? MONEDA_POR_DEFECTO}
+                      tipoCambio={economia?.tipoCambio}
+                    />}
                   {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
                   {requerimientos.length > 0 && (
                     <TablaRequerimientos datos={requerimientos} />
@@ -483,7 +503,12 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
       ) : (
         <>
           {resumen && analisisActual && <PanelResumen analisis={analisisActual} />}
-          {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+          {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
+                  {partidas.length > 0 && <TablaPresupuesto
+                      datos={partidas}
+                      moneda={economia?.moneda ?? MONEDA_POR_DEFECTO}
+                      tipoCambio={economia?.tipoCambio}
+                    />}
           {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
           {requerimientos.length > 0 && <TablaRequerimientos datos={requerimientos} />}
 

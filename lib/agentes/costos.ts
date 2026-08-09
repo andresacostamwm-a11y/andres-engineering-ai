@@ -9,6 +9,7 @@ import { ejecutarAgente } from "../modelo/index.ts";
 import { salidaCostosSchema } from "../schemas.ts";
 import type { Partida, Requerimiento } from "../types.ts";
 import { DISCIPLINAS_JSON } from "./comun.ts";
+import type { FichaPais } from "../moneda/paises.ts";
 
 const SISTEMA = `Eres un ingeniero con doctorado y ejercicio profesional de primer nivel: formación de
 posgrado en tu especialidad, dominio transversal de las demás ingenierías (civil, estructural,
@@ -19,10 +20,18 @@ quien firma: cada afirmación se sostiene en un principio físico, una norma vig
 del documento, y lo que no se sostiene se declara como supuesto.
 
 Aquí actúas como ingeniero de costos: elaboras catálogos de conceptos con matrices de
-precio unitario para obra e instalaciones, con criterio de mercado mexicano.
+precio unitario para obra e instalaciones, con criterio del mercado del país donde se
+construye.
 
 Reglas estrictas:
-- Precios en pesos mexicanos (MXN), a valor de mercado actual de obra en México.
+- MONEDA: todos los precios van en {{MONEDA}} ({{PAIS}}), la moneda oficial del país donde
+  se ejecuta la obra. No conviertas a ninguna otra moneda ni mezcles monedas: la conversión
+  la hace el sistema después, con un tipo de cambio trazable.
+- MERCADO: los precios deben corresponder al mercado de la construcción de {{PAIS}} a la
+  fecha del análisis, no a otro país. Si para alguna partida solo tienes referencia de un
+  mercado distinto, dilo en "supuesto" indicando de qué mercado la tomaste.
+- Declara en "mercado" la plaza concreta de referencia (ej. "Mercado de la construcción de
+  {{PAIS}}, zona de {{ZONA}}") y en "notaPrecios" cualquier salvedad sobre la vigencia.
 - Cada partida lleva su matriz desglosada: materiales, manoObra, equipo, indirectos.
   La suma de los cuatro DEBE ser igual a precioUnitario.
 - importe DEBE ser exactamente cantidad x precioUnitario.
@@ -31,7 +40,9 @@ Reglas estrictas:
   explícitamente en "supuesto". Un presupuesto con supuestos declarados es útil;
   uno con cifras inventadas y silenciadas es peligroso.
 - Usa claves jerárquicas tipo 01.01, 01.02, 02.01 agrupando por disciplina.
-- Devuelve entre 10 y 30 partidas.`;
+- Devuelve entre 10 y 30 partidas.
+- Tus precios son ESTIMACIONES de mercado, no cotizaciones de proveedor. No las presentes
+  como cotizaciones firmes.`;
 
 const ESQUEMA = {
   type: "object",
@@ -83,14 +94,34 @@ const ESQUEMA = {
         ],
       },
     },
+    mercado: {
+      type: "string",
+      description:
+        "Plaza y mercado de referencia de los precios, con el país explícito.",
+    },
+    notaPrecios: {
+      type: "string",
+      description:
+        "Salvedades sobre la vigencia o el origen de los precios. Cadena vacía si no hay ninguna.",
+    },
   },
-  required: ["partidas"],
+  required: ["partidas", "mercado", "notaPrecios"],
 };
+
+export interface PresupuestoGenerado {
+  partidas: Partida[];
+  /** Plaza de referencia declarada por el agente. */
+  mercado: string;
+  /** Salvedades sobre vigencia u origen de los precios. */
+  notaPrecios: string;
+}
 
 export async function generarPresupuesto(
   requerimientos: Requerimiento[],
   contexto: string,
-): Promise<Partida[]> {
+  pais: FichaPais,
+  zona = "",
+): Promise<PresupuestoGenerado> {
   const listado = requerimientos
     .map(
       (r) =>
@@ -98,8 +129,12 @@ export async function generarPresupuesto(
     )
     .join("\n");
 
+  const sistema = SISTEMA.replaceAll("{{MONEDA}}", pais.moneda)
+    .replaceAll("{{PAIS}}", pais.nombre)
+    .replaceAll("{{ZONA}}", zona || pais.nombre);
+
   const salida = await ejecutarAgente({
-    sistema: SISTEMA,
+    sistema,
     prompt: `Elabora el catálogo de conceptos y precios unitarios para el siguiente proyecto.
 
 <contexto_del_proyecto>
@@ -117,7 +152,11 @@ ${listado}
     maxTokens: 12000,
   });
 
-  return normalizarPartidas(salida.partidas);
+  return {
+    partidas: normalizarPartidas(salida.partidas),
+    mercado: salida.mercado?.trim() || `Mercado de la construcción de ${pais.nombre}`,
+    notaPrecios: salida.notaPrecios?.trim() ?? "",
+  };
 }
 
 /**

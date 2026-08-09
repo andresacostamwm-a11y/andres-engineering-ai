@@ -10,7 +10,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { Analisis } from "./types.ts";
 import { ETIQUETA_DISCIPLINA, ETIQUETA_RIESGO } from "./types.ts";
-import { fechaLarga, numero, pesosExactos } from "./formato.ts";
+import { fechaLarga, numero, dineroExacto } from "./formato.ts";
+import { MONEDA_POR_DEFECTO } from "./moneda/tipos.ts";
+import { filasFichaEconomica } from "./moneda/ficha.ts";
 
 const TINTA: [number, number, number] = [31, 41, 55];
 const ACENTO: [number, number, number] = [21, 94, 133];
@@ -33,6 +35,7 @@ export function exportarDictamen(analisis: Analisis): void {
  * sin depender del DOM.
  */
 export function construirDictamen(analisis: Analisis): jsPDF {
+  const moneda = analisis.economia?.moneda ?? MONEDA_POR_DEFECTO;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const anchoPagina = doc.internal.pageSize.getWidth();
   const margen = 48;
@@ -93,7 +96,7 @@ export function construirDictamen(analisis: Analisis): jsPDF {
         [
           resumen.tipoProyecto,
           resumen.ubicacion ?? "No especificada",
-          pesosExactos(resumen.totalEstimado),
+          dineroExacto({ valor: resumen.totalEstimado, moneda }),
           ETIQUETA_RIESGO[resumen.riesgoGlobal],
         ],
       ],
@@ -103,6 +106,20 @@ export function construirDictamen(analisis: Analisis): jsPDF {
           datos.cell.styles.fontStyle = "bold";
         }
       },
+    });
+    y = posicionFinal(doc) + 20;
+
+    // Condiciones económicas: sin ellas el dictamen no se puede auditar.
+    y = seccion(doc, "Condiciones económicas", margen, y);
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      margin: { left: margen, right: margen },
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+      columnStyles: { 0: { cellWidth: 150, fontStyle: "bold" } },
+      head: [["Concepto", "Valor"]],
+      body: filasFichaEconomica(analisis.economia),
     });
     y = posicionFinal(doc) + 20;
 
@@ -171,10 +188,10 @@ export function construirDictamen(analisis: Analisis): jsPDF {
         p.concepto,
         p.unidad,
         numero(p.cantidad),
-        pesosExactos(p.precioUnitario),
-        pesosExactos(p.importe),
+        dineroExacto({ valor: p.precioUnitario, moneda }),
+        dineroExacto({ valor: p.importe, moneda }),
       ]),
-      foot: [["", "TOTAL", "", "", "", pesosExactos(total)]],
+      foot: [["", "TOTAL", "", "", "", dineroExacto({ valor: total, moneda })]],
       footStyles: {
         fillColor: [237, 242, 247],
         textColor: TINTA,

@@ -5,6 +5,7 @@ import type { Proyecto } from "@/lib/tipos-proyecto";
 import { exportarDictamen } from "@/lib/exportar-pdf";
 import { exportarMemoriaPdf } from "@/lib/exportar-memoria-pdf";
 import { exportarCsv, exportarDxf, exportarHtml, exportarIfc, exportarSvg } from "@/lib/exportadores";
+import { leerCotizaciones } from "@/lib/cotizaciones";
 import { exportarWord } from "@/lib/exportadores/word";
 
 /**
@@ -49,6 +50,7 @@ export function ExportarProyecto({ proyecto }: { proyecto: Proyecto }) {
           requerimientos: proyecto.requerimientos,
           partidas: proyecto.partidas,
           hallazgos: proyecto.hallazgos,
+          economia: proyecto.economia,
           modoDemo: proyecto.modoDemo,
         }),
     },
@@ -69,12 +71,13 @@ export function ExportarProyecto({ proyecto }: { proyecto: Proyecto }) {
     {
       etiqueta: "Excel / CSV",
       detalle: "Catálogo de conceptos",
-      accion: () => exportarCsv(proyecto),
+      accion: () => exportarCsv(proyecto, leerCotizaciones(proyecto.id)),
     },
     {
       etiqueta: "HTML",
       detalle: "Informe con planos",
-      accion: () => exportarHtml(proyecto, svgsDelDocumento()),
+      accion: () =>
+        exportarHtml(proyecto, svgsDelDocumento(), leerCotizaciones(proyecto.id)),
     },
   ];
 

@@ -1,5 +1,10 @@
 "use client";
 
+import type { Economia } from "@/lib/moneda/tipos";
+import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
+import { PanelTipoCambio } from "./PanelTipoCambio";
+import { Cotizaciones } from "./Cotizaciones";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Diagrama } from "@/lib/diagramas/tipos";
 import type {
@@ -81,6 +86,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [memoria, setMemoria] = useState<MemoriaProyecto | null>(null);
   const [resumen, setResumen] = useState<ResumenEjecutivo | null>(null);
   const [modoDemo, setModoDemo] = useState(false);
+  const [economia, setEconomia] = useState<Economia | null>(null);
 
   const ficha = DISCIPLINAS.find((d) => d.id === disciplina)!;
 
@@ -159,6 +165,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       resumen: null as ResumenEjecutivo | null,
       alcance: "",
       premisas: [] as string[],
+      economia: null as Economia | null,
       demo: false,
     };
 
@@ -216,6 +223,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         diagramas: acumulado.diagramas,
         memoria: acumulado.memoria,
         resumen: acumulado.resumen,
+        economia: acumulado.economia,
         modoDemo: acumulado.demo,
       });
 
@@ -238,6 +246,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       resumen: ResumenEjecutivo | null;
       alcance: string;
       premisas: string[];
+      economia: Economia | null;
       demo: boolean;
     },
   ) {
@@ -282,6 +291,8 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         break;
       case "fin":
         acumulado.demo = evento.modoDemo;
+        acumulado.economia = evento.economia;
+        setEconomia(evento.economia);
         setModoDemo(evento.modoDemo);
         break;
     }
@@ -305,6 +316,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           diagramas,
           memoria,
           resumen,
+          economia,
           modoDemo,
         }
       : null;
@@ -625,12 +637,21 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
                         requerimientos,
                         partidas,
                         hallazgos,
+                        economia,
                         modoDemo,
                       }}
                     />
                   )}
                   {memoria && <MemoriaPanel proyecto={proyecto} />}
-                  {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+                  {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
+      {partidas.length > 0 && proyecto && (
+        <Cotizaciones proyectoId={proyecto.id} economia={economia} />
+      )}
+                  {partidas.length > 0 && <TablaPresupuesto
+                      datos={partidas}
+                      moneda={economia?.moneda ?? MONEDA_POR_DEFECTO}
+                      tipoCambio={economia?.tipoCambio}
+                    />}
                   {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
                   {requerimientos.length > 0 && (
                     <TablaRequerimientos datos={requerimientos} />
@@ -686,6 +707,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             requerimientos,
             partidas,
             hallazgos,
+            economia,
             modoDemo,
           }}
         />
@@ -746,7 +768,12 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
       {memoria && proyecto && <MemoriaPanel proyecto={proyecto} />}
 
-      {partidas.length > 0 && <TablaPresupuesto datos={partidas} />}
+      {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
+                  {partidas.length > 0 && <TablaPresupuesto
+                      datos={partidas}
+                      moneda={economia?.moneda ?? MONEDA_POR_DEFECTO}
+                      tipoCambio={economia?.tipoCambio}
+                    />}
       {hallazgos.length > 0 && <ListaHallazgos datos={hallazgos} />}
       {requerimientos.length > 0 && <TablaRequerimientos datos={requerimientos} />}
 

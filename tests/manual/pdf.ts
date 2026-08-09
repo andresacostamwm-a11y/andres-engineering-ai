@@ -13,6 +13,7 @@ const doc = construirDictamen({
   requerimientos: PROYECTO_DEMO.requerimientos,
   partidas: PROYECTO_DEMO.partidas,
   hallazgos: PROYECTO_DEMO.hallazgos,
+  economia: null,
   modoDemo: true,
 });
 

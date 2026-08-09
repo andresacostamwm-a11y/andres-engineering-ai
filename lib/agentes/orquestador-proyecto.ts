@@ -21,6 +21,8 @@ import { recortarDocumento } from "./comun.ts";
 import { redactarAlcance } from "./programa.ts";
 import { extraerRequerimientos } from "./extractor.ts";
 import { generarPresupuesto } from "./costos.ts";
+import { construirEconomia, paisDelProyecto } from "../moneda/economia.ts";
+import type { Economia } from "../moneda/tipos.ts";
 import { revisarNormativa } from "./normativo.ts";
 import { sintetizar } from "./sintesis.ts";
 import { generarDiagrama } from "./proyectista.ts";
@@ -88,6 +90,11 @@ export async function* proyectar(
   const requerimientos = await extraerRequerimientos(documento);
   yield { tipo: "resultado", agente: "extractor", datos: requerimientos };
 
+  const { pais, pista, deducido } = paisDelProyecto(
+    encargo.ubicacion ?? "",
+    `${encargo.descripcion ?? ""} ${contexto}`,
+  );
+
   // Etapa 3 — costos, normativa, memoria y el paquete COMPLETO de planos,
   // todos en paralelo: un proyecto entrega todas sus instalaciones, no una
   // muestra. La envergadura calibra la densidad de cada plano, no cuántos hay.
@@ -107,7 +114,7 @@ export async function* proyectar(
   };
 
   const tareas: Promise<unknown>[] = [
-    generarPresupuesto(requerimientos, contexto),
+    generarPresupuesto(requerimientos, contexto, pais, encargo.ubicacion ?? ""),
     revisarNormativa(requerimientos, contexto),
     redactarMemoria({
       nombre: encargo.nombre,
@@ -131,8 +138,11 @@ export async function* proyectar(
   const resultados = await Promise.allSettled(tareas);
 
   let partidas: Partida[] = [];
+  let mercado = `Mercado de la construcción de ${pais.nombre}`;
   if (resultados[0].status === "fulfilled") {
-    partidas = resultados[0].value as Partida[];
+    const costos = resultados[0].value as { partidas: Partida[]; mercado: string };
+    partidas = costos.partidas;
+    mercado = costos.mercado;
     yield { tipo: "resultado", agente: "costos", datos: partidas };
   } else {
     yield { tipo: "error", agente: "costos", mensaje: mensajeDeError(resultados[0].reason) };
@@ -184,7 +194,14 @@ export async function* proyectar(
     yield { tipo: "error", agente: "sintesis", mensaje: mensajeDeError(error) };
   }
 
-  yield { tipo: "fin", modoDemo: false };
+  const economia: Economia = await construirEconomia({
+    pais,
+    pistaPais: pista,
+    paisDeducido: deducido,
+    mercado,
+  });
+
+  yield { tipo: "fin", modoDemo: false, economia };
 }
 
 async function* proyectarEnModoDemo(
@@ -227,7 +244,14 @@ async function* proyectarEnModoDemo(
   await espera(900);
   yield { tipo: "resultado", agente: "sintesis", datos: PROYECTO_DEMO.resumen };
 
-  yield { tipo: "fin", modoDemo: true };
+  const demo = paisDelProyecto(encargo.ubicacion ?? "");
+  const economia = await construirEconomia({
+    pais: demo.pais,
+    pistaPais: demo.pista,
+    paisDeducido: demo.deducido,
+    mercado: `Mercado de la construcción de ${demo.pais.nombre} (caso de demostración)`,
+  });
+  yield { tipo: "fin", modoDemo: true, economia };
 }
 
 function mensajeDeError(error: unknown): string {

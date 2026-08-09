@@ -3,7 +3,10 @@
 import { Fragment, useMemo, useState } from "react";
 import type { Analisis, Disciplina, Hallazgo, NivelRiesgo, Partida, Requerimiento } from "@/lib/types";
 import { ETIQUETA_DISCIPLINA } from "@/lib/types";
-import { numero, pesos, pesosExactos } from "@/lib/formato";
+import { dinero, dineroExacto, numero } from "@/lib/formato";
+import { convertir } from "@/lib/moneda/conversion";
+import type { Moneda, TipoCambio } from "@/lib/moneda/tipos";
+import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
 import { Contador } from "./Contador";
 import {
   InsigniaCritico,
@@ -15,6 +18,7 @@ import {
 
 export function PanelResumen({ analisis }: { analisis: Analisis }) {
   const resumen = analisis.resumen;
+  const moneda = analisis.economia?.moneda ?? MONEDA_POR_DEFECTO;
   if (!resumen) return null;
 
   return (
@@ -34,7 +38,7 @@ export function PanelResumen({ analisis }: { analisis: Analisis }) {
         <Metrica
           etiqueta="Presupuesto estimado"
           valor={resumen.totalEstimado}
-          formato="pesos"
+          formato="dinero"
           destacada
         />
         <Metrica etiqueta="Requerimientos" valor={analisis.requerimientos.length} />
@@ -102,7 +106,8 @@ function Metrica({
 }: {
   etiqueta: string;
   valor: number;
-  formato?: "entero" | "pesos";
+  formato?: "entero" | "dinero";
+  moneda?: Moneda;
   destacada?: boolean;
 }) {
   return (
@@ -113,7 +118,7 @@ function Metrica({
           destacada ? "text-acento" : "text-tinta"
         }`}
       >
-        {formato === "pesos" ? (
+        {formato === "dinero" ? (
           <Contador hasta={valor} prefijo="$" duracion={1100} />
         ) : (
           <Contador hasta={valor} />
@@ -195,7 +200,19 @@ export function TablaRequerimientos({ datos }: { datos: Requerimiento[] }) {
 
 type Orden = "clave" | "importe";
 
-export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
+export function TablaPresupuesto({
+  datos,
+  moneda = MONEDA_POR_DEFECTO,
+  tipoCambio,
+}: {
+  datos: Partida[];
+  moneda?: Moneda;
+  /** TC de emisión hacia USD. Si falta, la columna en dólares no se dibuja. */
+  tipoCambio?: TipoCambio;
+}) {
+  // Solo hay segunda columna cuando el proyecto no se cotiza ya en dólares.
+  const usd =
+    tipoCambio && tipoCambio.origen !== tipoCambio.destino ? tipoCambio : null;
   const [detalle, setDetalle] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Disciplina | null>(null);
   const [orden, setOrden] = useState<Orden>("clave");
@@ -265,8 +282,8 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
                   opacity: activo ? 1 : 0.25,
                   animationDelay: `${i * 70}ms`,
                 }}
-                aria-label={`Filtrar por ${ETIQUETA_DISCIPLINA[disciplina]}: ${pesos(importe)}`}
-                title={`${ETIQUETA_DISCIPLINA[disciplina]} · ${pesos(importe)}`}
+                aria-label={`Filtrar por ${ETIQUETA_DISCIPLINA[disciplina]}: ${dinero({ valor: importe, moneda })}`}
+                title={`${ETIQUETA_DISCIPLINA[disciplina]} · ${dinero({ valor: importe, moneda })}`}
               />
             );
           })}
@@ -354,10 +371,15 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
                       {numero(p.cantidad)}
                     </td>
                     <td className="cifra px-3 py-2.5 text-right text-tinta-media">
-                      {pesosExactos(p.precioUnitario)}
+                      {dineroExacto({ valor: p.precioUnitario, moneda })}
                     </td>
                     <td className="cifra px-5 py-2.5 text-right font-semibold sm:px-7">
-                      {pesosExactos(p.importe)}
+                      {dineroExacto({ valor: p.importe, moneda })}
+                      {usd && (
+                        <span className="mt-0.5 block text-[0.6875rem] font-normal text-tinta-debil">
+                          {dineroExacto(convertir({ valor: p.importe, moneda }, usd))}
+                        </span>
+                      )}
                     </td>
                   </tr>
 
@@ -365,13 +387,13 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
                     <tr className="bg-superficie-alta">
                       <td colSpan={6} className="px-5 py-4 sm:px-7">
                         <span className="etiqueta-seccion">
-                          Matriz de precio unitario · {pesosExactos(p.precioUnitario)}
+                          Matriz de precio unitario · {dineroExacto({ valor: p.precioUnitario, moneda })}
                         </span>
                         <div className="escalonado mt-3 grid gap-3 sm:grid-cols-4">
-                          <Componente etiqueta="Materiales" valor={p.matriz.materiales} pu={p.precioUnitario} />
-                          <Componente etiqueta="Mano de obra" valor={p.matriz.manoObra} pu={p.precioUnitario} />
-                          <Componente etiqueta="Equipo" valor={p.matriz.equipo} pu={p.precioUnitario} />
-                          <Componente etiqueta="Indirectos" valor={p.matriz.indirectos} pu={p.precioUnitario} />
+                          <Componente etiqueta="Materiales" valor={p.matriz.materiales} pu={p.precioUnitario} moneda={moneda} />
+                          <Componente etiqueta="Mano de obra" valor={p.matriz.manoObra} pu={p.precioUnitario} moneda={moneda} />
+                          <Componente etiqueta="Equipo" valor={p.matriz.equipo} pu={p.precioUnitario} moneda={moneda} />
+                          <Componente etiqueta="Indirectos" valor={p.matriz.indirectos} pu={p.precioUnitario} moneda={moneda} />
                         </div>
                       </td>
                     </tr>
@@ -388,7 +410,12 @@ export function TablaPresupuesto({ datos }: { datos: Partida[] }) {
                   : "Total estimado"}
               </td>
               <td className="cifra px-5 py-3.5 text-right text-lg font-semibold text-acento sm:px-7">
-                {pesosExactos(totalVisible)}
+                {dineroExacto({ valor: totalVisible, moneda })}
+                {usd && (
+                  <span className="mt-0.5 block text-xs font-normal text-tinta-media">
+                    {dineroExacto(convertir({ valor: totalVisible, moneda }, usd))}
+                  </span>
+                )}
               </td>
             </tr>
           </tfoot>
@@ -417,16 +444,18 @@ function Componente({
   etiqueta,
   valor,
   pu,
+  moneda,
 }: {
   etiqueta: string;
   valor: number;
   pu: number;
+  moneda: Moneda;
 }) {
   const porcentaje = pu > 0 ? Math.round((valor / pu) * 100) : 0;
   return (
     <div className="rounded-lg border border-borde bg-superficie px-3 py-2.5 shadow-[var(--shadow-sutil)]">
       <p className="etiqueta-seccion">{etiqueta}</p>
-      <p className="cifra mt-1 font-semibold">{pesosExactos(valor)}</p>
+      <p className="cifra mt-1 font-semibold">{dineroExacto({ valor: valor, moneda })}</p>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-superficie-honda">
         <div
           className="crecer-ancho h-full rounded-full bg-acento"

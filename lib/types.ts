@@ -1,3 +1,4 @@
+import type { Economia, Moneda } from "./moneda/tipos.ts";
 /**
  * Tipos compartidos entre servidor y cliente.
  * Toda la salida de los agentes está tipada y validada con Zod (ver lib/schemas.ts).
@@ -74,6 +75,8 @@ export interface Analisis {
   requerimientos: Requerimiento[];
   partidas: Partida[];
   hallazgos: Hallazgo[];
+  /** Condiciones económicas con las que se costeó: país, moneda, TC y fecha de precios. */
+  economia: Economia | null;
   /** true cuando el análisis se generó sin API key (datos de demostración). */
   modoDemo: boolean;
 }
@@ -85,7 +88,8 @@ export interface ResumenEjecutivo {
   ubicacion: string | null;
   sintesis: string;
   totalEstimado: number;
-  moneda: "MXN";
+  /** Moneda del país donde se ejecuta la obra. */
+  moneda: Moneda;
   riesgoGlobal: NivelRiesgo;
   recomendaciones: string[];
   supuestos: string[];
@@ -103,7 +107,7 @@ export type EventoAgente =
   | { tipo: "resultado"; agente: "normativo"; datos: Hallazgo[] }
   | { tipo: "resultado"; agente: "sintesis"; datos: ResumenEjecutivo }
   | { tipo: "error"; agente: AgenteId; mensaje: string }
-  | { tipo: "fin"; modoDemo: boolean };
+  | { tipo: "fin"; modoDemo: boolean; economia: Economia | null };
 
 /** Mensaje del chat RAG sobre el documento. */
 export interface MensajeChat {

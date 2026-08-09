@@ -17,6 +17,13 @@ export const disciplinaSchema = z.enum([
   "general",
 ]);
 
+/** Códigos ISO 4217 que el sistema sabe manejar. Debe seguir a `Moneda` en moneda/paises.ts. */
+export const monedaSchema = z.enum([
+  "MXN", "USD", "EUR", "COP", "CLP", "PEN", "ARS", "BRL",
+  "GBP", "CAD", "DOP", "GTQ", "CRC", "PAB", "UYU", "BOB",
+  "PYG", "HNL", "NIO", "CUP", "VES",
+]);
+
 export const nivelRiesgoSchema = z.enum(["critico", "alto", "medio", "bajo"]);
 
 export const requerimientoSchema = z.object({
@@ -62,7 +69,7 @@ export const resumenEjecutivoSchema = z.object({
   ubicacion: z.string().nullable(),
   sintesis: z.string(),
   totalEstimado: z.number(),
-  moneda: z.literal("MXN"),
+  moneda: monedaSchema,
   riesgoGlobal: nivelRiesgoSchema,
   recomendaciones: z.array(z.string()),
   supuestos: z.array(z.string()),
@@ -72,7 +79,13 @@ export const resumenEjecutivoSchema = z.object({
 export const salidaExtractorSchema = z.object({
   requerimientos: z.array(requerimientoSchema),
 });
-export const salidaCostosSchema = z.object({ partidas: z.array(partidaSchema) });
+export const salidaCostosSchema = z.object({
+  partidas: z.array(partidaSchema),
+  /** Plaza de referencia de los precios. Se exige para que el presupuesto sea auditable. */
+  mercado: z.string(),
+  /** Salvedades sobre vigencia u origen de los precios. */
+  notaPrecios: z.string(),
+});
 export const salidaNormativoSchema = z.object({
   hallazgos: z.array(hallazgoSchema),
 });
