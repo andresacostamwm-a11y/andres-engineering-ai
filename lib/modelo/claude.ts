@@ -36,11 +36,11 @@ export const clienteClaude: ClienteModelo = {
     return llamar(peticion, [{ role: "user", content: peticion.prompt }]);
   },
 
-  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false }) {
+  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false, modelo }) {
     let flujo;
     try {
       flujo = await cliente().messages.create({
-        model: MODELO_CLAUDE,
+        model: modelo ?? MODELO_CLAUDE,
         max_tokens: maxTokens,
         system: sistema,
         messages: [{ role: "user", content: prompt }],

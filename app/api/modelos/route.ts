@@ -1,21 +1,33 @@
 /**
  * Catálogo de motores IA disponibles.
  *
- * Consulta la lista de modelos REAL de cada proveedor configurado, de modo que
- * el selector solo ofrece modelos que la cuenta puede invocar de verdad: si un
- * modelo no aparece, es que la API key no lo sirve. Se cachea en memoria una
- * hora porque los catálogos cambian poco y las tres llamadas tienen costo.
+ * Cruza dos fuentes. La lista cerrada de `lib/modelo/catalogo` decide QUÉ se
+ * ofrece —de los ciento y pico modelos que sirve una cuenta de OpenAI, solo
+ * unos pocos valen para este trabajo—, y el catálogo vivo de cada proveedor
+ * decide CUÁLES de esos siguen disponibles de verdad. Así el selector nunca
+ * muestra un motor que fallaría al pulsarlo, ni por invención ni por un permiso
+ * que la cuenta perdió.
+ *
+ * Se cachea en memoria una hora: los catálogos cambian poco y las tres
+ * llamadas tienen costo.
  */
 import { NextResponse } from "next/server";
 import { motorActivo, preferenciaDeCookie, conMotor } from "@/lib/modelo";
+import {
+  CATALOGO_MOTORES,
+  MOTOR_POR_DEFECTO,
+  type OpcionMotor,
+} from "@/lib/modelo/catalogo";
 
 export const runtime = "nodejs";
 
 interface Catalogo {
   proveedor: "claude" | "gemini" | "openai";
   nombre: string;
-  modelos: string[];
+  opciones: OpcionMotor[];
 }
+
+const NOMBRE_PROVEEDOR = { claude: "Claude", gemini: "Gemini", openai: "GPT" } as const;
 
 let cache: { catalogos: Catalogo[]; expira: number } | null = null;
 
@@ -26,10 +38,21 @@ export async function GET(request: Request) {
       listarGemini(),
       listarOpenai(),
     ]);
+    const vivos: Record<string, Set<string>> = {
+      claude: new Set(claude),
+      gemini: new Set(gemini),
+      openai: new Set(openai),
+    };
+
     const catalogos: Catalogo[] = [];
-    if (claude.length) catalogos.push({ proveedor: "claude", nombre: "Claude", modelos: claude });
-    if (gemini.length) catalogos.push({ proveedor: "gemini", nombre: "Gemini", modelos: gemini });
-    if (openai.length) catalogos.push({ proveedor: "openai", nombre: "GPT", modelos: openai });
+    for (const proveedor of ["openai", "gemini", "claude"] as const) {
+      const opciones = CATALOGO_MOTORES.filter(
+        (o) => o.proveedor === proveedor && vivos[proveedor].has(o.modelo),
+      );
+      if (opciones.length > 0) {
+        catalogos.push({ proveedor, nombre: NOMBRE_PROVEEDOR[proveedor], opciones });
+      }
+    }
     cache = { catalogos, expira: Date.now() + 60 * 60 * 1000 };
   }
 
@@ -40,6 +63,7 @@ export async function GET(request: Request) {
     catalogos: cache.catalogos,
     activo,
     eleccion: preferencia,
+    porDefecto: MOTOR_POR_DEFECTO,
   });
 }
 
@@ -52,9 +76,7 @@ async function listarClaude(): Promise<string[]> {
     });
     if (!r.ok) return [];
     const datos = await r.json();
-    return ((datos?.data ?? []) as { id: string }[])
-      .map((m) => m.id)
-      .filter((id) => id.startsWith("claude"));
+    return ((datos?.data ?? []) as { id: string }[]).map((m) => m.id);
   } catch {
     return [];
   }
@@ -74,8 +96,7 @@ async function listarGemini(): Promise<string[]> {
       supportedGenerationMethods?: string[];
     }[])
       .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
-      .map((m) => m.name.replace(/^models\//, ""))
-      .filter((id) => /^gemini-\d/.test(id) && !/(embedding|tts|image|audio|live)/.test(id));
+      .map((m) => m.name.replace(/^models\//, ""));
   } catch {
     return [];
   }
@@ -90,15 +111,7 @@ async function listarOpenai(): Promise<string[]> {
     });
     if (!r.ok) return [];
     const datos = await r.json();
-    return ((datos?.data ?? []) as { id: string }[])
-      .map((m) => m.id)
-      .filter(
-        (id) =>
-          /^(gpt-[45]|o\d|chatgpt)/.test(id) &&
-          !/(audio|realtime|transcribe|tts|image|embedding|moderation|search)/.test(id),
-      )
-      .sort()
-      .reverse();
+    return ((datos?.data ?? []) as { id: string }[]).map((m) => m.id);
   } catch {
     return [];
   }

@@ -11,6 +11,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { SignJWT, jwtVerify } from "jose";
 import type { Proveedor } from "./tipos.ts";
+import { esCombinacionValida, type Esfuerzo } from "./catalogo.ts";
 
 export const COOKIE_MOTOR = "motor-ia";
 
@@ -18,6 +19,8 @@ export interface PreferenciaMotor {
   proveedor: Proveedor;
   /** Identificador exacto del modelo dentro del proveedor, si se eligió uno. */
   modelo?: string;
+  /** Nivel de razonamiento, para los modelos que lo aceptan. */
+  esfuerzo?: Esfuerzo;
 }
 
 const almacen = new AsyncLocalStorage<PreferenciaMotor>();
@@ -52,7 +55,11 @@ export function claveMotorValida(clave: string): boolean {
 export async function firmarPreferencia(
   preferencia: PreferenciaMotor,
 ): Promise<string> {
-  return new SignJWT({ proveedor: preferencia.proveedor, modelo: preferencia.modelo })
+  return new SignJWT({
+    proveedor: preferencia.proveedor,
+    modelo: preferencia.modelo,
+    esfuerzo: preferencia.esfuerzo,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("180d")
@@ -81,7 +88,17 @@ export async function preferenciaDeCookie(
     // modelo antes de usarlo en una llamada a la API.
     if (modelo && !/^[a-zA-Z0-9._:/-]{1,80}$/.test(modelo)) return null;
 
-    return { proveedor, modelo: modelo || undefined };
+    const esfuerzo = typeof payload.esfuerzo === "string" ? payload.esfuerzo : undefined;
+
+    // La firma podía emitirse cuando el catálogo era otro: una preferencia que
+    // ya no está en la lista se descarta en lugar de invocarse a ciegas.
+    if (modelo && !esCombinacionValida(proveedor, modelo, esfuerzo)) return null;
+
+    return {
+      proveedor,
+      modelo: modelo || undefined,
+      esfuerzo: esfuerzo as Esfuerzo | undefined,
+    };
   } catch {
     return null;
   }

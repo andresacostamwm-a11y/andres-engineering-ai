@@ -101,13 +101,13 @@ export async function ejecutarAgente<T>(opciones: OpcionesAgente<T>): Promise<T>
     try {
       // El modelo exacto elegido en el selector solo aplica a su proveedor;
       // los proveedores de respaldo usan su modelo por defecto.
-      const modelo =
-        peticion.modelo ??
-        (elegido && elegido.proveedor === cliente.proveedor
-          ? elegido.modelo
-          : undefined);
+      const suyo = elegido && elegido.proveedor === cliente.proveedor;
+      const modelo = peticion.modelo ?? (suyo ? elegido.modelo : undefined);
+      // El esfuerzo va atado a su modelo: aplicárselo al proveedor de respaldo
+      // sería pedirle un nivel que quizá no admite.
+      const esfuerzo = peticion.esfuerzo ?? (suyo ? elegido.esfuerzo : undefined);
 
-      let respuesta = await cliente.invocarHerramienta({ ...peticion, modelo });
+      let respuesta = await cliente.invocarHerramienta({ ...peticion, modelo, esfuerzo });
 
       for (let intento = 0; intento < 2; intento++) {
         const resultado = validador.safeParse(respuesta.argumentos);
@@ -146,13 +146,19 @@ export async function* transmitirTexto(params: {
   web?: boolean;
 }): AsyncGenerator<string> {
   const clientes = proveedoresDisponibles();
+  const elegido = motorPreferido();
   let ultimoError: unknown = null;
 
   for (const cliente of clientes) {
     try {
+      const suyo = elegido && elegido.proveedor === cliente.proveedor;
       // Se consume el primer fragmento aquí para que un fallo de cuota aparezca
       // antes de haber emitido nada y se pueda cambiar de proveedor limpiamente.
-      const flujo = cliente.transmitirTexto(params);
+      const flujo = cliente.transmitirTexto({
+        ...params,
+        modelo: suyo ? elegido.modelo : undefined,
+        esfuerzo: suyo ? elegido.esfuerzo : undefined,
+      });
       const primero = await flujo.next();
       if (!primero.done) yield primero.value;
       for await (const trozo of flujo) yield trozo;

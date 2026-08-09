@@ -6,6 +6,8 @@ export type Proveedor = "claude" | "gemini" | "openai";
 export interface PeticionAgente {
   /** Identificador del modelo dentro del proveedor; si falta, usa su predeterminado. */
   modelo?: string;
+  /** Nivel de razonamiento, para los proveedores que lo aceptan. */
+  esfuerzo?: string;
   sistema: string;
   prompt: string;
   /** Nombre de la herramienta que el modelo está obligado a invocar. */
@@ -33,6 +35,10 @@ export interface ClienteModelo {
     sistema: string;
     prompt: string;
     maxTokens?: number;
+    /** Modelo exacto; si falta, el proveedor usa su predeterminado. */
+    modelo?: string;
+    /** Nivel de razonamiento, para los proveedores que lo aceptan. */
+    esfuerzo?: string;
     /** Habilita la búsqueda web del proveedor, si la ofrece. */
     web?: boolean;
   }): AsyncGenerator<string>;

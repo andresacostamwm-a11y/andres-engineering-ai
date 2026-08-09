@@ -28,6 +28,13 @@ import {
 import { MEMORIA_DEMO } from "../lib/demo-proyecto.ts";
 import { depuradorDeAndamiaje } from "../lib/modelo/depurar.ts";
 import {
+  CATALOGO_MOTORES,
+  MOTOR_POR_DEFECTO,
+  esCombinacionValida,
+  modelosPermitidos,
+  opcionDe,
+} from "../lib/modelo/catalogo.ts";
+import {
   anchoTexto,
   colocar,
   puntoEn,
@@ -966,5 +973,47 @@ describe("escala logarítmica", () => {
   it("no explota con valores no positivos", () => {
     assert.equal(posicionLogaritmica(0, 1, 100), 0);
     assert.equal(posicionLogaritmica(-3, 1, 100), 0);
+  });
+});
+
+/* ---------------------------------------------- Catálogo cerrado de motores -- */
+
+describe("catálogo de motores", () => {
+  it("el motor por defecto existe en el catálogo", () => {
+    assert.ok(opcionDe(MOTOR_POR_DEFECTO), `${MOTOR_POR_DEFECTO} no está en la lista`);
+  });
+
+  it("ninguna clave de opción se repite", () => {
+    const ids = CATALOGO_MOTORES.map((o) => o.id);
+    assert.equal(new Set(ids).size, ids.length);
+  });
+
+  it("solo acepta combinaciones que están en la lista", () => {
+    assert.ok(esCombinacionValida("openai", "gpt-5.6-luna", "medium"));
+    // El nivel existe en la API pero no se ofrece: no debe poder firmarse.
+    assert.equal(esCombinacionValida("openai", "gpt-5.6-luna", "low"), false);
+    // Modelo que la aplicación no ofrece.
+    assert.equal(esCombinacionValida("openai", "gpt-4.1", undefined), false);
+    // Proveedor equivocado para un modelo real.
+    assert.equal(esCombinacionValida("gemini", "gpt-5.5", undefined), false);
+  });
+
+  it("un modelo sin esfuerzo no valida si se le pasa uno, y al revés", () => {
+    assert.ok(esCombinacionValida("gemini", "gemini-2.5-flash", undefined));
+    assert.equal(esCombinacionValida("gemini", "gemini-2.5-flash", "high"), false);
+    assert.equal(esCombinacionValida("openai", "gpt-5.6-sol", undefined), false);
+  });
+
+  it("los modelos permitidos se agrupan por proveedor", () => {
+    assert.ok(modelosPermitidos("gemini").has("gemini-3.1-pro-preview"));
+    assert.equal(modelosPermitidos("gemini").has("gpt-5.5"), false);
+    assert.ok(modelosPermitidos("claude").has("claude-fable-5"));
+  });
+
+  it("cada familia 5.6 ofrece los cuatro niveles de razonamiento", () => {
+    for (const modelo of ["gpt-5.6-sol", "gpt-5.6-luna", "gpt-5.6-terra"]) {
+      const niveles = CATALOGO_MOTORES.filter((o) => o.modelo === modelo).map((o) => o.esfuerzo);
+      assert.deepEqual(niveles.sort(), ["high", "medium", "none", "xhigh"]);
+    }
   });
 });

@@ -5,22 +5,32 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Selector de motor IA con candado.
  *
- * Muestra los modelos que las API keys del despliegue pueden invocar de verdad
- * (los sirve /api/modelos consultando a cada proveedor). Cambiar de motor
- * cuesta dinero, así que exige la contraseña de motor: el servidor la valida y
- * emite una cookie httpOnly firmada; sin ella la aplicación permanece en el
- * motor por defecto (Gemini 2.5 Flash).
+ * Muestra el catálogo cerrado de la aplicación, ya cruzado con lo que las API
+ * keys del despliegue pueden invocar de verdad: cada opción de esta lista se
+ * probó contra su API. Cambiar de motor cuesta dinero, así que exige la
+ * contraseña de motor: el servidor la valida y emite una cookie httpOnly
+ * firmada; sin ella la aplicación permanece en el motor por defecto.
  */
+
+interface Opcion {
+  id: string;
+  proveedor: string;
+  modelo: string;
+  esfuerzo?: string;
+  nombre: string;
+  nota: string;
+}
 
 interface Catalogo {
   proveedor: string;
   nombre: string;
-  modelos: string[];
+  opciones: Opcion[];
 }
 
 interface Eleccion {
   proveedor: string;
   modelo?: string;
+  esfuerzo?: string;
 }
 
 export function SelectorMotor() {
@@ -29,7 +39,8 @@ export function SelectorMotor() {
   const [eleccion, setEleccion] = useState<Eleccion | null>(null);
   const [errorCatalogo, setErrorCatalogo] = useState(false);
 
-  const [pendiente, setPendiente] = useState<Eleccion | null>(null);
+  const [pendiente, setPendiente] = useState<Opcion | null>(null);
+  const [porDefecto, setPorDefecto] = useState<string | null>(null);
   const [clave, setClave] = useState("");
   const [errorClave, setErrorClave] = useState<string | null>(null);
   const [autorizando, setAutorizando] = useState(false);
@@ -42,6 +53,7 @@ export function SelectorMotor() {
       .then((r) => r.json())
       .then((d) => {
         setCatalogos(d.catalogos ?? []);
+        setPorDefecto(d.porDefecto ?? null);
         if (d.eleccion) setEleccion(d.eleccion);
       })
       .catch(() => setErrorCatalogo(true));
@@ -69,17 +81,17 @@ export function SelectorMotor() {
       const respuesta = await fetch("/api/modelos/elegir", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clave,
-          proveedor: pendiente.proveedor,
-          modelo: pendiente.modelo,
-        }),
+        body: JSON.stringify({ clave, opcion: pendiente.id }),
       });
       const datos = await respuesta.json();
       if (!respuesta.ok) {
         setErrorClave(datos.error ?? "No se pudo cambiar el motor.");
       } else {
-        setEleccion(pendiente);
+        setEleccion({
+          proveedor: pendiente.proveedor,
+          modelo: pendiente.modelo,
+          esfuerzo: pendiente.esfuerzo,
+        });
         setPendiente(null);
         setClave("");
         setAbierto(false);
@@ -91,7 +103,16 @@ export function SelectorMotor() {
     }
   }
 
-  const etiqueta = eleccion?.modelo ? abreviar(eleccion.modelo) : "Motor IA";
+  // El botón muestra el nombre en claro de la opción activa, no su identificador.
+  const activa = catalogos
+    ?.flatMap((c) => c.opciones)
+    .find(
+      (o) =>
+        o.proveedor === eleccion?.proveedor &&
+        o.modelo === eleccion?.modelo &&
+        (o.esfuerzo ?? null) === (eleccion?.esfuerzo ?? null),
+    );
+  const etiqueta = activa?.nombre ?? (eleccion?.modelo ? abreviar(eleccion.modelo) : "Motor IA");
 
   return (
     <div ref={contenedorRef} className="relative">
@@ -120,7 +141,8 @@ export function SelectorMotor() {
               <rect x="3.5" y="7" width="9" height="6.5" rx="1.5" />
               <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
             </svg>
-            Cambiar de motor requiere contraseña. Por defecto: Gemini 2.5 Flash.
+            Cambiar de motor requiere contraseña. Por defecto: GPT-5.6 Luna ·
+            razonamiento medio.
           </p>
 
           {!catalogos && !errorCatalogo && (
@@ -137,30 +159,38 @@ export function SelectorMotor() {
           )}
 
           {catalogos?.map((c) => (
-            <div key={c.proveedor} role="listbox" aria-label={`Modelos de ${c.nombre}`}>
+            <div key={c.proveedor} role="listbox" aria-label={`Motores de ${c.nombre}`}>
               <p className="etiqueta-seccion px-4 pb-1 pt-2.5">{c.nombre}</p>
-              {c.modelos.map((m) => {
+              {c.opciones.map((o) => {
                 const activo =
-                  eleccion?.proveedor === c.proveedor && eleccion?.modelo === m;
-                const seleccionado =
-                  pendiente?.proveedor === c.proveedor && pendiente?.modelo === m;
+                  eleccion?.proveedor === o.proveedor &&
+                  eleccion?.modelo === o.modelo &&
+                  (eleccion?.esfuerzo ?? null) === (o.esfuerzo ?? null);
+                const esPorDefecto = !eleccion && o.id === porDefecto;
+                const seleccionado = pendiente?.id === o.id;
                 return (
-                  <div key={m}>
+                  <div key={o.id}>
                     <button
                       type="button"
                       role="option"
                       aria-selected={activo}
+                      title={o.nota}
                       onClick={() => {
-                        setPendiente(activo ? null : { proveedor: c.proveedor, modelo: m });
+                        setPendiente(activo ? null : o);
                         setErrorClave(null);
                       }}
-                      className={`flex w-full items-center justify-between gap-2 px-4 py-1.5 text-left text-xs transition-colors hover:bg-acento-tenue ${
-                        activo ? "font-semibold text-acento" : "text-tinta-media"
+                      className={`flex w-full items-start justify-between gap-2 px-4 py-1.5 text-left text-xs transition-colors hover:bg-acento-tenue ${
+                        activo || esPorDefecto ? "font-semibold text-acento" : "text-tinta-media"
                       }`}
                     >
-                      <span className="cifra truncate">{m}</span>
-                      {activo && (
-                        <svg viewBox="0 0 16 16" className="size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <span className="min-w-0">
+                        <span className="block truncate">{o.nombre}</span>
+                        <span className="mt-0.5 block truncate text-[0.6875rem] font-normal text-tinta-debil">
+                          {esPorDefecto ? "En uso · por defecto" : o.modelo}
+                        </span>
+                      </span>
+                      {(activo || esPorDefecto) && (
+                        <svg viewBox="0 0 16 16" className="mt-0.5 size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3.5 8.5l3 3 6-7" />
                         </svg>
                       )}

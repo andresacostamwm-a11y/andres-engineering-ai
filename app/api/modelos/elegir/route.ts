@@ -14,17 +14,15 @@ import {
   COOKIE_MOTOR,
   type PreferenciaMotor,
 } from "@/lib/modelo/preferencia";
+import { opcionDe } from "@/lib/modelo/catalogo";
 import { ipDe, verificarLimite } from "@/lib/limite";
 
 export const runtime = "nodejs";
 
 const peticionSchema = z.object({
   clave: z.string().min(1, "Escribe la contraseña"),
-  proveedor: z.enum(["claude", "gemini", "openai"]),
-  modelo: z
-    .string()
-    .regex(/^[a-zA-Z0-9._:/-]{1,80}$/, "Modelo inválido")
-    .optional(),
+  /** Clave de la opción dentro del catálogo cerrado, ej. "openai:gpt-5.6-luna:medium". */
+  opcion: z.string().min(1, "Elige un motor"),
 });
 
 export async function POST(request: Request) {
@@ -62,13 +60,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Contraseña incorrecta." }, { status: 401 });
   }
 
+  // El motor solo puede ser uno del catálogo: así no se puede firmar una
+  // preferencia hacia un modelo que la aplicación no ofrece.
+  const opcion = opcionDe(datos.opcion);
+  if (!opcion) {
+    return NextResponse.json(
+      { error: "Ese motor no está en el catálogo de la aplicación." },
+      { status: 400 },
+    );
+  }
+
   const preferencia: PreferenciaMotor = {
-    proveedor: datos.proveedor,
-    modelo: datos.modelo,
+    proveedor: opcion.proveedor,
+    modelo: opcion.modelo,
+    esfuerzo: opcion.esfuerzo,
   };
   const token = await firmarPreferencia(preferencia);
 
-  const respuesta = NextResponse.json({ ok: true, ...preferencia });
+  const respuesta = NextResponse.json({ ok: true, opcion: opcion.id, nombre: opcion.nombre });
   respuesta.cookies.set(COOKIE_MOTOR, token, {
     httpOnly: true,
     sameSite: "lax",

@@ -50,9 +50,9 @@ export const clienteGemini: ClienteModelo = {
     return llamar(peticion, historial);
   },
 
-  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false }) {
+  async *transmitirTexto({ sistema, prompt, maxTokens = 2000, web = false, modelo }) {
     const respuesta = await fetch(
-      `${BASE}/${MODELO_GEMINI}:streamGenerateContent?alt=sse&key=${clave()}`,
+      `${BASE}/${modelo ?? MODELO_GEMINI}:streamGenerateContent?alt=sse&key=${clave()}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
