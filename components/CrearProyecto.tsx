@@ -376,6 +376,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   if (fase === "formulario") {
     return (
       <div className="mx-auto w-full space-y-6">
+        <AsistenteVertex contexto={descripcion ?? ""} nombreProyecto={nombre} />
         {!apiDisponible && (
           <p className="rounded-lg border border-acento/25 bg-acento-tenue px-4 py-3 text-sm text-tinta-media">
             Este despliegue no tiene API key configurada: el proyecto se generará

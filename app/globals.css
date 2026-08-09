@@ -172,9 +172,12 @@ body {
 [data-tema="claro"] body {
   background-color: var(--color-fondo);
   background-image:
+    /* Fotografía de obra, casi velada: da cuerpo sin robar legibilidad. */
+    linear-gradient(to bottom, oklch(98.1% 0.003 248 / 0.78), oklch(98.1% 0.003 248 / 0.86) 55%, oklch(98.1% 0.003 248 / 0.92)),
+    url("/hero-ingenieria.jpg"),
     /* Lavado de acento arriba a la izquierda y de latón abajo a la derecha. */
-    radial-gradient(ellipse 58% 42% at 12% 0%, oklch(62.8% 0.054 247 / 0.11), transparent 68%),
-    radial-gradient(ellipse 52% 44% at 92% 96%, oklch(77.2% 0.068 85 / 0.13), transparent 70%),
+    radial-gradient(ellipse 58% 42% at 12% 0%, oklch(62.8% 0.054 247 / 0.18), transparent 68%),
+    radial-gradient(ellipse 52% 44% at 92% 96%, oklch(77.2% 0.068 85 / 0.20), transparent 70%),
     /* Plegado diagonal: insinúa una lámina doblada, sin textura fotográfica. */
     linear-gradient(122deg, oklch(62.8% 0.054 247 / 0.05) 0 38%, transparent 38.6% 61%,
                     oklch(24% 0.024 250 / 0.022) 61.6% 100%),
@@ -185,11 +188,15 @@ body {
     linear-gradient(to right, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px);
   background-size:
+    cover, cover,
     cover, cover, cover,
     96px 96px, 96px 96px,
     24px 24px, 24px 24px;
   background-position: center;
-  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat;
+  background-repeat:
+    no-repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat,
+    repeat, repeat, repeat, repeat;
   background-attachment: fixed;
 }
 
@@ -211,8 +218,8 @@ body {
 
 [data-tema="claro"] .rejilla-tecnica {
   background-image:
-    linear-gradient(to right, oklch(62.8% 0.054 247 / 0.11) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.11) 1px, transparent 1px);
+    linear-gradient(to right, oklch(62.8% 0.054 247 / 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.18) 1px, transparent 1px);
 }
 
 /* Cifras alineadas en columna: imprescindible en tablas de presupuesto. */
