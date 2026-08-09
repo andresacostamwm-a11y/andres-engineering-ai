@@ -4,6 +4,8 @@ import { Marca } from "@/components/Marca";
 import { SelectorTema } from "@/components/SelectorTema";
 import { AGENTES } from "@/lib/pipeline-def";
 import { USUARIO_DEMO, PASSWORD_DEMO } from "@/lib/auth";
+import { AsistenteVertex } from "@/components/AsistenteVertex";
+import { FICHA_APP } from "@/lib/ficha-app";
 
 const PROBLEMA = [
   {
@@ -42,6 +44,8 @@ export default function Inicio() {
       </header>
 
       <main className="flex-1">
+        {/* Un visitante sin cuenta puede preguntar qué hace la herramienta. */}
+        <AsistenteVertex contexto={FICHA_APP} nombreProyecto="ANDRES Engineering AI" publico />
         {/* --- Portada --- */}
         <section className="relative overflow-hidden border-b border-borde">
           <div

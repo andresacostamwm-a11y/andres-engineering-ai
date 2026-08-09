@@ -19,6 +19,13 @@ interface Mensaje {
   fuentes?: { numero: number; pagina: number | null }[];
 }
 
+const SUGERENCIAS_PUBLICAS = [
+  "¿Qué hace exactamente esta aplicación?",
+  "¿Cómo se organizan los siete agentes?",
+  "¿Qué disciplinas y qué planos cubre?",
+  "¿Qué puedo descargar al terminar?",
+];
+
 const SUGERENCIAS = [
   "¿Qué partidas concentran el mayor coste y por qué?",
   "¿Qué hallazgos normativos son críticos y cómo se resuelven?",
@@ -29,10 +36,13 @@ const SUGERENCIAS = [
 export function AsistenteVertex({
   contexto,
   nombreProyecto,
+  publico = false,
 }: {
   /** Alcance, memoria y resultados del proyecto, en texto plano. */
   contexto: string;
   nombreProyecto?: string;
+  /** En la portada se usa la ruta pública, que no acepta documento del cliente. */
+  publico?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -66,14 +76,16 @@ export function AsistenteVertex({
     setCargando(true);
 
     try {
-      const respuesta = await fetch("/api/chat", {
+      const respuesta = await fetch(publico ? "/api/consulta-publica" : "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Sin contexto de proyecto la consulta va directa a internet.
         body: JSON.stringify(
-          contexto.trim()
-            ? { pregunta: limpio, documento: contexto }
-            : { pregunta: limpio, modo: "web" },
+          publico
+            ? { pregunta: limpio }
+            : contexto.trim()
+              ? { pregunta: limpio, documento: contexto }
+              : { pregunta: limpio, modo: "web" },
         ),
       });
 
@@ -122,7 +134,7 @@ export function AsistenteVertex({
         {/* Invitación fija: sin ella el robot parece decorativo y nadie lo pulsa. */}
         {!abierto && (
           <span className="mx-auto -mt-2 block w-max max-w-[13rem] rounded-full border border-acento/35 bg-superficie px-3.5 py-1.5 text-center text-xs font-medium text-tinta shadow-[var(--shadow-elevada)]">
-            Pregúntame sobre el proyecto
+            {publico ? "Pregúntame sobre la app" : "Pregúntame sobre el proyecto"}
           </span>
         )}
       </button>
@@ -169,7 +181,7 @@ export function AsistenteVertex({
                   la fuente.
                 </p>
                 <ul className="space-y-1.5">
-                  {SUGERENCIAS.map((s) => (
+                  {(publico ? SUGERENCIAS_PUBLICAS : SUGERENCIAS).map((s) => (
                     <li key={s}>
                       <button
                         type="button"
