@@ -17,24 +17,24 @@
 
 @theme {
   /* ------------------------------------------- Tema holográfico (default) -- */
-  --color-fondo: oklch(25% 0.026 244);
-  --color-superficie: oklch(31% 0.03 243);
-  --color-superficie-alta: oklch(36% 0.033 242);
-  --color-superficie-honda: oklch(28% 0.028 244);
-  --color-borde: oklch(45% 0.04 235);
-  --color-borde-suave: oklch(38% 0.034 240);
+  --color-fondo: oklch(16.8% 0.036 257);
+  --color-superficie: oklch(23% 0.042 256);
+  --color-superficie-alta: oklch(28% 0.046 255);
+  --color-superficie-honda: oklch(20% 0.038 257);
+  --color-borde: oklch(38% 0.055 252);
+  --color-borde-suave: oklch(30% 0.048 255);
 
-  --color-tinta: oklch(95% 0.018 210);
-  --color-tinta-media: oklch(81% 0.03 208);
-  --color-tinta-debil: oklch(66% 0.038 212);
+  --color-tinta: oklch(93% 0.006 248);
+  --color-tinta-media: oklch(78% 0.022 250);
+  --color-tinta-debil: oklch(62% 0.032 252);
 
-  --color-acento: oklch(80% 0.145 198);
-  --color-acento-fuerte: oklch(88% 0.15 197);
-  --color-acento-claro: oklch(86% 0.13 199);
-  --color-acento-tenue: oklch(37% 0.07 210);
+  --color-acento: oklch(69% 0.155 255);
+  --color-acento-fuerte: oklch(78% 0.145 254);
+  --color-acento-claro: oklch(76% 0.12 252);
+  --color-acento-tenue: oklch(30% 0.075 255);
   /* Texto que va ENCIMA del acento: en oscuro el acento es claro, así que el
      texto debe ser oscuro para cumplir contraste. */
-  --color-sobre-acento: oklch(20% 0.03 240);
+  --color-sobre-acento: oklch(15% 0.035 257);
 
   --color-laton: oklch(80% 0.115 78);
   --color-laton-tenue: oklch(37% 0.06 70);
@@ -58,7 +58,7 @@
   --shadow-sutil: 0 1px 2px oklch(0% 0 0 / 0.4);
   --shadow-tarjeta: 0 1px 2px oklch(0% 0 0 / 0.45), 0 8px 24px -8px oklch(0% 0 0 / 0.55);
   --shadow-elevada: 0 2px 6px oklch(0% 0 0 / 0.5), 0 18px 44px -12px oklch(0% 0 0 / 0.7);
-  --shadow-acento: 0 0 0 1px oklch(80% 0.145 198 / 0.35), 0 8px 28px -8px oklch(80% 0.145 198 / 0.4);
+  --shadow-acento: 0 0 0 1px oklch(69% 0.155 255 / 0.4), 0 8px 28px -8px oklch(69% 0.155 255 / 0.45);
 
   --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-suave: cubic-bezier(0.4, 0, 0.2, 1);
@@ -128,37 +128,47 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 
+  /*
+   * Fondo del tema oscuro: todo vectorial.
+   *
+   * Antes era una fotografía de 1920x1080 estirada a `cover`; en pantallas
+   * grandes o Retina se ampliaba dos y hasta cuatro veces y salía blanda. Estas
+   * capas son SVG y gradientes, así que se ven nítidas a cualquier resolución y
+   * pesan una fracción. Los colores salen del logotipo: navy #050F1E, azul de
+   * marca #3F8CED y azul de circuito #7BABDA.
+   */
   background-color: var(--color-fondo);
   background-image:
-    radial-gradient(
-      ellipse 70% 45% at 50% 8%,
-      oklch(80% 0.145 198 / 0.12),
-      transparent 70%
-    ),
-    linear-gradient(
-      to bottom,
-      oklch(25% 0.026 244 / 0.4) 0%,
-      oklch(25% 0.026 244 / 0.66) 40%,
-      oklch(25% 0.026 244 / 0.9) 74%,
-      oklch(25% 0.026 244 / 0.97) 100%
-    ),
-    url("/fondo-holografico.jpg");
-  background-position: center, center, center 42%;
-  background-size: cover, cover, cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed, fixed, fixed;
+    /* 1. Halo de marca sobre el titular. */
+    radial-gradient(ellipse 62% 42% at 50% 0%, oklch(69% 0.155 255 / 0.20), transparent 72%),
+    /* 2. Contraluz frío en la esquina inferior derecha. */
+    radial-gradient(ellipse 46% 40% at 100% 86%, oklch(72% 0.086 249 / 0.11), transparent 72%),
+    /* 3. Trazas de circuito. */
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22560%22%20height%3D%22560%22%20viewBox%3D%220%200%20560%20560%22%3E%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%233F8CED%22%20stroke-opacity%3D%22.2%22%20stroke-width%3D%221.1%22%20stroke-linecap%3D%22square%22%3E%20%3Cpath%20d%3D%22M0%2096h132l34%2034h118M284%20130V52h96l30-30h150%22%2F%3E%20%3Cpath%20d%3D%22M0%20300h86l40-40h96l38%2038h140l34%2034h126%22%2F%3E%20%3Cpath%20d%3D%22M60%20560V438l44-44h130l36-36h122l40%2040h128%22%2F%3E%20%3Cpath%20d%3D%22M186%200v72l30%2030v96M420%20560V430l38-38h102%22%2F%3E%20%3Cpath%20d%3D%22M0%20190h48l32%2032v120M498%2096v104l-36%2036H340%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20fill%3D%22%235FA6F5%22%20fill-opacity%3D%22.38%22%3E%20%3Ccircle%20cx%3D%22284%22%20cy%3D%22130%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22166%22%20cy%3D%22130%22%20r%3D%223.2%22%2F%3E%20%3Ccircle%20cx%3D%22126%22%20cy%3D%22260%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22398%22%20cy%3D%22298%22%20r%3D%223.2%22%2F%3E%20%3Ccircle%20cx%3D%22234%22%20cy%3D%22394%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22392%22%20cy%3D%22358%22%20r%3D%223.2%22%2F%3E%20%3Ccircle%20cx%3D%2280%22%20cy%3D%22222%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22458%22%20cy%3D%22392%22%20r%3D%223.2%22%2F%3E%20%3Ccircle%20cx%3D%22216%22%20cy%3D%22102%22%20r%3D%222.6%22%2F%3E%3Ccircle%20cx%3D%22462%22%20cy%3D%22236%22%20r%3D%222.6%22%2F%3E%20%3C%2Fg%3E%3C%2Fsvg%3E"),
+    /* 4. Retícula isométrica. */
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%22416%22%20viewBox%3D%220%200%20240%20416%22%3E%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%237BABDA%22%20stroke-opacity%3D%22.1%22%20stroke-width%3D%221%22%3E%20%3Cpath%20d%3D%22M0%20104%20120%2034l120%2070M0%20208l120-70%20120%2070M0%20312l120-70%20120%2070M0%20416l120-70%20120%2070%22%2F%3E%20%3Cpath%20d%3D%22M0%200v208M120%2034v208M240%200v208M60%2069v208M180%2069v208%22%2F%3E%20%3C%2Fg%3E%3C%2Fsvg%3E"),
+    /* 5. Retícula de plano: fina y gruesa, a 1 px exacto. */
+    linear-gradient(to right, oklch(69% 0.155 255 / 0.085) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(69% 0.155 255 / 0.085) 1px, transparent 1px),
+    linear-gradient(to right, oklch(72% 0.086 249 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(72% 0.086 249 / 0.05) 1px, transparent 1px),
+    /* 6. Viñeta: hunde los bordes y empuja la mirada al contenido. */
+    radial-gradient(ellipse 78% 62% at 50% 40%, oklch(13% 0.03 257 / 0.42) 0%, oklch(12% 0.03 257 / 0.78) 100%),
+    /* 7. Base con profundidad. */
+    linear-gradient(to bottom, oklch(19% 0.04 257), oklch(14.5% 0.032 257) 62%, oklch(12.5% 0.028 257));
+  background-size:
+    cover, cover,
+    560px 560px,
+    240px 416px,
+    112px 112px, 112px 112px,
+    28px 28px, 28px 28px,
+    cover, cover;
+  background-position: center, center, 0 0, 0 0, center, center, center, center, center, center;
+  background-repeat:
+    no-repeat, no-repeat, repeat, repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat;
+  background-attachment: fixed;
 }
 
-/*
- * Tema claro: papel de dibujo técnico.
- *
- * En vez de una fotografía —que en claro compite con el texto y ensucia la
- * lectura de tablas y planos— el fondo se construye con la propia paleta: una
- * retícula de dos escalas como la del papel milimétrico, un plegado diagonal muy
- * tenue que da profundidad, y dos lavados de color en las esquinas con el acento
- * y el latón de la marca. Todo por debajo del 5 % de opacidad, de modo que las
- * superficies blancas de las tarjetas sigan destacando sobre él.
- */
 [data-tema="claro"] body {
   background-color: var(--color-fondo);
   background-image:
@@ -193,8 +203,8 @@ body {
 /* Rejilla técnica: retícula de proyección en oscuro, papel milimétrico en claro. */
 .rejilla-tecnica {
   background-image:
-    linear-gradient(to right, oklch(80% 0.145 198 / 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(80% 0.145 198 / 0.09) 1px, transparent 1px);
+    linear-gradient(to right, oklch(69% 0.155 255 / 0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(69% 0.155 255 / 0.10) 1px, transparent 1px);
   background-size: 46px 46px;
   mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 15%, transparent 76%);
 }
@@ -425,7 +435,7 @@ body {
     to bottom,
     transparent,
     oklch(80% 0.145 198 / 0.05) 45%,
-    oklch(80% 0.145 198 / 0.09) 50%,
+    oklch(69% 0.155 255 / 0.10) 50%,
     oklch(80% 0.145 198 / 0.05) 55%,
     transparent
   );
