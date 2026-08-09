@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { FICHA_APP } from "@/lib/ficha-app";
 
 /**
  * Asistente Vertex AI: el chat del proyecto con cara.
@@ -80,12 +81,13 @@ export function AsistenteVertex({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Sin contexto de proyecto la consulta va directa a internet.
+        // Sin proyecto todavía, el respaldo es la ficha de la propia
+        // herramienta, no una búsqueda web a ciegas: preguntar «qué formatos
+        // acepta» devolvía JPEG, MP3 y ZIP en vez de los nueve reales.
         body: JSON.stringify(
           publico
             ? { pregunta: limpio }
-            : contexto.trim()
-              ? { pregunta: limpio, documento: contexto }
-              : { pregunta: limpio, modo: "web" },
+            : { pregunta: limpio, documento: contexto.trim() || FICHA_APP },
         ),
       });
 
@@ -95,14 +97,43 @@ export function AsistenteVertex({
         return;
       }
 
+      // Las dos rutas hablan distinto: la pública devuelve texto plano y
+      // /api/chat devuelve eventos SSE. Se lee cada una en su formato; pintar el
+      // SSE en crudo era lo que sacaba los «data: {...}» por pantalla.
       const lector = respuesta.body.getReader();
       const decodificador = new TextDecoder();
       let texto = "";
+      let resto = "";
+      let fuentes: Mensaje["fuentes"] = [];
+
       for (;;) {
         const { done, value } = await lector.read();
         if (done) break;
-        texto += decodificador.decode(value, { stream: true });
-        actualizarUltimo(texto, []);
+        const trozo = decodificador.decode(value, { stream: true });
+
+        if (publico) {
+          texto += trozo;
+          actualizarUltimo(texto, fuentes);
+          continue;
+        }
+
+        resto += trozo;
+        const partes = resto.split("\n\n");
+        resto = partes.pop() ?? "";
+        for (const parte of partes) {
+          if (!parte.startsWith("data: ")) continue;
+          try {
+            const evento = JSON.parse(parte.slice(6));
+            if (evento.tipo === "fuentes") fuentes = evento.fuentes;
+            if (evento.tipo === "texto") {
+              texto += evento.texto;
+              actualizarUltimo(texto, fuentes);
+            }
+            if (evento.tipo === "error") actualizarUltimo(evento.mensaje, fuentes);
+          } catch {
+            // Fragmento incompleto: llegará entero en la siguiente lectura.
+          }
+        }
       }
     } catch {
       actualizarUltimo("Se interrumpió la conexión con el asistente.", []);
