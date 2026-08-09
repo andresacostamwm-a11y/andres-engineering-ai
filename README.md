@@ -15,7 +15,7 @@ Autor: **Heber Andres Acosta Jimenez** — andresacosta.mwm@gmail.com
 | Repositorio | https://github.com/andresacostamwm-a11y/andres-engineering-ai |
 | Presentación (slides, 17 diapositivas) | https://andres-engineering-ai.vercel.app/slides |
 | Presentación en PDF | `slides/ANDRES-Engineering-AI-presentacion.pdf` |
-| Vídeo de presentación | _(pendiente de publicar — ver `guion-video.md`)_ |
+| Vídeo de presentación | **https://youtu.be/6SH7doMzHI0** |
 
 **Credenciales de prueba** (aparecen también en la pantalla de acceso):
 
