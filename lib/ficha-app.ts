@@ -96,9 +96,12 @@ sustituye el criterio ni la firma de un responsable técnico.
 
 TECNOLOGÍA Y ACCESO
 Next.js 16 con React 19 y TypeScript estricto, desplegada en Vercel. Habla con
-tres proveedores de IA —Claude, Gemini y OpenAI— y si uno agota su cuota pasa al
+tres proveedores de IA —OpenAI, Gemini y Claude— con un catálogo cerrado de 21
+motores: GPT-5.6 Sol, Luna y Terra con cuatro niveles de razonamiento cada uno,
+GPT-5.5, cuatro Gemini y cuatro Claude. El motor por defecto es GPT-5.6 Luna con
+razonamiento medio, y cambiarlo exige contraseña. Si uno agota su cuota pasa al
 siguiente solo; si ninguno responde, continúa en modo demostración en lugar de
 romperse. Recuperación léxica BM25 implementada desde cero, sin base vectorial.
-72 pruebas unitarias en verde. Acceso de prueba: demo@diem.mx con contraseña
+104 pruebas unitarias en verde. Acceso de prueba: demo@diem.mx con contraseña
 TFMdemo2026.
 `.trim();

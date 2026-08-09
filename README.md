@@ -75,7 +75,7 @@ Elegí un problema que conozco de primera mano por mi actividad profesional en i
 | Diagramas | SVG generado por la aplicación | El modelo aporta la topología; el trazo lo pone el código |
 | Iconografía | **lucide-react**, `clsx` | Interfaz consistente sin librería de componentes |
 | Tipografía | IBM Plex Sans / Mono | Diseñada para documentación técnica; cifras tabulares |
-| Pruebas | **node:test** nativo con `--experimental-strip-types` | 59 pruebas sin una sola dependencia de desarrollo |
+| Pruebas | **node:test** nativo con `--experimental-strip-types` | 104 pruebas sin una sola dependencia de desarrollo |
 | Despliegue | **Vercel** | Runtime Node.js para el pipeline, Edge para la protección de rutas |
 
 ---
@@ -125,7 +125,7 @@ Todas son opcionales: sin ninguna, la aplicación arranca y funciona en modo dem
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compilación de producción |
 | `npm start` | Sirve la compilación de producción |
-| `npm test` | 59 pruebas unitarias en 13 suites (node:test) |
+| `npm test` | 104 pruebas unitarias en 25 suites (node:test) |
 | `npm run typecheck` | Comprobación de tipos sin emitir |
 | `npm run lint` | ESLint |
 
@@ -442,7 +442,7 @@ Si todos los proveedores agotan su cuota, el sistema lo detecta (por mensaje, 42
 npm test
 ```
 
-**59 pruebas, 13 suites, todas en verde.** Cubren la lógica determinista:
+**104 pruebas, 25 suites, todas en verde.** Cubren la lógica determinista:
 
 | Suite | Qué verifica |
 | --- | --- |
