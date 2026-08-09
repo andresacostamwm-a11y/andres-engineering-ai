@@ -4,6 +4,7 @@ import type { Economia } from "@/lib/moneda/tipos";
 import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
 import { PanelTipoCambio } from "./PanelTipoCambio";
 import { Cotizaciones } from "./Cotizaciones";
+import { AsistenteVertex } from "./AsistenteVertex";
 
 import { useCallback, useEffect, useState } from "react";
 import type {
@@ -314,6 +315,10 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
 
   return (
     <div className="space-y-6">
+      <AsistenteVertex
+        contexto={analisisActual?.texto ?? ""}
+        nombreProyecto={analisisActual?.nombreArchivo}
+      />
       {!apiDisponible && (
         <Aviso tono="informativo">
           Este despliegue no tiene API key de Anthropic configurada, así que la

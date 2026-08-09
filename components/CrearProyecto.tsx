@@ -4,6 +4,7 @@ import type { Economia } from "@/lib/moneda/tipos";
 import { MONEDA_POR_DEFECTO } from "@/lib/moneda/tipos";
 import { PanelTipoCambio } from "./PanelTipoCambio";
 import { Cotizaciones } from "./Cotizaciones";
+import { AsistenteVertex } from "./AsistenteVertex";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Diagrama } from "@/lib/diagramas/tipos";
@@ -690,6 +691,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
   return (
     <div className="space-y-6">
+      <AsistenteVertex contexto={alcance ?? ""} nombreProyecto={nombre} />
       <section className="relative z-50 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{nombre}</p>
