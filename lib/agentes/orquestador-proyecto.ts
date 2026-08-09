@@ -1,18 +1,29 @@
 /**
  * Orquestador de proyecto nuevo.
  *
- * Extiende el pipeline de análisis con dos etapas propias:
+ * Extiende el pipeline de análisis con etapas propias:
  *
- *   programa → extractor ─┬─ costos ────┐
- *                         └─ normativo ─┴─ síntesis ─→ diagramas (paralelo)
+ *   programa → extractor ─┬─ costos ─────┐   ┌─ síntesis ────┐
+ *                         ├─ normativo ──┤   ├─ programación ┼─ verificador
+ *                         ├─ memoria ────┼───┤─ riesgos ─────┘
+ *                         └─ planos ─────┘   └
  *
  * El agente de programa convierte la descripción del cliente en un alcance de
  * obra; a partir de ahí el pipeline es el mismo que el de un documento subido.
- * Los diagramas se generan en paralelo entre sí una vez que existe el alcance,
- * porque ninguno depende de otro.
+ * Cada bloque en paralelo agrupa lo que no depende de nada más: los planos entre
+ * sí, y después el resumen, el cronograma y el riesgo, que solo necesitan el
+ * presupuesto ya cerrado.
+ *
+ * El verificador va último y solo. Es el único que ve el paquete completo, y su
+ * valor está justamente en llegar con contexto fresco a algo ya terminado.
  */
-import type { EventoProyecto, MemoriaProyecto } from "../tipos-proyecto.ts";
-import type { Hallazgo, Partida } from "../types.ts";
+import type {
+  EventoProyecto,
+  MemoriaProyecto,
+  ProgramaObra,
+  Viabilidad,
+} from "../tipos-proyecto.ts";
+import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "../types.ts";
 import type { Diagrama } from "../diagramas/tipos.ts";
 import type { DisciplinaProyecto, Envergadura, TipoDiagrama } from "../disciplinas.ts";
 import { diagramasDe, fichaDisciplina, normativaDe } from "../disciplinas.ts";
@@ -27,7 +38,21 @@ import { revisarNormativa } from "./normativo.ts";
 import { sintetizar } from "./sintesis.ts";
 import { generarDiagrama } from "./proyectista.ts";
 import { redactarMemoria } from "./memoria.ts";
-import { DIAGRAMAS_DEMO, MEMORIA_DEMO, PROYECTO_DEMO } from "../demo-proyecto.ts";
+import { programarObra } from "./programacion.ts";
+import { evaluarViabilidad } from "./riesgos.ts";
+import { verificar } from "./verificador.ts";
+import {
+  calcularConfianza,
+  comprobar,
+  veredictoDe,
+} from "../verificacion/comprobaciones.ts";
+import {
+  DIAGRAMAS_DEMO,
+  MEMORIA_DEMO,
+  PROGRAMA_DEMO,
+  PROYECTO_DEMO,
+  VIABILIDAD_DEMO,
+} from "../demo-proyecto.ts";
 
 export interface EncargoProyecto {
   nombre: string;
@@ -167,12 +192,10 @@ export async function* proyectar(
     yield { tipo: "error", agente: "normativo", mensaje: mensajeDeError(resultados[1].reason) };
   }
 
+  let memoriaGenerada: MemoriaProyecto | null = null;
   if (resultados[2].status === "fulfilled") {
-    yield {
-      tipo: "resultado",
-      agente: "memoria",
-      datos: resultados[2].value as MemoriaProyecto,
-    };
+    memoriaGenerada = resultados[2].value as MemoriaProyecto;
+    yield { tipo: "resultado", agente: "memoria", datos: memoriaGenerada };
   } else {
     yield { tipo: "error", agente: "memoria", mensaje: mensajeDeError(resultados[2].reason) };
   }
@@ -196,21 +219,103 @@ export async function* proyectar(
     yield { tipo: "resultado", agente: "proyectista", datos: diagramas.length };
   }
 
-  // Etapa 4 — síntesis.
-  yield { tipo: "inicio", agente: "sintesis", mensaje: "Redactando el resumen ejecutivo" };
-  try {
-    const resumen = await sintetizar({ contexto, requerimientos, partidas, hallazgos });
-    yield { tipo: "resultado", agente: "sintesis", datos: resumen };
-  } catch (error) {
-    yield { tipo: "error", agente: "sintesis", mensaje: mensajeDeError(error) };
-  }
-
   const economia: Economia = await construirEconomia({
     pais,
     pistaPais: pista,
     paisDeducido: deducido,
     mercado,
   });
+
+  // Etapa 4 — síntesis, cronograma y riesgo, en paralelo: los tres parten del
+  // presupuesto ya cerrado y ninguno necesita el resultado de los otros.
+  yield { tipo: "inicio", agente: "sintesis", mensaje: "Redactando el resumen ejecutivo" };
+  yield {
+    tipo: "inicio",
+    agente: "programacion",
+    mensaje: "Programando la obra y calculando la ruta crítica",
+  };
+  yield {
+    tipo: "inicio",
+    agente: "riesgos",
+    mensaje: "Evaluando riesgos y sensibilidad económica",
+  };
+
+  const cierre = await Promise.allSettled([
+    sintetizar({ contexto, requerimientos, partidas, hallazgos }),
+    programarObra({
+      nombre: encargo.nombre,
+      disciplina: encargo.disciplina,
+      envergadura: encargo.envergadura,
+      ubicacion: encargo.ubicacion,
+      alcance: contexto,
+      partidas,
+    }),
+    evaluarViabilidad({
+      nombre: encargo.nombre,
+      disciplina: encargo.disciplina,
+      envergadura: encargo.envergadura,
+      ubicacion: encargo.ubicacion,
+      alcance: contexto,
+      partidas,
+      hallazgos,
+    }),
+  ]);
+
+  let resumen: ResumenEjecutivo | null = null;
+  if (cierre[0].status === "fulfilled") {
+    resumen = cierre[0].value;
+    yield { tipo: "resultado", agente: "sintesis", datos: resumen };
+  } else {
+    yield { tipo: "error", agente: "sintesis", mensaje: mensajeDeError(cierre[0].reason) };
+  }
+
+  let programa: ProgramaObra | null = null;
+  if (cierre[1].status === "fulfilled") {
+    programa = cierre[1].value;
+    yield { tipo: "resultado", agente: "programacion", datos: programa };
+  } else {
+    yield { tipo: "error", agente: "programacion", mensaje: mensajeDeError(cierre[1].reason) };
+  }
+
+  let viabilidad: Viabilidad | null = null;
+  if (cierre[2].status === "fulfilled") {
+    viabilidad = cierre[2].value;
+    yield { tipo: "resultado", agente: "riesgos", datos: viabilidad };
+  } else {
+    yield { tipo: "error", agente: "riesgos", mensaje: mensajeDeError(cierre[2].reason) };
+  }
+
+  // Etapa 5 — verificación adversarial sobre el paquete completo.
+  yield {
+    tipo: "inicio",
+    agente: "verificador",
+    mensaje: "Revisando el paquete completo contra la especificación",
+  };
+  try {
+    const verificacion = await verificar({
+      nombre: encargo.nombre,
+      disciplina: encargo.disciplina,
+      envergadura: encargo.envergadura,
+      ubicacion: encargo.ubicacion,
+      alcance: contexto,
+      moneda: economia.moneda,
+      paquete: {
+        requerimientos,
+        partidas,
+        hallazgos,
+        diagramas,
+        memoria: memoriaGenerada,
+        resumen,
+        programa,
+        viabilidad,
+        diagramasPedidos: tiposDiagrama,
+        disciplinas: elegidas,
+      },
+    });
+    yield { tipo: "resultado", agente: "verificador", datos: verificacion };
+  } catch (error) {
+    yield { tipo: "error", agente: "verificador", mensaje: mensajeDeError(error) };
+  }
 
   yield { tipo: "fin", modoDemo: false, economia };
 }
@@ -252,8 +357,45 @@ async function* proyectarEnModoDemo(
   yield { tipo: "resultado", agente: "proyectista", datos: diagramas.length };
 
   yield { tipo: "inicio", agente: "sintesis", mensaje: "Modo demostración" };
+  yield { tipo: "inicio", agente: "programacion", mensaje: "Modo demostración" };
+  yield { tipo: "inicio", agente: "riesgos", mensaje: "Modo demostración" };
   await espera(900);
   yield { tipo: "resultado", agente: "sintesis", datos: PROYECTO_DEMO.resumen };
+  yield { tipo: "resultado", agente: "programacion", datos: PROGRAMA_DEMO };
+  yield { tipo: "resultado", agente: "riesgos", datos: VIABILIDAD_DEMO };
+
+  // La verificación no se falsea: en demostración corre de verdad la parte
+  // determinista sobre los datos de muestra, y es la que da el veredicto.
+  yield { tipo: "inicio", agente: "verificador", mensaje: "Modo demostración" };
+  await espera(700);
+  const hallazgosAutomaticos = comprobar({
+    requerimientos: PROYECTO_DEMO.requerimientos,
+    partidas: PROYECTO_DEMO.partidas,
+    hallazgos: PROYECTO_DEMO.hallazgos,
+    diagramas,
+    memoria: MEMORIA_DEMO,
+    resumen: PROYECTO_DEMO.resumen,
+    programa: PROGRAMA_DEMO,
+    viabilidad: VIABILIDAD_DEMO,
+    diagramasPedidos: [],
+    disciplinas: [encargo.disciplina],
+  });
+  yield {
+    tipo: "resultado",
+    agente: "verificador",
+    datos: {
+      hallazgos: hallazgosAutomaticos,
+      confianza: calcularConfianza(hallazgosAutomaticos),
+      veredicto: veredictoDe(hallazgosAutomaticos),
+      comprobado: [
+        "Aritmética de las partidas: importe igual a cantidad por precio unitario.",
+        "Desglose de cada matriz de precio unitario contra su precio.",
+        "Coherencia entre el total del resumen ejecutivo y la suma del catálogo.",
+        "Encadenado del cronograma: sin ciclos ni predecesoras inexistentes.",
+        "Revisión técnica asistida no disponible en modo demostración.",
+      ],
+    },
+  };
 
   const demo = paisDelProyecto(encargo.ubicacion ?? "");
   const economia = await construirEconomia({

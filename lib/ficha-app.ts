@@ -31,15 +31,22 @@ LOS DOS MODOS DE TRABAJO
    cuantifica, revisa la normativa, redacta la memoria técnica y dibuja el
    paquete completo de planos, cada uno con maqueta tridimensional navegable.
 
-LOS SIETE AGENTES
+LOS DIEZ AGENTES
 Programa redacta el alcance de obra a partir de la descripción. Extractor aísla
 los requerimientos con su evidencia. Costos elabora el catálogo de conceptos y
 los precios unitarios. Normativo contrasta contra NOM, STPS y reglamentos
 aplicables. Memoria redacta la memoria descriptiva y de cálculo por instalación.
 Proyectista devuelve la topología de las láminas. Síntesis redacta el resumen
-ejecutivo y consolida el riesgo. Costos, normativo, memoria y proyectista corren
-en paralelo porque ninguno depende de los otros. El progreso llega por Server
-Sent Events, así que cada etapa se completa en vivo con su recuento real.
+ejecutivo y consolida el riesgo. Programación propone las actividades de obra y
+su encadenado, y el sistema calcula con ellas las fechas, las holguras y la ruta
+crítica. Riesgos levanta la matriz probabilidad por impacto y mueve el
+presupuesto real en escenario base, optimista y pesimista. Verificador llega con
+contexto fresco al paquete terminado, cruza aritmética, cobertura y coherencia
+entre piezas, y emite un veredicto con una confianza de cero a cien.
+Costos, normativo, memoria y proyectista corren en paralelo; después lo hacen
+síntesis, programación y riesgos. El verificador va último y solo. El progreso
+llega por Server Sent Events, así que cada etapa se completa en vivo con su
+recuento real.
 
 CÓMO SE ORGANIZA POR DENTRO
 Ningún agente devuelve texto libre: se le obliga a invocar una herramienta con
@@ -70,7 +77,9 @@ que se emitieron. Antes de comparar proveedores, todas las propuestas se
 normalizan a una misma moneda.
 
 QUÉ SE PUEDE DESCARGAR
-PDF con el dictamen completo, incluidas las láminas y la memoria técnica; Word,
+PDF con el dictamen completo, incluidas las láminas, la memoria técnica, el
+cronograma con su ruta crítica, la matriz de riesgos y el informe de
+verificación; Word,
 CSV, HTML con los planos incrustados, DXF que AutoCAD abre, IFC que Revit lee y
 SVG. Cada lámina se puede bajar además suelta en SVG, DXF o PNG. El formato .rvt
 no se genera: es propietario y solo Revit puede escribirlo, así que se entrega
@@ -90,6 +99,6 @@ Next.js 16 con React 19 y TypeScript estricto, desplegada en Vercel. Habla con
 tres proveedores de IA —Claude, Gemini y OpenAI— y si uno agota su cuota pasa al
 siguiente solo; si ninguno responde, continúa en modo demostración en lugar de
 romperse. Recuperación léxica BM25 implementada desde cero, sin base vectorial.
-59 pruebas unitarias en verde. Acceso de prueba: demo@diem.mx con contraseña
+72 pruebas unitarias en verde. Acceso de prueba: demo@diem.mx con contraseña
 TFMdemo2026.
 `.trim();

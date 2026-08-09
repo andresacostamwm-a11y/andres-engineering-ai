@@ -28,11 +28,19 @@ import {
 import type { TipoDiagrama } from "@/lib/disciplinas";
 import { EXTENSIONES_ACEPTADAS } from "@/lib/extractores";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "@/lib/types";
-import type { MemoriaProyecto } from "@/lib/tipos-proyecto";
+import type {
+  MemoriaProyecto,
+  ProgramaObra,
+  Verificacion,
+  Viabilidad,
+} from "@/lib/tipos-proyecto";
 import { Lamina } from "./diagramas/Lamina";
 import { GenerarPlano } from "./diagramas/GenerarPlano";
 import { AccesoPlanos } from "./diagramas/AccesoPlanos";
 import { MemoriaPanel } from "./MemoriaPanel";
+import { CronogramaPanel } from "./CronogramaPanel";
+import { RiesgosPanel } from "./RiesgosPanel";
+import { VerificacionPanel } from "./VerificacionPanel";
 import { ChatDocumento } from "./ChatDocumento";
 import { ConsultaWeb } from "./ConsultaWeb";
 import { SalaControl } from "./SalaControl";
@@ -54,6 +62,9 @@ const ESTADOS_INICIALES: Record<AgenteProyecto, EstadoAgente> = {
   proyectista: "pendiente",
   memoria: "pendiente",
   sintesis: "pendiente",
+  programacion: "pendiente",
+  riesgos: "pendiente",
+  verificador: "pendiente",
 };
 
 const EJEMPLOS: Record<string, string> = {
@@ -129,6 +140,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [diagramas, setDiagramas] = useState<Diagrama[]>([]);
   const [memoria, setMemoria] = useState<MemoriaProyecto | null>(null);
   const [resumen, setResumen] = useState<ResumenEjecutivo | null>(null);
+  const [programa, setPrograma] = useState<ProgramaObra | null>(null);
+  const [viabilidad, setViabilidad] = useState<Viabilidad | null>(null);
+  const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [modoDemo, setModoDemo] = useState(false);
   const [economia, setEconomia] = useState<Economia | null>(null);
 
@@ -157,6 +171,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
     setDiagramas(guardado.diagramas);
     setMemoria(guardado.memoria);
     setResumen(guardado.resumen);
+    setPrograma(guardado.programa);
+    setViabilidad(guardado.viabilidad);
+    setVerificacion(guardado.verificacion);
     setModoDemo(guardado.modoDemo);
     setEstados({
       programa: "listo",
@@ -166,6 +183,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       proyectista: guardado.diagramas.length > 0 ? "listo" : "error",
       memoria: guardado.memoria ? "listo" : "error",
       sintesis: guardado.resumen ? "listo" : "error",
+      programacion: guardado.programa ? "listo" : "error",
+      riesgos: guardado.viabilidad ? "listo" : "error",
+      verificador: guardado.verificacion ? "listo" : "error",
     });
     setFase("listo");
   }, []);
@@ -186,6 +206,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
     setDiagramas([]);
     setMemoria(null);
     setResumen(null);
+    setPrograma(null);
+    setViabilidad(null);
+    setVerificacion(null);
     setFase("generando");
 
     let documentosAdjuntos: string | undefined;
@@ -209,6 +232,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       diagramas: [] as Diagrama[],
       memoria: null as MemoriaProyecto | null,
       resumen: null as ResumenEjecutivo | null,
+      programa: null as ProgramaObra | null,
+      viabilidad: null as Viabilidad | null,
+      verificacion: null as Verificacion | null,
       alcance: "",
       premisas: [] as string[],
       economia: null as Economia | null,
@@ -272,6 +298,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         diagramas: acumulado.diagramas,
         memoria: acumulado.memoria,
         resumen: acumulado.resumen,
+        programa: acumulado.programa,
+        viabilidad: acumulado.viabilidad,
+        verificacion: acumulado.verificacion,
         economia: acumulado.economia,
         modoDemo: acumulado.demo,
       });
@@ -293,6 +322,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       diagramas: Diagrama[];
       memoria: MemoriaProyecto | null;
       resumen: ResumenEjecutivo | null;
+      programa: ProgramaObra | null;
+      viabilidad: Viabilidad | null;
+      verificacion: Verificacion | null;
       alcance: string;
       premisas: string[];
       economia: Economia | null;
@@ -332,6 +364,15 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         } else if (evento.agente === "sintesis") {
           acumulado.resumen = evento.datos;
           setResumen(evento.datos);
+        } else if (evento.agente === "programacion") {
+          acumulado.programa = evento.datos;
+          setPrograma(evento.datos);
+        } else if (evento.agente === "riesgos") {
+          acumulado.viabilidad = evento.datos;
+          setViabilidad(evento.datos);
+        } else if (evento.agente === "verificador") {
+          acumulado.verificacion = evento.datos;
+          setVerificacion(evento.datos);
         }
         break;
       case "error":
@@ -366,6 +407,9 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           diagramas,
           memoria,
           resumen,
+          programa,
+          viabilidad,
+          verificacion,
           economia,
           modoDemo,
         }
@@ -802,7 +846,15 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
                       }}
                     />
                   )}
+                  {verificacion && <VerificacionPanel verificacion={verificacion} />}
                   {memoria && <MemoriaPanel proyecto={proyecto} />}
+                  {programa && <CronogramaPanel programa={programa} />}
+                  {viabilidad && (
+                    <RiesgosPanel
+                      viabilidad={viabilidad}
+                      moneda={economia?.moneda ?? "MXN"}
+                    />
+                  )}
                   {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
       {partidas.length > 0 && proyecto && (
         <Cotizaciones proyectoId={proyecto.id} economia={economia} />
@@ -926,7 +978,12 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         />
       )}
 
+      {verificacion && <VerificacionPanel verificacion={verificacion} />}
       {memoria && proyecto && <MemoriaPanel proyecto={proyecto} />}
+      {programa && <CronogramaPanel programa={programa} />}
+      {viabilidad && (
+        <RiesgosPanel viabilidad={viabilidad} moneda={economia?.moneda ?? "MXN"} />
+      )}
 
       {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
                   {partidas.length > 0 && <TablaPresupuesto

@@ -1,58 +1,15 @@
 "use client";
 
 import type { AgenteProyecto } from "@/lib/tipos-proyecto";
+import { CATALOGO_AGENTES } from "@/lib/agentes-catalogo";
 
 export type EstadoAgente = "pendiente" | "corriendo" | "listo" | "error";
 
-const AGENTES: {
-  id: AgenteProyecto;
-  nombre: string;
-  rol: string;
-  etapa: string;
-}[] = [
-  {
-    id: "programa",
-    nombre: "Programa",
-    rol: "Convierte tu descripción en un alcance de obra numerable",
-    etapa: "Etapa 1",
-  },
-  {
-    id: "extractor",
-    nombre: "Extractor",
-    rol: "Aísla los requerimientos técnicos con su evidencia",
-    etapa: "Etapa 2",
-  },
-  {
-    id: "costos",
-    nombre: "Costos",
-    rol: "Catálogo de conceptos con matrices de precio unitario",
-    etapa: "Etapa 3 · paralelo",
-  },
-  {
-    id: "normativo",
-    nombre: "Normativo",
-    rol: "Cumplimiento contra la normativa de la disciplina",
-    etapa: "Etapa 3 · paralelo",
-  },
-  {
-    id: "proyectista",
-    nombre: "Proyectista",
-    rol: "Dibuja el paquete completo de planos de las instalaciones",
-    etapa: "Etapa 3 · paralelo",
-  },
-  {
-    id: "memoria",
-    nombre: "Memoria",
-    rol: "Memoria descriptiva y de cálculo por instalación",
-    etapa: "Etapa 3 · paralelo",
-  },
-  {
-    id: "sintesis",
-    nombre: "Síntesis",
-    rol: "Resumen ejecutivo y consolidación del riesgo",
-    etapa: "Etapa 4",
-  },
-];
+/**
+ * El pipeline se lee del catálogo único de agentes: si se añade uno, aparece
+ * aquí y en la portada sin tocar dos listas que podrían desincronizarse.
+ */
+const AGENTES = CATALOGO_AGENTES;
 
 const ESTILO: Record<EstadoAgente, string> = {
   pendiente: "border-borde bg-superficie-alta/60",
@@ -69,7 +26,7 @@ export function PanelAgentesProyecto({
   mensajes: Partial<Record<AgenteProyecto, string>>;
 }) {
   return (
-    <ol className="escalonado grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+    <ol className="escalonado grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
       {AGENTES.map((agente, i) => {
         const estado = estados[agente.id];
         return (

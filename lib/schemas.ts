@@ -153,6 +153,79 @@ export const salidaMemoriaSchema = z.object({
   conclusiones: z.string(),
 });
 
+/* ------------------------------------------------- Programación de obra -- */
+
+export const actividadObraSchema = z.object({
+  id: z.string().min(1),
+  nombre: z.string().min(1),
+  frente: z.string().min(1),
+  duracionDias: z.number(),
+  predecesoras: z.array(z.string()),
+  hito: z.boolean(),
+});
+
+export const salidaProgramacionSchema = z.object({
+  actividades: z.array(actividadObraSchema).min(1),
+  supuestos: z.array(z.string()),
+});
+
+/* ------------------------------------------------- Riesgos y viabilidad -- */
+
+export const riesgoProyectoSchema = z.object({
+  id: z.string().min(1),
+  titulo: z.string().min(1),
+  categoria: z.string().min(1),
+  probabilidad: z.number(),
+  impacto: z.number(),
+  descripcion: z.string(),
+  mitigacion: z.string(),
+  responsable: z.string(),
+});
+
+export const variableSensibilidadSchema = z.object({
+  concepto: z.string().min(1),
+  variacionPct: z.number(),
+  pesoPct: z.number(),
+  justificacion: z.string(),
+});
+
+export const salidaRiesgosSchema = z.object({
+  riesgos: z.array(riesgoProyectoSchema).min(1),
+  variables: z.array(variableSensibilidadSchema),
+  veredicto: z.string(),
+  condiciones: z.array(z.string()),
+});
+
+/* ---------------------------------------------- Verificación adversarial -- */
+
+export const ambitoVerificacionSchema = z.enum([
+  "programa",
+  "extractor",
+  "costos",
+  "normativo",
+  "proyectista",
+  "memoria",
+  "sintesis",
+  "programacion",
+  "riesgos",
+  "verificador",
+]);
+
+export const hallazgoVerificacionSchema = z.object({
+  id: z.string().min(1),
+  ambito: ambitoVerificacionSchema,
+  gravedad: nivelRiesgoSchema,
+  titulo: z.string().min(1),
+  evidencia: z.string(),
+  correccion: z.string(),
+});
+
+export const salidaVerificadorSchema = z.object({
+  /** Puede venir vacía: no encontrar defectos es una respuesta legítima. */
+  hallazgos: z.array(hallazgoVerificacionSchema),
+  comprobado: z.array(z.string()),
+});
+
 /* ------------------------------------------------ Definición de proyecto -- */
 
 export const definicionProyectoSchema = z.object({

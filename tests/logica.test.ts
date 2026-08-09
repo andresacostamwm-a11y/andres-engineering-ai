@@ -18,6 +18,14 @@ import { crearToken, credencialesValidas, leerToken } from "../lib/auth.ts";
 import { verificarLimite } from "../lib/limite.ts";
 import { esErrorDeCuota } from "../lib/modelo/tipos.ts";
 import { aEsquemaGemini } from "../lib/modelo/esquema.ts";
+import { programar } from "../lib/programacion/cpm.ts";
+import { calcularSensibilidad, evaluarRiesgo } from "../lib/agentes/riesgos.ts";
+import {
+  calcularConfianza,
+  comprobar,
+  veredictoDe,
+} from "../lib/verificacion/comprobaciones.ts";
+import { MEMORIA_DEMO } from "../lib/demo-proyecto.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
@@ -520,5 +528,160 @@ describe("comparación de proveedores", () => {
     const r = compararProveedores([enEuros], "USD", "emision");
     assert.ok(r.propuestas[0].incomparable);
     assert.equal(r.comparables, 0);
+  });
+});
+
+/* ------------------------------------------------- Programación de obra -- */
+
+describe("motor de ruta crítica", () => {
+  const base = { frente: "Obra civil", hito: false };
+
+  it("calcula fechas, holguras y ruta crítica en un encadenado simple", () => {
+    // A(5) → C(4); B(2) → C. La rama corta gana holgura.
+    const { actividades, duracionDias, rutaCritica } = programar([
+      { id: "A", nombre: "A", duracionDias: 5, predecesoras: [], ...base },
+      { id: "B", nombre: "B", duracionDias: 2, predecesoras: [], ...base },
+      { id: "C", nombre: "C", duracionDias: 4, predecesoras: ["A", "B"], ...base },
+    ]);
+
+    assert.equal(duracionDias, 9);
+    const porId = new Map(actividades.map((a) => [a.id, a]));
+    assert.equal(porId.get("C")!.inicio, 5);
+    assert.equal(porId.get("A")!.holgura, 0);
+    assert.equal(porId.get("B")!.holgura, 3);
+    assert.deepEqual(rutaCritica.sort(), ["A", "C"]);
+  });
+
+  it("rompe un ciclo en lugar de colgarse, y lo avisa", () => {
+    const resultado = programar([
+      { id: "A", nombre: "A", duracionDias: 3, predecesoras: ["B"], ...base },
+      { id: "B", nombre: "B", duracionDias: 3, predecesoras: ["A"], ...base },
+    ]);
+
+    assert.equal(resultado.actividades.length, 2);
+    assert.ok(resultado.duracionDias > 0);
+    assert.ok(resultado.avisos.some((a) => a.includes("ciclo")));
+  });
+
+  it("ignora una predecesora inexistente sin descartar la actividad", () => {
+    const resultado = programar([
+      { id: "A", nombre: "A", duracionDias: 4, predecesoras: ["FANTASMA"], ...base },
+    ]);
+
+    assert.equal(resultado.actividades.length, 1);
+    assert.equal(resultado.actividades[0].inicio, 0);
+    assert.ok(resultado.avisos.some((a) => a.includes("no existe")));
+  });
+
+  it("un hito no consume tiempo pero sí ordena", () => {
+    const { duracionDias, actividades } = programar([
+      { id: "A", nombre: "A", duracionDias: 6, predecesoras: [], ...base },
+      { id: "H", nombre: "Hito", duracionDias: 0, predecesoras: ["A"], frente: "Entrega", hito: true },
+      { id: "B", nombre: "B", duracionDias: 3, predecesoras: ["H"], ...base },
+    ]);
+
+    assert.equal(duracionDias, 9);
+    assert.equal(actividades.find((a) => a.id === "H")!.inicio, 6);
+  });
+});
+
+/* ------------------------------------------------- Riesgos y viabilidad -- */
+
+describe("evaluación de riesgo", () => {
+  const plantilla = {
+    id: "R", titulo: "t", categoria: "Técnico",
+    descripcion: "d", mitigacion: "m", responsable: "r",
+  };
+
+  it("deriva severidad y nivel del producto probabilidad × impacto", () => {
+    assert.equal(evaluarRiesgo({ ...plantilla, probabilidad: 5, impacto: 5 }).nivel, "critico");
+    assert.equal(evaluarRiesgo({ ...plantilla, probabilidad: 3, impacto: 3 }).nivel, "alto");
+    assert.equal(evaluarRiesgo({ ...plantilla, probabilidad: 2, impacto: 2 }).nivel, "medio");
+    assert.equal(evaluarRiesgo({ ...plantilla, probabilidad: 1, impacto: 2 }).nivel, "bajo");
+  });
+
+  it("acota una escala fuera de rango en lugar de propagarla", () => {
+    const r = evaluarRiesgo({ ...plantilla, probabilidad: 9, impacto: -3 });
+    assert.equal(r.probabilidad, 5);
+    assert.equal(r.impacto, 1);
+    assert.equal(r.severidad, 5);
+  });
+});
+
+describe("sensibilidad económica", () => {
+  it("aplica cada variación solo a la parte del presupuesto que afecta", () => {
+    // 20 % sobre el 50 % del presupuesto = 10 % de exposición total.
+    const s = calcularSensibilidad(1_000_000, [
+      { concepto: "Acero", variacionPct: 20, pesoPct: 50, justificacion: "j" },
+    ]);
+
+    assert.equal(s.pesimista, 1_100_000);
+    assert.equal(s.contingenciaPct, 10);
+    // El optimista recupera solo una fracción: los ahorros son menos probables.
+    assert.ok(s.optimista > 900_000 && s.optimista < 1_000_000);
+  });
+
+  it("mantiene la contingencia dentro de límites defendibles", () => {
+    const enorme = calcularSensibilidad(100, [
+      { concepto: "x", variacionPct: 90, pesoPct: 100, justificacion: "j" },
+    ]);
+    const nula = calcularSensibilidad(100, []);
+
+    assert.equal(enorme.contingenciaPct, 30);
+    assert.equal(nula.contingenciaPct, 5);
+    assert.equal(nula.pesimista, 100);
+  });
+});
+
+/* ---------------------------------------------- Verificación adversarial -- */
+
+describe("comprobaciones deterministas del verificador", () => {
+  const partida = {
+    clave: "P1", concepto: "Muro", unidad: "m2", cantidad: 10, precioUnitario: 100,
+    importe: 1000, disciplina: "obra-civil" as const,
+    matriz: { materiales: 60, manoObra: 25, equipo: 5, indirectos: 10 },
+    supuesto: null,
+  };
+  const vacio = {
+    requerimientos: [], hallazgos: [], diagramas: [], memoria: null, resumen: null,
+    programa: null, viabilidad: null, diagramasPedidos: [], disciplinas: [],
+  };
+
+  it("no reporta nada cuando la aritmética cuadra", () => {
+    const hallazgos = comprobar({ ...vacio, partidas: [partida], memoria: MEMORIA_DEMO });
+    assert.deepEqual(hallazgos.filter((h) => h.id.startsWith("AUT-IMP")), []);
+    assert.deepEqual(hallazgos.filter((h) => h.id.startsWith("AUT-MAT")), []);
+  });
+
+  it("detecta un importe que no es cantidad por precio unitario", () => {
+    const hallazgos = comprobar({
+      ...vacio,
+      partidas: [{ ...partida, importe: 900 }],
+      memoria: MEMORIA_DEMO,
+    });
+    const encontrado = hallazgos.find((h) => h.id === "AUT-IMP-P1");
+    assert.ok(encontrado, "debía detectar el importe descuadrado");
+    assert.equal(encontrado!.gravedad, "critico");
+    assert.equal(encontrado!.automatico, true);
+  });
+
+  it("detecta una matriz que no suma su precio unitario", () => {
+    const hallazgos = comprobar({
+      ...vacio,
+      partidas: [{ ...partida, matriz: { ...partida.matriz, indirectos: 40 } }],
+      memoria: MEMORIA_DEMO,
+    });
+    assert.ok(hallazgos.some((h) => h.id === "AUT-MAT-P1"));
+  });
+
+  it("un hallazgo crítico baja la confianza y bloquea la entrega", () => {
+    const hallazgos = comprobar({ ...vacio, partidas: [{ ...partida, importe: 1 }] });
+    assert.equal(veredictoDe(hallazgos), "requiere-correccion");
+    assert.ok(calcularConfianza(hallazgos) < 100);
+  });
+
+  it("sin hallazgos el paquete es entregable con confianza plena", () => {
+    assert.equal(veredictoDe([]), "entregable");
+    assert.equal(calcularConfianza([]), 100);
   });
 });

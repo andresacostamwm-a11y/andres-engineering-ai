@@ -75,7 +75,16 @@ export function leerProyectos(): Proyecto[] {
     const crudo = window.localStorage.getItem(CLAVE_PROYECTOS);
     if (!crudo) return [];
     const datos = JSON.parse(crudo) as unknown;
-    return Array.isArray(datos) ? (datos as Proyecto[]) : [];
+    if (!Array.isArray(datos)) return [];
+    // Los proyectos guardados antes de que existieran el cronograma, la matriz
+    // de riesgos y la verificación no traen esos campos. Se completan con null
+    // para que el historial siga abriéndose en lugar de romper la vista.
+    return (datos as Partial<Proyecto>[]).map((p) => ({
+      ...(p as Proyecto),
+      programa: p.programa ?? null,
+      viabilidad: p.viabilidad ?? null,
+      verificacion: p.verificacion ?? null,
+    }));
   } catch {
     return [];
   }

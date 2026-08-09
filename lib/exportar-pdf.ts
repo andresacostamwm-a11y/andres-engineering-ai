@@ -14,7 +14,7 @@ import { fechaLarga, numero, dineroExacto } from "./formato.ts";
 import { MONEDA_POR_DEFECTO } from "./moneda/tipos.ts";
 import { filasFichaEconomica } from "./moneda/ficha.ts";
 import type { Cotizacion } from "./moneda/tipos.ts";
-import type { MemoriaProyecto } from "./tipos-proyecto.ts";
+import type { MemoriaProyecto, ProgramaObra, Verificacion, Viabilidad } from "./tipos-proyecto.ts";
 import { dibujarDesglose, laminaAPng } from "./pdf-graficos.ts";
 
 /** Material del proyecto que el dictamen ilustra, cuando existe. */
@@ -25,6 +25,12 @@ export interface ExtrasDictamen {
   titulos?: string[];
   memoria?: MemoriaProyecto | null;
   cotizaciones?: Cotizacion[];
+  /** Cronograma con ruta crítica, si el proyecto lo tiene. */
+  programa?: ProgramaObra | null;
+  /** Matriz de riesgos y sensibilidad económica. */
+  viabilidad?: Viabilidad | null;
+  /** Informe del verificador independiente. */
+  verificacion?: Verificacion | null;
 }
 
 const TINTA: [number, number, number] = [31, 41, 55];
@@ -394,6 +400,172 @@ export async function construirDictamen(
     }
   }
 
+  // --- Programa de obra ---
+  const programa = extras.programa;
+  if (programa && programa.actividades.length > 0) {
+    doc.addPage();
+    y = margen;
+    y = seccion(doc, "Programa de obra", margen, y);
+
+    y = parrafo(
+      doc,
+      `Duración total de ${programa.duracionDias} días naturales sobre ${programa.actividades.length} actividades. ${programa.rutaCritica.length} de ellas no admiten holgura: cualquier retraso en la ruta crítica se traslada íntegro a la fecha de entrega.`,
+      margen,
+      y,
+      anchoPagina - margen * 2,
+    );
+
+    y = dibujarGantt(doc, programa, margen, y + 6, ACENTO, TINTA, GRIS);
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margen, right: margen },
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+      head: [["Id", "Actividad", "Frente", "Inicio", "Duración", "Holgura", "Ruta"]],
+      body: programa.actividades.map((a) => [
+        a.id,
+        a.nombre,
+        a.frente,
+        `día ${a.inicio}`,
+        a.hito ? "hito" : `${a.duracionDias} d`,
+        `${a.holgura} d`,
+        a.critica ? "Crítica" : "",
+      ]),
+    });
+    y = posicionFinal(doc) + 16;
+
+    if (programa.supuestos.length > 0) {
+      y = subseccion(doc, "Supuestos del programa", margen, y);
+      for (const supuesto of programa.supuestos) {
+        y = vineta(doc, supuesto, margen, y, anchoPagina - margen * 2);
+      }
+    }
+  }
+
+  // --- Riesgos y viabilidad ---
+  const viabilidad = extras.viabilidad;
+  if (viabilidad) {
+    doc.addPage();
+    y = margen;
+    y = seccion(doc, "Riesgos y viabilidad", margen, y);
+
+    const { sensibilidad } = viabilidad;
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margen, right: margen },
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+      head: [["Escenario", "Importe", "Variación sobre la base"]],
+      body: [
+        ["Optimista", dineroExacto({ valor: sensibilidad.optimista, moneda }), variacion(sensibilidad.optimista, sensibilidad.base)],
+        ["Base", dineroExacto({ valor: sensibilidad.base, moneda }), "referencia"],
+        ["Pesimista", dineroExacto({ valor: sensibilidad.pesimista, moneda }), variacion(sensibilidad.pesimista, sensibilidad.base)],
+        ["Contingencia sugerida", `${sensibilidad.contingenciaPct} %`, "sobre el presupuesto base"],
+      ],
+    });
+    y = posicionFinal(doc) + 16;
+
+    if (sensibilidad.variables.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        margin: { left: margen, right: margen },
+        styles: { fontSize: 8, cellPadding: 4 },
+        headStyles: { fillColor: GRIS, textColor: 255, fontStyle: "bold" },
+        head: [["Variable", "Variación", "Peso", "Justificación"]],
+        body: sensibilidad.variables.map((v) => [
+          v.concepto,
+          `${v.variacionPct} %`,
+          `${v.pesoPct} %`,
+          v.justificacion,
+        ]),
+      });
+      y = posicionFinal(doc) + 16;
+    }
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margen, right: margen },
+      styles: { fontSize: 8, cellPadding: 4, valign: "top" },
+      headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+      columnStyles: { 0: { cellWidth: 34 }, 2: { cellWidth: 40 } },
+      head: [["Id", "Riesgo", "P × I", "Descripción y mitigación"]],
+      body: [...viabilidad.riesgos]
+        .sort((a, b) => b.severidad - a.severidad)
+        .map((r) => [
+          r.id,
+          r.titulo,
+          `${r.probabilidad} × ${r.impacto} = ${r.severidad}`,
+          `${r.descripcion}\n\nMitigación: ${r.mitigacion} (${r.responsable})`,
+        ]),
+      didParseCell: (datos) => {
+        if (datos.section !== "body" || datos.column.index !== 2) return;
+        const riesgo = [...viabilidad.riesgos].sort((a, b) => b.severidad - a.severidad)[
+          datos.row.index
+        ];
+        if (riesgo) datos.cell.styles.textColor = COLOR_RIESGO[riesgo.nivel] ?? TINTA;
+      },
+    });
+    y = posicionFinal(doc) + 16;
+
+    y = subseccion(doc, "Veredicto de viabilidad", margen, y);
+    y = parrafo(doc, viabilidad.veredicto, margen, y, anchoPagina - margen * 2);
+    for (const condicion of viabilidad.condiciones) {
+      y = vineta(doc, condicion, margen, y, anchoPagina - margen * 2);
+    }
+  }
+
+  // --- Verificación independiente ---
+  const verificacion = extras.verificacion;
+  if (verificacion) {
+    doc.addPage();
+    y = margen;
+    y = seccion(doc, "Verificación independiente", margen, y);
+
+    const etiquetaVeredicto = {
+      entregable: "Entregable",
+      "entregable-con-reservas": "Entregable con reservas",
+      "requiere-correccion": "Requiere corrección",
+    }[verificacion.veredicto];
+
+    y = parrafo(
+      doc,
+      `Veredicto: ${etiquetaVeredicto}. Confianza ${verificacion.confianza} de 100, sobre ${verificacion.hallazgos.length} hallazgo(s). Las comprobaciones marcadas como medidas son aritméticas o de cobertura, ejecutadas en código; las marcadas como revisión son juicio técnico del revisor.`,
+      margen,
+      y,
+      anchoPagina - margen * 2,
+    );
+
+    if (verificacion.hallazgos.length > 0) {
+      autoTable(doc, {
+        startY: y + 4,
+        margin: { left: margen, right: margen },
+        styles: { fontSize: 8, cellPadding: 4, valign: "top" },
+        headStyles: { fillColor: ACENTO, textColor: 255, fontStyle: "bold" },
+        columnStyles: { 0: { cellWidth: 48 }, 1: { cellWidth: 56 } },
+        head: [["Gravedad", "Ámbito", "Hallazgo, evidencia y corrección"]],
+        body: verificacion.hallazgos.map((h) => [
+          `${ETIQUETA_RIESGO[h.gravedad] ?? h.gravedad}\n(${h.automatico ? "medido" : "revisión"})`,
+          h.ambito,
+          `${h.titulo}\n\n${h.evidencia}\n\nCorrección: ${h.correccion}`,
+        ]),
+        didParseCell: (datos) => {
+          if (datos.section !== "body" || datos.column.index !== 0) return;
+          const hallazgo = verificacion.hallazgos[datos.row.index];
+          if (hallazgo) datos.cell.styles.textColor = COLOR_RIESGO[hallazgo.gravedad] ?? TINTA;
+        },
+      });
+      y = posicionFinal(doc) + 16;
+    }
+
+    if (verificacion.comprobado.length > 0) {
+      y = subseccion(doc, "Qué se comprobó", margen, y);
+      for (const punto of verificacion.comprobado) {
+        y = vineta(doc, punto, margen, y, anchoPagina - margen * 2);
+      }
+    }
+  }
+
   // --- Láminas ---
   // Cada plano ocupa su página en horizontal: en vertical el cajetín queda
   // ilegible al reducirlo al ancho útil.
@@ -432,6 +604,133 @@ export async function construirDictamen(
 
   numerarPaginas(doc, margen);
   return doc;
+}
+
+/** Encabezado de segundo nivel dentro de una sección. */
+function subseccion(doc: jsPDF, titulo: string, margen: number, y: number): number {
+  const nuevaY = saltarSiHaceFalta(doc, y, 30, margen);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...TINTA);
+  doc.text(titulo, margen, nuevaY);
+  return nuevaY + 14;
+}
+
+/** Párrafo justificado al ancho útil, con salto de página si no cabe. */
+function parrafo(
+  doc: jsPDF,
+  texto: string,
+  margen: number,
+  y: number,
+  ancho: number,
+): number {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...TINTA);
+  const lineas = doc.splitTextToSize(texto, ancho) as string[];
+  const nuevaY = saltarSiHaceFalta(doc, y, lineas.length * 12 + 8, margen);
+  doc.text(lineas, margen, nuevaY);
+  return nuevaY + lineas.length * 12 + 8;
+}
+
+/** Punto de una lista, con su viñeta y sangría. */
+function vineta(
+  doc: jsPDF,
+  texto: string,
+  margen: number,
+  y: number,
+  ancho: number,
+): number {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...TINTA);
+  const lineas = doc.splitTextToSize(texto, ancho - 14) as string[];
+  const nuevaY = saltarSiHaceFalta(doc, y, lineas.length * 12 + 4, margen);
+  doc.setFillColor(...ACENTO);
+  doc.circle(margen + 3, nuevaY - 3, 1.6, "F");
+  doc.text(lineas, margen + 14, nuevaY);
+  return nuevaY + lineas.length * 12 + 4;
+}
+
+/** Variación porcentual de un escenario frente a la base, con signo. */
+function variacion(valor: number, base: number): string {
+  if (base <= 0) return "—";
+  const pct = ((valor - base) / base) * 100;
+  return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)} %`;
+}
+
+/**
+ * Diagrama de Gantt vectorial dentro del PDF.
+ *
+ * Se dibuja con las primitivas de jsPDF y no como imagen: sale nítido a
+ * cualquier zoom, no depende del canvas del navegador y pesa unos pocos kB.
+ * La ruta crítica va en rojo porque es la única lectura que cambia decisiones.
+ */
+function dibujarGantt(
+  doc: jsPDF,
+  programa: ProgramaObra,
+  margen: number,
+  y: number,
+  acento: [number, number, number],
+  tinta: [number, number, number],
+  gris: [number, number, number],
+): number {
+  const anchoUtil = doc.internal.pageSize.getWidth() - margen * 2;
+  const anchoEtiqueta = 130;
+  const pista = anchoUtil - anchoEtiqueta - 30;
+  const altoFila = 12;
+  const escala = programa.duracionDias > 0 ? pista / programa.duracionDias : 0;
+
+  // Se limita a lo que cabe con holgura en la página; el resto va en la tabla.
+  const visibles = programa.actividades.slice(0, 24);
+  let cursor = saltarSiHaceFalta(doc, y, visibles.length * altoFila + 34, margen);
+
+  // Rejilla mensual.
+  const meses = Math.max(1, Math.ceil(programa.duracionDias / 30));
+  doc.setFontSize(6.5);
+  doc.setTextColor(...gris);
+  for (let m = 0; m <= meses; m++) {
+    const dia = Math.min(m * 30, programa.duracionDias);
+    const x = margen + anchoEtiqueta + dia * escala;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.line(x, cursor, x, cursor + visibles.length * altoFila + 6);
+    doc.text(m === 0 ? "Inicio" : `Mes ${m}`, x, cursor - 4, { align: "center" });
+  }
+
+  cursor += 6;
+  for (const actividad of visibles) {
+    const x = margen + anchoEtiqueta + actividad.inicio * escala;
+    const largo = Math.max(1.5, actividad.duracionDias * escala);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(...tinta);
+    doc.text(`${actividad.id} ${recortarTexto(actividad.nombre, 34)}`, margen, cursor + 6);
+
+    if (actividad.critica) doc.setFillColor(168, 40, 38);
+    else doc.setFillColor(...acento);
+    doc.roundedRect(x, cursor + 1.5, largo, 6, 1.5, 1.5, "F");
+
+    cursor += altoFila;
+  }
+
+  if (programa.actividades.length > visibles.length) {
+    doc.setFontSize(6.5);
+    doc.setTextColor(...gris);
+    doc.text(
+      `Se representan las primeras ${visibles.length} actividades; el detalle completo está en la tabla siguiente.`,
+      margen,
+      cursor + 8,
+    );
+    cursor += 12;
+  }
+
+  return cursor + 14;
+}
+
+function recortarTexto(texto: string, maximo: number): string {
+  return texto.length <= maximo ? texto : `${texto.slice(0, maximo - 1)}…`;
 }
 
 function seccion(doc: jsPDF, titulo: string, margen: number, y: number): number {

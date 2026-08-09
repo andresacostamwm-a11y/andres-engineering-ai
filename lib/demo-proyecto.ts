@@ -6,8 +6,10 @@
  * que la aplicación desplegada siempre se puede evaluar de principio a fin.
  */
 import type { Diagrama } from "./diagramas/tipos.ts";
-import type { MemoriaProyecto } from "./tipos-proyecto.ts";
+import type { MemoriaProyecto, ProgramaObra, Viabilidad } from "./tipos-proyecto.ts";
 import type { DisciplinaProyecto } from "./disciplinas.ts";
+import { programar } from "./programacion/cpm.ts";
+import { calcularSensibilidad, evaluarRiesgo } from "./agentes/riesgos.ts";
 import {
   DOCUMENTO_DEMO,
   HALLAZGOS_DEMO,
@@ -261,4 +263,73 @@ export const MEMORIA_DEMO: MemoriaProyecto = {
   ],
   conclusiones:
     "El anteproyecto es técnicamente viable con la infraestructura existente del parque industrial. Los puntos críticos a verificar en la ingeniería de detalle son la capacidad disponible real de la acometida en media tensión, el estudio de calidad de agua de la cisterna y la coordinación de la estructura de soporte de equipos de climatización con el proyecto estructural. Las cifras de esta memoria son de anteproyecto y requieren validación y firma de un responsable técnico antes de su uso constructivo o contractual.",
+};
+
+/**
+ * Cronograma de demostración.
+ *
+ * Las actividades y sus enlaces son fijos, pero las fechas y la ruta crítica se
+ * calculan con el mismo motor CPM que usa el proyecto real: el modo
+ * demostración enseña el sistema funcionando, no una captura de pantalla.
+ */
+const CALCULO_DEMO = programar([
+  { id: "A01", nombre: "Trazo, nivelación e instalaciones provisionales", frente: "Obra civil", duracionDias: 10, predecesoras: [], hito: false },
+  { id: "A02", nombre: "Excavación y cimentación", frente: "Obra civil", duracionDias: 25, predecesoras: ["A01"], hito: false },
+  { id: "A03", nombre: "Estructura metálica y cubierta", frente: "Estructural", duracionDias: 40, predecesoras: ["A02"], hito: false },
+  { id: "A04", nombre: "Firme de concreto y albañilerías", frente: "Obra civil", duracionDias: 30, predecesoras: ["A03"], hito: false },
+  { id: "A05", nombre: "Acometida en media tensión y subestación", frente: "Instalación eléctrica", duracionDias: 35, predecesoras: ["A02"], hito: false },
+  { id: "A06", nombre: "Canalización y alimentadores generales", frente: "Instalación eléctrica", duracionDias: 25, predecesoras: ["A03"], hito: false },
+  { id: "A07", nombre: "Tableros, circuitos derivados y luminarias", frente: "Instalación eléctrica", duracionDias: 30, predecesoras: ["A06", "A04"], hito: false },
+  { id: "A08", nombre: "Cisterna, equipo de bombeo y red hidráulica", frente: "Hidrosanitaria", duracionDias: 28, predecesoras: ["A04"], hito: false },
+  { id: "A09", nombre: "Red sanitaria y pluvial", frente: "Hidrosanitaria", duracionDias: 20, predecesoras: ["A04"], hito: false },
+  { id: "A10", nombre: "Ductería y equipos de climatización", frente: "HVAC", duracionDias: 32, predecesoras: ["A03"], hito: false },
+  { id: "A11", nombre: "Red contra incendio y detección", frente: "Protección contra incendio", duracionDias: 22, predecesoras: ["A06"], hito: false },
+  { id: "A12", nombre: "Acabados y señalización", frente: "Obra civil", duracionDias: 25, predecesoras: ["A07", "A08", "A10"], hito: false },
+  { id: "A13", nombre: "Pruebas, balanceo y puesta en marcha", frente: "Pruebas y entrega", duracionDias: 15, predecesoras: ["A12", "A09", "A11"], hito: false },
+  { id: "A14", nombre: "Liberación por la supervisión", frente: "Pruebas y entrega", duracionDias: 0, predecesoras: ["A13"], hito: true },
+  { id: "A15", nombre: "Entrega-recepción y dossier de calidad", frente: "Pruebas y entrega", duracionDias: 10, predecesoras: ["A14"], hito: false },
+]);
+
+export const PROGRAMA_DEMO: ProgramaObra = {
+  actividades: CALCULO_DEMO.actividades,
+  duracionDias: CALCULO_DEMO.duracionDias,
+  rutaCritica: CALCULO_DEMO.rutaCritica,
+  supuestos: [
+    "Jornada de 8 horas, seis días por semana, con calendario de días naturales.",
+    "Suministro de estructura metálica con 6 semanas de anticipo de pedido.",
+    "Temporada de lluvias sin paro de obra: los trabajos exteriores se protegen.",
+    "Una sola cuadrilla por frente, sin turnos dobles.",
+  ],
+  avisos: CALCULO_DEMO.avisos,
+};
+
+/** Matriz de riesgos de demostración, con severidad y escenarios calculados. */
+export const VIABILIDAD_DEMO: Viabilidad = {
+  riesgos: [
+    { id: "R01", titulo: "Capacidad real de la acometida en media tensión menor a la supuesta", categoria: "Técnico", probabilidad: 3, impacto: 5, descripcion: "El alcance asume 500 kVA disponibles en la red del parque industrial sin factibilidad emitida por la compañía suministradora.", mitigacion: "Solicitar la factibilidad de suministro antes de cerrar la ingeniería eléctrica de detalle.", responsable: "Coordinador de proyecto" },
+    { id: "R02", titulo: "Escalada del precio del acero estructural", categoria: "Económico", probabilidad: 4, impacto: 3, descripcion: "La estructura metálica concentra una parte significativa del presupuesto y su precio es el más volátil del catálogo.", mitigacion: "Cerrar pedido con precio firme al liberar la ingeniería de estructura.", responsable: "Gerencia de compras" },
+    { id: "R03", titulo: "Retraso en la licencia de construcción", categoria: "Normativo", probabilidad: 3, impacto: 4, descripcion: "El cronograma arranca sin licencia emitida y la ruta crítica no admite espera en preliminares.", mitigacion: "Ingresar el trámite en paralelo a la ingeniería de detalle y prever un frente alterno.", responsable: "Director responsable de obra" },
+    { id: "R04", titulo: "Plazo de entrega de equipos de climatización", categoria: "Suministro", probabilidad: 3, impacto: 3, descripcion: "Las unidades condensadoras de 15 TR son de pedido especial y el cronograma las coloca antes de acabados.", mitigacion: "Anticipar el pedido a la firma del contrato y confirmar fecha de embarque.", responsable: "Residente de obra" },
+    { id: "R05", titulo: "Calidad de agua de la cisterna fuera de norma", categoria: "Técnico", probabilidad: 2, impacto: 3, descripcion: "El dimensionamiento hidráulico no incorpora tratamiento porque no existe análisis de agua del sitio.", mitigacion: "Ejecutar el análisis fisicoquímico antes de comprar el equipo de bombeo.", responsable: "Especialista hidrosanitario" },
+    { id: "R06", titulo: "Interferencia entre ductería de clima y estructura de cubierta", categoria: "Técnico", probabilidad: 3, impacto: 2, descripcion: "Los trazos de HVAC y estructura se desarrollaron en paralelo sin modelo coordinado.", mitigacion: "Ejecutar detección de interferencias sobre modelo federado antes de fabricar ductería.", responsable: "Coordinador BIM" },
+    { id: "R07", titulo: "Accidente en trabajos en altura de cubierta", categoria: "Seguridad", probabilidad: 2, impacto: 5, descripcion: "El montaje de estructura y cubierta concentra el mayor riesgo de la obra y está en ruta crítica.", mitigacion: "Plan de trabajos en altura con líneas de vida certificadas y supervisión permanente.", responsable: "Coordinador de seguridad" },
+  ].map(evaluarRiesgo),
+  sensibilidad: calcularSensibilidad(
+    PROYECTO_DEMO.partidas.reduce((suma, p) => suma + p.importe, 0),
+    [
+      { concepto: "Precio del acero estructural", variacionPct: 18, pesoPct: 22, justificacion: "Volatilidad histórica del acero en el mercado mexicano en ventanas de 12 meses." },
+      { concepto: "Tipo de cambio en equipos importados", variacionPct: 12, pesoPct: 18, justificacion: "Equipos de climatización y tableros con componente en dólares." },
+      { concepto: "Mano de obra especializada", variacionPct: 10, pesoPct: 25, justificacion: "Presión salarial en instalaciones y montaje en la zona." },
+      { concepto: "Obra adicional por condiciones del subsuelo", variacionPct: 20, pesoPct: 10, justificacion: "Cimentación proyectada sin estudio de mecánica de suelos definitivo." },
+    ],
+  ),
+  veredicto:
+    "El proyecto es viable con la infraestructura del parque industrial y un presupuesto consistente con su envergadura. Lo que decide su resultado no es la ingeniería sino tres confirmaciones externas: la factibilidad eléctrica, la licencia de construcción y el precio firme del acero. Con esas tres cerradas antes del arranque, la exposición del presupuesto se reduce a la mitad y el plazo deja de depender de terceros.",
+  condiciones: [
+    "Factibilidad de suministro eléctrico emitida antes de liberar la ingeniería de detalle.",
+    "Licencia de construcción ingresada en paralelo a la ingeniería, no después.",
+    "Pedido de estructura metálica con precio firme y fecha de embarque confirmada.",
+    "Estudio de mecánica de suelos y análisis de agua ejecutados antes de cimentación.",
+    "Contingencia reservada y no dispuesta para alcance adicional.",
+  ],
 };

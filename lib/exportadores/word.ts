@@ -174,6 +174,104 @@ export async function exportarWord(proyecto: Proyecto): Promise<void> {
     );
   }
 
+  if (proyecto.verificacion) {
+    const v = proyecto.verificacion;
+    const etiqueta = {
+      entregable: "Entregable",
+      "entregable-con-reservas": "Entregable con reservas",
+      "requiere-correccion": "Requiere corrección",
+    }[v.veredicto];
+
+    cuerpo.push(titulo("Verificación independiente"));
+    cuerpo.push(
+      parrafo(`Veredicto: ${etiqueta}. Confianza ${v.confianza} de 100.`, {
+        negrita: true,
+        espacioDespues: 100,
+      }),
+    );
+    if (v.hallazgos.length > 0) {
+      cuerpo.push(
+        tabla(
+          [["Gravedad", "Ámbito", "Hallazgo y evidencia", "Corrección"]],
+          v.hallazgos.map((h) => [
+            `${ETIQUETA_RIESGO[h.gravedad]} (${h.automatico ? "medido" : "revisión"})`,
+            h.ambito,
+            `${h.titulo}\n${h.evidencia}`,
+            h.correccion,
+          ]),
+          [1400, 1400, 3900, 2700],
+        ),
+      );
+    }
+    v.comprobado.forEach((c) =>
+      cuerpo.push(parrafo(`— ${c}`, { tamano: 20, espacioDespues: 50 })),
+    );
+  }
+
+  if (proyecto.programa && proyecto.programa.actividades.length > 0) {
+    const pr = proyecto.programa;
+    cuerpo.push(titulo("Programa de obra"));
+    cuerpo.push(
+      parrafo(
+        `Duración total de ${pr.duracionDias} días naturales sobre ${pr.actividades.length} actividades, de las cuales ${pr.rutaCritica.length} están en ruta crítica.`,
+        { espacioDespues: 120 },
+      ),
+    );
+    cuerpo.push(
+      tabla(
+        [["Id", "Actividad", "Frente", "Inicio", "Duración", "Holgura", "Ruta"]],
+        pr.actividades.map((a) => [
+          a.id,
+          a.nombre,
+          a.frente,
+          `día ${a.inicio}`,
+          a.hito ? "hito" : `${a.duracionDias} d`,
+          `${a.holgura} d`,
+          a.critica ? "Crítica" : "",
+        ]),
+        [700, 3200, 1800, 900, 1100, 900, 900],
+      ),
+    );
+    pr.supuestos.forEach((sup) =>
+      cuerpo.push(parrafo(`— ${sup}`, { tamano: 20, espacioDespues: 50 })),
+    );
+  }
+
+  if (proyecto.viabilidad) {
+    const vi = proyecto.viabilidad;
+    cuerpo.push(titulo("Riesgos y viabilidad"));
+    cuerpo.push(
+      tabla(
+        [["Escenario", "Importe", "Nota"]],
+        [
+          ["Optimista", dineroExacto({ valor: vi.sensibilidad.optimista, moneda }), "Ninguna variable se materializa por completo"],
+          ["Base", dineroExacto({ valor: vi.sensibilidad.base, moneda }), "Presupuesto emitido"],
+          ["Pesimista", dineroExacto({ valor: vi.sensibilidad.pesimista, moneda }), "Todas las variables al alza a la vez"],
+          ["Contingencia sugerida", `${vi.sensibilidad.contingenciaPct} %`, "Sobre el presupuesto base"],
+        ],
+        [2600, 2600, 4300],
+      ),
+    );
+    cuerpo.push(
+      tabla(
+        [["Id", "Riesgo", "P × I", "Mitigación"]],
+        [...vi.riesgos]
+          .sort((a, b) => b.severidad - a.severidad)
+          .map((r) => [
+            r.id,
+            `${r.titulo}\n${r.descripcion}`,
+            `${r.probabilidad} × ${r.impacto} = ${r.severidad}`,
+            `${r.mitigacion} (${r.responsable})`,
+          ]),
+        [700, 4200, 1400, 3100],
+      ),
+    );
+    cuerpo.push(parrafo(vi.veredicto, { espacioAntes: 140, espacioDespues: 100 }));
+    vi.condiciones.forEach((c) =>
+      cuerpo.push(parrafo(`— ${c}`, { tamano: 20, espacioDespues: 50 })),
+    );
+  }
+
   if (proyecto.diagramas.length > 0) {
     cuerpo.push(titulo("Planos y diagramas"));
     for (const d of proyecto.diagramas) {

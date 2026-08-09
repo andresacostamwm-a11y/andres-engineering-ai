@@ -10,7 +10,7 @@ export const metadata = {
     "Presentación del Trabajo de Fin de Máster: sistema multiagente de análisis de proyectos de ingeniería.",
 };
 
-const TOTAL = 17;
+const TOTAL = 18;
 
 export default function Presentacion() {
   return (
@@ -33,10 +33,11 @@ export default function Presentacion() {
               <span className="text-acento">Lo que cuesta es otra.</span>
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-relaxed text-tinta-media">
-              Un sistema de seis agentes que audita documentación de obra y
+              Un sistema de diez agentes que audita documentación de obra y
               proyecta desde cero en trece disciplinas: requerimientos con
-              evidencia, presupuesto con precios unitarios, hallazgos normativos
-              y los planos del sistema.
+              evidencia, presupuesto con precios unitarios, hallazgos normativos,
+              los planos del sistema, el cronograma con su ruta crítica y una
+              verificación independiente antes de entregar.
             </p>
             <p className="mt-10 text-sm text-tinta-media">
               <strong className="font-semibold text-tinta">Heber Andres Acosta Jimenez</strong>
@@ -97,11 +98,12 @@ export default function Presentacion() {
         {/* 04 — Arquitectura */}
         <Diapositiva indice={3}>
           <Rotulo>03 · Arquitectura</Rotulo>
-          <Titulo>Seis agentes, no un chat</Titulo>
+          <Titulo>Diez agentes, no un chat</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
             Cada agente tiene un rol acotado, un esquema de salida obligatorio y
-            solo el contexto que necesita. Costos y normativo no dependen entre sí,
-            así que corren en paralelo.
+            solo el contexto que necesita. Costos, normativo, memoria y proyectista
+            no dependen entre sí, así que corren en paralelo; después lo hacen la
+            síntesis, el cronograma y el riesgo. Cierra un verificador independiente.
           </p>
           <div className="mt-10 overflow-x-auto">
             <DiagramaPipeline className="min-w-[38rem] max-w-3xl text-tinta-media" />
@@ -113,8 +115,48 @@ export default function Presentacion() {
         </Diapositiva>
 
 
-        {/* 05 — Dos modos */}
+        {/* 05 — Cronograma, riesgo y verificación */}
         <Diapositiva indice={4}>
+          <Rotulo>04 · Más allá del dictamen</Rotulo>
+          <Titulo>Plazo, riesgo y una revisión que no perdona</Titulo>
+          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
+            Tres agentes cierran el paquete con lo que un promotor pregunta después
+            del presupuesto: cuánto tarda, qué puede salir mal y si esto se puede
+            firmar.
+          </p>
+          <div className="mt-10 grid max-w-5xl gap-6 lg:grid-cols-3">
+            {[
+              [
+                "Programación",
+                "El agente propone actividades, duraciones y encadenado. El motor CPM del sistema calcula fechas, holguras y ruta crítica, y corrige ciclos o precedencias inexistentes avisando de cada corrección.",
+              ],
+              [
+                "Riesgos y viabilidad",
+                "Matriz probabilidad × impacto anclada a datos del proyecto, y escenarios base, optimista y pesimista calculados sobre el presupuesto real con las variables que el agente declara.",
+              ],
+              [
+                "Verificador",
+                "Llega con contexto fresco al paquete terminado a buscar el error. Cruza aritmética, cobertura y coherencia entre piezas, y emite un veredicto con confianza de 0 a 100.",
+              ],
+            ].map(([titulo, texto]) => (
+              <div
+                key={titulo}
+                className="rounded-xl border border-borde bg-superficie p-6 shadow-[var(--shadow-tarjeta)]"
+              >
+                <h3 className="text-xl font-semibold">{titulo}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-tinta-media">{texto}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 max-w-3xl text-sm text-tinta-debil">
+            El verificador distingue siempre lo que midió de lo que juzgó: una
+            comprobación aritmética es un hecho, una observación técnica es un
+            criterio, y en el informe nunca se mezclan.
+          </p>
+        </Diapositiva>
+
+        {/* 05 — Dos modos */}
+        <Diapositiva indice={5}>
           <Rotulo>04 · Alcance</Rotulo>
           <Titulo>Auditar lo que existe, o proyectar lo que no</Titulo>
           <div className="mt-10 grid max-w-5xl gap-6 lg:grid-cols-2">
@@ -146,7 +188,7 @@ export default function Presentacion() {
         </Diapositiva>
 
         {/* 06 — Diagramas */}
-        <Diapositiva indice={5}>
+        <Diapositiva indice={6}>
           <Rotulo>05 · Lo diferencial</Rotulo>
           <Titulo>El modelo no dibuja: da la topología</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -175,7 +217,7 @@ export default function Presentacion() {
         </Diapositiva>
 
         {/* 07 — Exportación */}
-        <Diapositiva indice={6}>
+        <Diapositiva indice={7}>
           <Rotulo>06 · Entregables</Rotulo>
           <Titulo>Siete formatos, todos generados en el navegador</Titulo>
           <div className="mt-10 grid gap-px bg-borde-suave sm:grid-cols-4">
@@ -205,7 +247,7 @@ export default function Presentacion() {
         </Diapositiva>
 
         {/* 08 — Progreso en vivo */}
-        <Diapositiva indice={7}>
+        <Diapositiva indice={8}>
           <Rotulo>04 · Experiencia</Rotulo>
           <Titulo>El usuario ve lo que pasa</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -219,7 +261,7 @@ export default function Presentacion() {
         </Diapositiva>
 
         {/* 06 — Decisión 1 */}
-        <Diapositiva indice={8}>
+        <Diapositiva indice={9}>
           <Rotulo>05 · Decisión técnica</Rotulo>
           <Titulo>El modelo no devuelve texto</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -242,7 +284,7 @@ if (resultado.success) return resultado.data;
         </Diapositiva>
 
         {/* 07 — Decisión 2 */}
-        <Diapositiva indice={9}>
+        <Diapositiva indice={10}>
           <Rotulo>06 · Decisión técnica</Rotulo>
           <Titulo>La aritmética no la hace el modelo</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -263,7 +305,7 @@ return {
         </Diapositiva>
 
         {/* 08 — Decisión 3 */}
-        <Diapositiva indice={10}>
+        <Diapositiva indice={11}>
           <Rotulo>07 · Decisión técnica</Rotulo>
           <Titulo>Sin cita no hay requerimiento</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -286,7 +328,7 @@ return {
         </Diapositiva>
 
         {/* 09 — Decisión 4 */}
-        <Diapositiva indice={11}>
+        <Diapositiva indice={12}>
           <Rotulo>08 · Decisión técnica</Rotulo>
           <Titulo>BM25, no embeddings</Titulo>
           <div className="mt-8 grid max-w-4xl gap-6 sm:grid-cols-3">
@@ -309,7 +351,7 @@ return {
         </Diapositiva>
 
         {/* 10 — Decisión 5 */}
-        <Diapositiva indice={12}>
+        <Diapositiva indice={13}>
           <Rotulo>09 · Decisión técnica</Rotulo>
           <Titulo>El servidor no guarda nada</Titulo>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-tinta-media">
@@ -332,7 +374,7 @@ return {
         </Diapositiva>
 
         {/* 11 — Stack */}
-        <Diapositiva indice={13}>
+        <Diapositiva indice={14}>
           <Rotulo>10 · Stack</Rotulo>
           <Titulo>Qué se usó</Titulo>
           <dl className="mt-9 grid max-w-4xl gap-x-10 gap-y-4 sm:grid-cols-2">
@@ -355,7 +397,7 @@ return {
         </Diapositiva>
 
         {/* 12 — Resultados */}
-        <Diapositiva indice={14}>
+        <Diapositiva indice={15}>
           <Rotulo>11 · Verificación</Rotulo>
           <Titulo>Una ejecución real, medida</Titulo>
           <p className="mt-5 max-w-3xl text-tinta-media">
@@ -381,7 +423,7 @@ return {
         </Diapositiva>
 
         {/* 13 — Límites */}
-        <Diapositiva indice={15}>
+        <Diapositiva indice={16}>
           <Rotulo>12 · Honestidad</Rotulo>
           <Titulo>Lo que todavía no hace</Titulo>
           <ul className="mt-9 max-w-3xl space-y-4">
@@ -404,7 +446,7 @@ return {
         </Diapositiva>
 
         {/* 14 — Cierre */}
-        <Diapositiva indice={16} className="relative">
+        <Diapositiva indice={17} className="relative">
           <div className="rejilla-tecnica pointer-events-none absolute inset-0" aria-hidden="true" />
           <div className="relative">
             <Rotulo>Gracias</Rotulo>

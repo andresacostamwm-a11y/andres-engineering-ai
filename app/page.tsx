@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Marca } from "@/components/Marca";
 import { SelectorTema } from "@/components/SelectorTema";
-import { AGENTES } from "@/lib/pipeline-def";
+import { AgentesPortada } from "@/components/AgentesPortada";
 import { USUARIO_DEMO, PASSWORD_DEMO } from "@/lib/auth";
 import { AsistenteVertex } from "@/components/AsistenteVertex";
 import { FICHA_APP } from "@/lib/ficha-app";
@@ -142,35 +142,22 @@ export default function Inicio() {
           <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
             <span className="etiqueta-seccion">Arquitectura</span>
             <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Siete agentes, no un chat
+              Diez agentes, no un chat
             </h2>
-            <p className="mt-4 max-w-2xl leading-relaxed text-tinta-media">
+            <p className="mt-4 max-w-3xl leading-relaxed text-tinta-media">
               Cada agente tiene un rol acotado, un esquema de salida obligatorio y
               acceso solo a lo que necesita. Costos, normativo, memoria y
-              proyectista corren en paralelo porque ninguno depende de los otros,
-              y el motor —Claude, GPT o Gemini— se elige desde la propia
-              aplicación.
+              proyectista corren en paralelo, igual que después la síntesis, el
+              cronograma y el riesgo. Cierra un verificador independiente que
+              revisa el paquete completo antes de entregarlo. El motor —Claude,
+              GPT o Gemini— se elige desde la propia aplicación.
+            </p>
+            <p className="mt-3 text-sm text-tinta-debil">
+              Pulsa cualquier agente para ver qué recibe, qué devuelve y bajo qué
+              garantía técnica trabaja.
             </p>
 
-            <ol className="escalonado mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {AGENTES.map((agente, i) => (
-                <li
-                  key={agente.id}
-                  className="elevable relative rounded-xl border border-borde bg-superficie p-5 shadow-[var(--shadow-tarjeta)]"
-                >
-                  <span className="etiqueta-seccion">{agente.etapa}</span>
-                  <p className="mt-2.5 flex items-baseline gap-2 text-lg font-semibold">
-                    <span className="cifra text-sm text-acento">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    {agente.nombre}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-tinta-media">
-                    {agente.rol}
-                  </p>
-                </li>
-              ))}
-            </ol>
+            <AgentesPortada />
           </div>
         </section>
 

@@ -54,12 +54,15 @@ export function ExportarProyecto({ proyecto }: { proyecto: Proyecto }) {
           modoDemo: proyecto.modoDemo,
         },
         {
-          // El dictamen se ilustra con las láminas del proyecto y se completa
-          // con la memoria y las cotizaciones registradas.
+          // El dictamen lleva todo lo que produjo el proyecto: láminas,
+          // memoria, cotizaciones, cronograma, riesgos y la verificación.
           svgs: svgsDelDocumento(),
           titulos: proyecto.diagramas.map((d) => d.titulo),
           memoria: proyecto.memoria,
           cotizaciones: leerCotizaciones(proyecto.id),
+          programa: proyecto.programa,
+          viabilidad: proyecto.viabilidad,
+          verificacion: proyecto.verificacion,
         }),
     },
     {
