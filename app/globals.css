@@ -149,8 +149,45 @@ body {
   background-attachment: fixed, fixed, fixed;
 }
 
+/*
+ * Tema claro: papel de dibujo técnico.
+ *
+ * En vez de una fotografía —que en claro compite con el texto y ensucia la
+ * lectura de tablas y planos— el fondo se construye con la propia paleta: una
+ * retícula de dos escalas como la del papel milimétrico, un plegado diagonal muy
+ * tenue que da profundidad, y dos lavados de color en las esquinas con el acento
+ * y el latón de la marca. Todo por debajo del 5 % de opacidad, de modo que las
+ * superficies blancas de las tarjetas sigan destacando sobre él.
+ */
 [data-tema="claro"] body {
-  background-image: none;
+  background-color: var(--color-fondo);
+  background-image:
+    /* Lavado de acento arriba a la izquierda y de latón abajo a la derecha. */
+    radial-gradient(ellipse 58% 42% at 12% 0%, oklch(46% 0.115 232 / 0.055), transparent 68%),
+    radial-gradient(ellipse 52% 44% at 92% 96%, oklch(50% 0.095 72 / 0.045), transparent 70%),
+    /* Plegado diagonal: insinúa una lámina doblada, sin textura fotográfica. */
+    linear-gradient(122deg, oklch(46% 0.115 232 / 0.028) 0 38%, transparent 38.6% 61%,
+                    oklch(24% 0.024 250 / 0.022) 61.6% 100%),
+    /* Retícula gruesa: los cuadros de 96 px del cajetín. */
+    linear-gradient(to right, oklch(46% 0.115 232 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.05) 1px, transparent 1px),
+    /* Retícula fina: el milimetrado interior. */
+    linear-gradient(to right, oklch(46% 0.115 232 / 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.028) 1px, transparent 1px);
+  background-size:
+    cover, cover, cover,
+    96px 96px, 96px 96px,
+    24px 24px, 24px 24px;
+  background-position: center;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat;
+  background-attachment: fixed;
+}
+
+/* En impresión el fondo estorba: el entregable va sobre papel blanco. */
+@media print {
+  [data-tema="claro"] body {
+    background-image: none;
+  }
 }
 
 /* Rejilla técnica: retícula de proyección en oscuro, papel milimétrico en claro. */
