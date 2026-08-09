@@ -16,6 +16,7 @@ import { filasFichaEconomica } from "./moneda/ficha.ts";
 import type { Cotizacion } from "./moneda/tipos.ts";
 import type { MemoriaProyecto, ProgramaObra, Verificacion, Viabilidad } from "./tipos-proyecto.ts";
 import { dibujarDesglose, laminaAPng } from "./pdf-graficos.ts";
+import { dibujarAnalitica, hayAnalitica } from "./pdf-analitica.ts";
 
 /** Material del proyecto que el dictamen ilustra, cuando existe. */
 export interface ExtrasDictamen {
@@ -564,6 +565,20 @@ export async function construirDictamen(
         y = vineta(doc, punto, margen, y, anchoPagina - margen * 2);
       }
     }
+  }
+
+  // --- Análisis gráfico ---
+  const analitica = {
+    partidas: analisis.partidas,
+    programa: extras.programa ?? null,
+    viabilidad: extras.viabilidad ?? null,
+    moneda,
+  };
+  if (hayAnalitica(analitica)) {
+    doc.addPage();
+    y = margen;
+    y = seccion(doc, "Análisis gráfico", margen, y);
+    y = dibujarAnalitica(doc, analitica, margen, y);
   }
 
   // --- Láminas ---

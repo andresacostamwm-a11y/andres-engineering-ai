@@ -33,6 +33,14 @@ import {
   puntoEn,
   solape,
 } from "../lib/diagramas/disposicion.ts";
+import {
+  curvaDeAvance,
+  histograma,
+  posicionLogaritmica,
+  proyectarIsometrico,
+  superficieDeSeveridad,
+  treemap,
+} from "../lib/graficos/analitica.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
@@ -796,5 +804,140 @@ describe("colocación de rótulos", () => {
   it("estima anchuras crecientes con la longitud del texto", () => {
     assert.ok(anchoTexto("Tablero General", 12) > anchoTexto("TG", 12));
     assert.ok(anchoTexto("480 V", 10, true) > 0);
+  });
+});
+
+/* --------------------------------------- Gráficos analíticos del dictamen -- */
+
+describe("treemap", () => {
+  it("reparte todo el lienzo sin dejar hueco ni desbordarlo", () => {
+    const celdas = treemap(
+      [
+        { etiqueta: "a", valor: 50 },
+        { etiqueta: "b", valor: 30 },
+        { etiqueta: "c", valor: 20 },
+      ],
+      200,
+      100,
+    );
+
+    assert.equal(celdas.length, 3);
+    const area = celdas.reduce((s, c) => s + c.ancho * c.alto, 0);
+    assert.ok(Math.abs(area - 200 * 100) < 1, `área repartida ${area}`);
+    for (const celda of celdas) {
+      assert.ok(celda.x >= -0.001 && celda.x + celda.ancho <= 200.001);
+      assert.ok(celda.y >= -0.001 && celda.y + celda.alto <= 100.001);
+    }
+  });
+
+  it("da a cada celda un área proporcional a su valor", () => {
+    const celdas = treemap(
+      [
+        { etiqueta: "grande", valor: 75 },
+        { etiqueta: "chica", valor: 25 },
+      ],
+      100,
+      100,
+    );
+    const grande = celdas.find((c) => c.etiqueta === "grande")!;
+    const chica = celdas.find((c) => c.etiqueta === "chica")!;
+
+    assert.ok(Math.abs((grande.ancho * grande.alto) / (chica.ancho * chica.alto) - 3) < 0.05);
+    assert.ok(Math.abs(grande.fraccion - 0.75) < 0.001);
+  });
+
+  it("ignora valores nulos o negativos y devuelve vacío si no queda nada", () => {
+    assert.deepEqual(treemap([{ etiqueta: "x", valor: 0 }], 100, 100), []);
+    assert.equal(treemap([{ etiqueta: "x", valor: -5 }, { etiqueta: "y", valor: 10 }], 100, 100).length, 1);
+  });
+});
+
+describe("histograma", () => {
+  it("mete cada valor en un intervalo y no pierde ninguno", () => {
+    const valores = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const intervalos = histograma(valores);
+    assert.equal(
+      intervalos.reduce((s, i) => s + i.cuenta, 0),
+      valores.length,
+    );
+  });
+
+  it("incluye el máximo en el último intervalo en vez de dejarlo fuera", () => {
+    const intervalos = histograma([1, 2, 3, 4, 100]);
+    assert.equal(intervalos[intervalos.length - 1].cuenta >= 1, true);
+    assert.equal(intervalos.reduce((s, i) => s + i.cuenta, 0), 5);
+  });
+
+  it("resuelve el caso de un único valor repetido sin dividir por cero", () => {
+    const intervalos = histograma([7, 7, 7]);
+    assert.equal(intervalos.length, 1);
+    assert.equal(intervalos[0].cuenta, 3);
+  });
+});
+
+describe("curva de avance", () => {
+  const programa = {
+    actividades: [
+      { id: "A", nombre: "A", frente: "f", duracionDias: 10, predecesoras: [], hito: false, inicio: 0, fin: 10, holgura: 0, critica: true },
+      { id: "B", nombre: "B", frente: "f", duracionDias: 10, predecesoras: ["A"], hito: false, inicio: 10, fin: 20, holgura: 0, critica: true },
+    ],
+    duracionDias: 20,
+    rutaCritica: ["A", "B"],
+    supuestos: [],
+    avisos: [],
+  };
+
+  it("va de cero a uno de forma monótona", () => {
+    const curva = curvaDeAvance(programa, 20);
+    assert.equal(curva[0].avance, 0);
+    assert.ok(Math.abs(curva[curva.length - 1].avance - 1) < 1e-9);
+    for (let i = 1; i < curva.length; i++) {
+      assert.ok(curva[i].avance >= curva[i - 1].avance);
+    }
+  });
+
+  it("a mitad del plazo lleva la mitad ejecutada si las actividades son iguales", () => {
+    const curva = curvaDeAvance(programa, 20);
+    const mitad = curva.find((p) => Math.abs(p.dia - 10) < 1e-9)!;
+    assert.ok(Math.abs(mitad.avance - 0.5) < 1e-9);
+  });
+});
+
+describe("superficie de severidad", () => {
+  it("construye una malla completa cuya severidad es el producto de los ejes", () => {
+    const s = superficieDeSeveridad([], 4);
+    assert.equal(s.malla.length, 5);
+    assert.equal(s.malla[0].length, 5);
+    assert.equal(s.malla[4][4].severidad, 25);
+    assert.equal(s.malla[0][0].severidad, 1);
+  });
+
+  it("levanta el vértice sobre su propio punto del plano según la severidad", () => {
+    // Se compara contra el MISMO punto del plano con altura cero: comparar dos
+    // esquinas distintas mezclaría el relieve con la profundidad isométrica.
+    const enAlto = proyectarIsometrico({ probabilidad: 5, impacto: 5, severidad: 25 }, 300, 200, 25);
+    const aRas = proyectarIsometrico({ probabilidad: 5, impacto: 5, severidad: 0 }, 300, 200, 25);
+    // En SVG la y crece hacia abajo: más severo, y menor.
+    assert.ok(enAlto.y < aRas.y);
+    assert.equal(enAlto.x, aRas.x);
+  });
+
+  it("separa en horizontal las dos esquinas opuestas del plano", () => {
+    const izquierda = proyectarIsometrico({ probabilidad: 5, impacto: 1, severidad: 5 }, 300, 200, 25);
+    const derecha = proyectarIsometrico({ probabilidad: 1, impacto: 5, severidad: 5 }, 300, 200, 25);
+    assert.ok(derecha.x > izquierda.x);
+  });
+});
+
+describe("escala logarítmica", () => {
+  it("sitúa el mínimo en 0, el máximo en 1 y la media geométrica en el centro", () => {
+    assert.equal(posicionLogaritmica(1, 1, 100), 0);
+    assert.equal(posicionLogaritmica(100, 1, 100), 1);
+    assert.ok(Math.abs(posicionLogaritmica(10, 1, 100) - 0.5) < 1e-9);
+  });
+
+  it("no explota con valores no positivos", () => {
+    assert.equal(posicionLogaritmica(0, 1, 100), 0);
+    assert.equal(posicionLogaritmica(-3, 1, 100), 0);
   });
 });

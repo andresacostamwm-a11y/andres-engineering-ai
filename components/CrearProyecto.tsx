@@ -41,6 +41,7 @@ import { MemoriaPanel } from "./MemoriaPanel";
 import { CronogramaPanel } from "./CronogramaPanel";
 import { RiesgosPanel } from "./RiesgosPanel";
 import { VerificacionPanel } from "./VerificacionPanel";
+import { PanelAnalitica } from "./graficos/PanelAnalitica";
 import { ChatDocumento } from "./ChatDocumento";
 import { ConsultaWeb } from "./ConsultaWeb";
 import { SalaControl } from "./SalaControl";
@@ -855,6 +856,12 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
                       moneda={economia?.moneda ?? "MXN"}
                     />
                   )}
+                  <PanelAnalitica
+                    partidas={partidas}
+                    programa={programa}
+                    viabilidad={viabilidad}
+                    moneda={economia?.moneda ?? "MXN"}
+                  />
                   {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
       {partidas.length > 0 && proyecto && (
         <Cotizaciones proyectoId={proyecto.id} economia={economia} />
@@ -983,6 +990,14 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
       {programa && <CronogramaPanel programa={programa} />}
       {viabilidad && (
         <RiesgosPanel viabilidad={viabilidad} moneda={economia?.moneda ?? "MXN"} />
+      )}
+      {fase === "listo" && (
+        <PanelAnalitica
+          partidas={partidas}
+          programa={programa}
+          viabilidad={viabilidad}
+          moneda={economia?.moneda ?? "MXN"}
+        />
       )}
 
       {partidas.length > 0 && economia && <PanelTipoCambio economia={economia} />}
