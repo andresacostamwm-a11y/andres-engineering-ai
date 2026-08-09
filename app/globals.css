@@ -71,21 +71,21 @@
 /* ------------------------------------------------------- Tema ejecutivo -- */
 
 [data-tema="claro"] {
-  --color-fondo: oklch(98.1% 0.003 248);
+  --color-fondo: oklch(98.1% 0.005 248);
   --color-superficie: oklch(100.0% 0.000 90);
   --color-superficie-alta: oklch(96.8% 0.006 240);
   --color-superficie-honda: oklch(94.7% 0.009 248);
-  --color-borde: oklch(93.2% 0.009 248);
-  --color-borde-suave: oklch(95.9% 0.007 248);
+  --color-borde: oklch(92.2% 0.019 256);
+  --color-borde-suave: oklch(95.6% 0.011 252);
 
   --color-tinta: oklch(38.2% 0.024 253);
   --color-tinta-media: oklch(53.4% 0.024 253);
-  --color-tinta-debil: oklch(66.2% 0.021 253);
+  --color-tinta-debil: oklch(63.6% 0.034 257);
 
-  --color-acento: oklch(53.4% 0.055 249);
-  --color-acento-fuerte: oklch(44.4% 0.049 250);
-  --color-acento-claro: oklch(62.8% 0.054 247);
-  --color-acento-tenue: oklch(95.6% 0.007 248);
+  --color-acento: oklch(49.0% 0.137 257);
+  --color-acento-fuerte: oklch(41.2% 0.114 256);
+  --color-acento-claro: oklch(64.0% 0.164 256);
+  --color-acento-tenue: oklch(95.2% 0.017 256);
   --color-sobre-acento: oklch(100% 0 0);
 
   --color-laton: oklch(69.6% 0.074 85);
@@ -172,6 +172,10 @@ body {
 [data-tema="claro"] body {
   background-color: var(--color-fondo);
   background-image:
+    /* Motivos del logotipo: edificio en alambre a la izquierda y globo con red
+       de nodos a la derecha, los mismos que enmarcan la marca. */
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22420%22%20height%3D%22520%22%20viewBox%3D%220%200%20420%20520%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233F8CED%22%20stroke-opacity%3D%22.3%22%20stroke-width%3D%221.1%22%3E%3Cpath%20d%3D%22M40%20500V150l150-70%20150%2070v350%22%2F%3E%3Cpath%20d%3D%22M40%20150l150%2070%20150-70M190%20220v280%22%2F%3E%3Cpath%20d%3D%22M40%20240l150%2070%20150-70M40%20330l150%2070%20150-70M40%20420l150%2070%20150-70%22%2F%3E%3Cpath%20d%3D%22M80%20172v300M130%20195v290M250%20195v290M300%20172v300%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22460%22%20height%3D%22460%22%20viewBox%3D%220%200%20460%20460%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233F8CED%22%20stroke-opacity%3D%22.28%22%20stroke-width%3D%221.1%22%3E%3Ccircle%20cx%3D%22230%22%20cy%3D%22230%22%20r%3D%22170%22%2F%3E%3Cellipse%20cx%3D%22230%22%20cy%3D%22230%22%20rx%3D%2272%22%20ry%3D%22170%22%2F%3E%3Cellipse%20cx%3D%22230%22%20cy%3D%22230%22%20rx%3D%22134%22%20ry%3D%22170%22%2F%3E%3Cpath%20d%3D%22M60%20230h340M96%20140h268M96%20320h268%22%2F%3E%3Cpath%20d%3D%22M118%20118%20342%20342M342%20118%20118%20342%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%233F8CED%22%20fill-opacity%3D%22.4%22%3E%3Ccircle%20cx%3D%22230%22%20cy%3D%2260%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22342%22%20cy%3D%22118%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22230%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22342%22%20cy%3D%22342%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22118%22%20cy%3D%22342%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%22230%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22118%22%20cy%3D%22118%22%20r%3D%223.4%22%2F%3E%3Ccircle%20cx%3D%22230%22%20cy%3D%22400%22%20r%3D%223.4%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
     /* Fotografía de obra, casi velada: da cuerpo sin robar legibilidad. */
     linear-gradient(to bottom, oklch(98.1% 0.003 248 / 0.62), oklch(98.1% 0.003 248 / 0.74) 48%, oklch(98.1% 0.003 248 / 0.86)),
     url("/fondo-holografico.jpg"),
@@ -188,12 +192,14 @@ body {
     linear-gradient(to right, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px);
   background-size:
+    420px 520px, 460px 460px,
     cover, cover,
     cover, cover, cover,
     96px 96px, 96px 96px,
     24px 24px, 24px 24px;
-  background-position: center;
+  background-position: left 2% top 12%, right 3% top 18%, center, center, center, center, center, center, center, center, center;
   background-repeat:
+    no-repeat, no-repeat,
     no-repeat, no-repeat,
     no-repeat, no-repeat, no-repeat,
     repeat, repeat, repeat, repeat;
