@@ -466,3 +466,8 @@ body {
   .holo { animation: none !important; }
   .escaner { display: none; }
 }
+
+/* Piezas que cambian de versión según el tema, no solo de color. */
+.tema-claro-solo { display: none; }
+[data-tema="claro"] .tema-claro-solo { display: block; }
+[data-tema="claro"] .tema-oscuro-solo { display: none; }

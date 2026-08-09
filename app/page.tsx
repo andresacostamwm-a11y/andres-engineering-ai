@@ -101,7 +101,16 @@ export default function Inicio() {
                   width={1100}
                   height={1100}
                   priority
-                  className="w-full"
+                  className="w-full tema-oscuro-solo"
+                  sizes="(max-width: 1024px) 92vw, 46vw"
+                />
+                <Image
+                  src="/marca-oficial-clara.jpg"
+                  alt=""
+                  aria-hidden="true"
+                  width={1100}
+                  height={1100}
+                  className="w-full tema-claro-solo"
                   sizes="(max-width: 1024px) 92vw, 46vw"
                 />
               </div>
