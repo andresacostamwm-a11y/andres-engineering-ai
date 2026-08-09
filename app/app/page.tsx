@@ -18,7 +18,7 @@ export default async function PaginaTaller() {
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-borde bg-superficie/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
+        <div className="mx-auto flex max-w-[101.5rem] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
           <Link href="/" aria-label="Inicio de ANDRES Engineering AI">
             <Marca compacta />
           </Link>
@@ -35,7 +35,7 @@ export default async function PaginaTaller() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[92rem] flex-1 px-5 py-7 sm:px-8">
+      <main className="mx-auto w-full max-w-[101.5rem] flex-1 px-5 py-7 sm:px-8">
         <div className="mb-7">
           <span className="etiqueta-seccion">Área de trabajo</span>
           <h1 className="mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl">
