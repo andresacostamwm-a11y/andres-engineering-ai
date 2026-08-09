@@ -107,7 +107,7 @@ export function AsistenteVertex({
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
         aria-label={abierto ? "Cerrar el asistente" : "Abrir el asistente Vertex AI"}
-        className="group fixed bottom-3 right-5 z-40 flex flex-col items-center transition-transform duration-300 hover:-translate-y-1"
+        className="group fixed bottom-[10.2rem] right-5 z-40 flex flex-col items-center transition-transform duration-300 hover:-translate-y-1"
       >
         <Image
           src="/vertex-robot.png"
@@ -132,7 +132,7 @@ export function AsistenteVertex({
         <section
           role="dialog"
           aria-label="Asistente Vertex AI"
-          className="fixed bottom-6 right-[9.5rem] z-40 sm:right-[12rem] flex max-h-[min(38rem,75dvh)] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-elevada)]"
+          className="fixed bottom-[10.5rem] right-[9.5rem] z-40 sm:right-[12rem] flex max-h-[min(38rem,75dvh)] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-elevada)]"
         >
           <header className="flex items-center gap-3 border-b border-borde px-4 py-3">
             <Image
