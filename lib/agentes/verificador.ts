@@ -162,6 +162,13 @@ Qué buscas, en este orden:
 Reglas duras:
 - Sin evidencia no hay hallazgo. Cita la cifra, la partida, el requerimiento o la norma.
 - No repitas errores aritméticos de importe ni de matriz: ya se comprobaron por separado.
+- AGREGA lo que comparte causa. Si faltan cinco partidas que la normativa obliga, eso es
+  UN hallazgo sobre la cobertura del presupuesto que las enumera en su evidencia, no cinco
+  hallazgos. Repetir la misma causa infla la lista y hunde la confianza sin añadir nada
+  que el lector no supiera ya tras el primero.
+- Un hallazgo normativo que el agente normativo ya reportó CON su recomendación está
+  documentado, no oculto: solo es defecto del paquete si además debía costearse y no se
+  costeó, y entonces el ámbito es «costos» y va agregado con los demás.
 - No inventes defectos para parecer riguroso. Una lista vacía es una respuesta legítima.
 - No propongas mejoras de estilo ni de redacción: solo lo que cambia el resultado técnico
   o económico.

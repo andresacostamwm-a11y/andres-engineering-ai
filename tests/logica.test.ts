@@ -699,6 +699,33 @@ describe("comprobaciones deterministas del verificador", () => {
     assert.equal(veredictoDe([]), "entregable");
     assert.equal(calcularConfianza([]), 100);
   });
+
+  it("la confianza sigue bajando con muchos hallazgos en vez de tocar fondo", () => {
+    const uno = (i: number) => ({
+      id: `V${i}`,
+      ambito: "costos" as const,
+      gravedad: "alto" as const,
+      titulo: "t",
+      evidencia: "e",
+      correccion: "c",
+      automatico: false,
+    });
+    const diez = Array.from({ length: 10 }, (_, i) => uno(i));
+    const veinte = Array.from({ length: 20 }, (_, i) => uno(i));
+
+    // La resta lineal dejaba ambos en cero y el número perdía significado.
+    assert.ok(calcularConfianza(veinte) < calcularConfianza(diez));
+    assert.ok(calcularConfianza(diez) > 5);
+    assert.ok(calcularConfianza(veinte) >= 5);
+  });
+
+  it("un crítico pesa más que un alto, y un alto más que un medio", () => {
+    const con = (gravedad: "critico" | "alto" | "medio") => [
+      { id: "V", ambito: "costos" as const, gravedad, titulo: "t", evidencia: "e", correccion: "c", automatico: false },
+    ];
+    assert.ok(calcularConfianza(con("critico")) < calcularConfianza(con("alto")));
+    assert.ok(calcularConfianza(con("alto")) < calcularConfianza(con("medio")));
+  });
 });
 
 /* ------------------------------------------- Depurado del andamiaje del modelo -- */

@@ -95,7 +95,13 @@ Reglas:
 - Los traslapes entre frentes son los que la obra permite de verdad. Programar todo en
   serie infla el plazo; programar todo en paralelo es mentira.
 - Cubre todas las instalaciones que aparecen en el alcance, cada una con su frente.
-- Cierra siempre con pruebas, puesta en marcha y entrega-recepción.
+- Programa SOLO lo que el alcance contrata. Si el alcance se limita a la
+  ingeniería de detalle y sus entregables, el cronograma es el de esa ingeniería
+  —no el de una obra que nadie ha contratado todavía—. Programar la ejecución de
+  una obra que el alcance aplaza a una etapa posterior es contradecir el alcance.
+- Cierra con la entrega de lo que el alcance sí contrata: si hay obra, con
+  pruebas, puesta en marcha y entrega-recepción; si es ingeniería, con la
+  revisión y aprobación del paquete de entregables.
 - Los ids son cortos y únicos, y toda predecesora que cites debe existir.
 - Nunca generes dependencias circulares.
 - Español técnico de obra, sin Markdown.`;

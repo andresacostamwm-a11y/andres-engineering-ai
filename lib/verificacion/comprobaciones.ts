@@ -239,20 +239,26 @@ function comprobarCoherencia(paquete: PaqueteVerificable): HallazgoVerificacion[
 }
 
 /**
- * Confianza en el paquete, de 0 a 100.
+ * Confianza en el paquete, de 5 a 100.
  *
- * Parte de 100 y descuenta por gravedad. No es una nota académica: es cuánto
- * margen queda antes de que el entregable deje de sostenerse solo.
+ * Cada hallazgo multiplica la confianza por un factor menor que uno, en vez de
+ * restar una cantidad fija. La resta lineal llegaba a cero con una docena de
+ * hallazgos y ahí dejaba de informar: un paquete con doce observaciones y otro
+ * con cuarenta puntuaban igual de mal. Con el producto, la escala sigue siendo
+ * monótona y el número conserva significado hasta el final.
+ *
+ * El suelo son 5 puntos y no 0 porque el paquete existe y es revisable: cero
+ * sugeriría que no hay nada aprovechable, y eso casi nunca es cierto.
  */
 export function calcularConfianza(hallazgos: HallazgoVerificacion[]): number {
-  const penalizacion: Record<HallazgoVerificacion["gravedad"], number> = {
-    critico: 25,
-    alto: 12,
-    medio: 5,
-    bajo: 2,
+  const factor: Record<HallazgoVerificacion["gravedad"], number> = {
+    critico: 0.7,
+    alto: 0.88,
+    medio: 0.95,
+    bajo: 0.98,
   };
-  const descuento = hallazgos.reduce((suma, h) => suma + penalizacion[h.gravedad], 0);
-  return Math.max(0, 100 - descuento);
+  const restante = hallazgos.reduce((acumulado, h) => acumulado * factor[h.gravedad], 1);
+  return Math.max(5, Math.round(100 * restante));
 }
 
 export function veredictoDe(
