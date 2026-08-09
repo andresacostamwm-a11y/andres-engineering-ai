@@ -71,25 +71,25 @@
 /* ------------------------------------------------------- Tema ejecutivo -- */
 
 [data-tema="claro"] {
-  --color-fondo: oklch(98.2% 0.004 250);
+  --color-fondo: oklch(98.4% 0.004 248);
   --color-superficie: oklch(100% 0 0);
-  --color-superficie-alta: oklch(97% 0.005 250);
-  --color-superficie-honda: oklch(95.2% 0.007 250);
-  --color-borde: oklch(90% 0.008 250);
-  --color-borde-suave: oklch(93.5% 0.006 250);
+  --color-superficie-alta: oklch(96.8% 0.006 248);
+  --color-superficie-honda: oklch(95% 0.008 248);
+  --color-borde: oklch(89.5% 0.011 248);
+  --color-borde-suave: oklch(93.2% 0.009 248);
 
-  --color-tinta: oklch(24% 0.024 250);
-  --color-tinta-media: oklch(45% 0.018 250);
-  --color-tinta-debil: oklch(59% 0.014 250);
+  --color-tinta: oklch(38.2% 0.024 253);
+  --color-tinta-media: oklch(50% 0.026 250);
+  --color-tinta-debil: oklch(62.8% 0.054 247);
 
-  --color-acento: oklch(46% 0.115 232);
-  --color-acento-fuerte: oklch(38% 0.12 235);
-  --color-acento-claro: oklch(62% 0.1 228);
-  --color-acento-tenue: oklch(95.5% 0.022 232);
+  --color-acento: oklch(48% 0.062 247);
+  --color-acento-fuerte: oklch(40% 0.058 248);
+  --color-acento-claro: oklch(62.8% 0.054 247);
+  --color-acento-tenue: oklch(95.8% 0.014 247);
   --color-sobre-acento: oklch(100% 0 0);
 
-  --color-laton: oklch(50% 0.095 72);
-  --color-laton-tenue: oklch(96% 0.03 80);
+  --color-laton: oklch(54% 0.072 85);
+  --color-laton-tenue: oklch(96.5% 0.026 85);
 
   --color-critico: oklch(48% 0.19 25);
   --color-critico-tenue: oklch(95.5% 0.03 25);
@@ -173,17 +173,17 @@ body {
   background-color: var(--color-fondo);
   background-image:
     /* Lavado de acento arriba a la izquierda y de latón abajo a la derecha. */
-    radial-gradient(ellipse 58% 42% at 12% 0%, oklch(46% 0.115 232 / 0.055), transparent 68%),
-    radial-gradient(ellipse 52% 44% at 92% 96%, oklch(50% 0.095 72 / 0.045), transparent 70%),
+    radial-gradient(ellipse 58% 42% at 12% 0%, oklch(62.8% 0.054 247 / 0.10), transparent 68%),
+    radial-gradient(ellipse 52% 44% at 92% 96%, oklch(77.2% 0.068 85 / 0.10), transparent 70%),
     /* Plegado diagonal: insinúa una lámina doblada, sin textura fotográfica. */
-    linear-gradient(122deg, oklch(46% 0.115 232 / 0.028) 0 38%, transparent 38.6% 61%,
+    linear-gradient(122deg, oklch(62.8% 0.054 247 / 0.05) 0 38%, transparent 38.6% 61%,
                     oklch(24% 0.024 250 / 0.022) 61.6% 100%),
     /* Retícula gruesa: los cuadros de 96 px del cajetín. */
-    linear-gradient(to right, oklch(46% 0.115 232 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.05) 1px, transparent 1px),
+    linear-gradient(to right, oklch(62.8% 0.054 247 / 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.09) 1px, transparent 1px),
     /* Retícula fina: el milimetrado interior. */
-    linear-gradient(to right, oklch(46% 0.115 232 / 0.028) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.028) 1px, transparent 1px);
+    linear-gradient(to right, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.05) 1px, transparent 1px);
   background-size:
     cover, cover, cover,
     96px 96px, 96px 96px,
@@ -211,8 +211,8 @@ body {
 
 [data-tema="claro"] .rejilla-tecnica {
   background-image:
-    linear-gradient(to right, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(46% 0.115 232 / 0.07) 1px, transparent 1px);
+    linear-gradient(to right, oklch(62.8% 0.054 247 / 0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(62.8% 0.054 247 / 0.10) 1px, transparent 1px);
 }
 
 /* Cifras alineadas en columna: imprescindible en tablas de presupuesto. */
