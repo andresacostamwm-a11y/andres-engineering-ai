@@ -312,3 +312,6 @@ export function normativaDe(ids: DisciplinaProyecto[]): string[] {
   }
   return [...vistos];
 }
+
+/** Catálogo completo de láminas que el sistema sabe dibujar. */
+export const TODOS_LOS_DIAGRAMAS = Object.keys(ETIQUETA_DIAGRAMA) as TipoDiagrama[];

@@ -161,6 +161,8 @@ export const definicionProyectoSchema = z.object({
   disciplina: z.string().min(1),
   /** Todas las disciplinas elegidas. Si falta, se asume solo la principal. */
   disciplinas: z.array(z.string().min(1)).min(1).max(13).optional(),
+  /** Láminas pedidas. Si falta, se dibujan las de las disciplinas elegidas. */
+  diagramas: z.array(z.string().min(1)).max(10).optional(),
   envergadura: z.enum(["pequena", "mediana", "grande"]),
   ubicacion: z.string().optional(),
 });

@@ -337,7 +337,7 @@ export function Taller({ apiDisponible }: { apiDisponible: boolean }) {
       )}
 
       {documento && (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
+        <section className="relative z-50 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{documento.nombre}</p>
             <p className="cifra mt-0.5 text-[0.6875rem] text-tinta-debil">

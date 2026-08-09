@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { proyectar, type EncargoProyecto } from "@/lib/agentes/orquestador-proyecto";
 import { conMotor, hayApiKey, preferenciaDeCookie } from "@/lib/modelo";
 import { definicionProyectoSchema } from "@/lib/schemas";
-import { DISCIPLINAS } from "@/lib/disciplinas";
-import type { DisciplinaProyecto } from "@/lib/disciplinas";
+import { DISCIPLINAS, TODOS_LOS_DIAGRAMAS } from "@/lib/disciplinas";
+import type { DisciplinaProyecto, TipoDiagrama } from "@/lib/disciplinas";
+
+const IDS_DIAGRAMA = new Set<TipoDiagrama>(TODOS_LOS_DIAGRAMAS);
 import { ipDe, verificarLimite } from "@/lib/limite";
 
 export const runtime = "nodejs";
@@ -46,6 +48,9 @@ export async function POST(request: Request) {
       descripcion: validacion.data.descripcion.slice(0, 8000),
       disciplina: validacion.data.disciplina as DisciplinaProyecto,
       disciplinas: idsPedidos as DisciplinaProyecto[],
+      diagramas: validacion.data.diagramas?.filter((d) =>
+        IDS_DIAGRAMA.has(d as TipoDiagrama),
+      ) as TipoDiagrama[] | undefined,
       envergadura: validacion.data.envergadura,
       ubicacion: validacion.data.ubicacion?.slice(0, 200),
       documentosAdjuntos:

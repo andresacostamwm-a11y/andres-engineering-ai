@@ -16,7 +16,15 @@ import type {
   DisciplinaProyecto,
   Envergadura,
 } from "@/lib/disciplinas";
-import { diagramasDe, normativaDe, DISCIPLINAS, ENVERGADURAS, ETIQUETA_DIAGRAMA } from "@/lib/disciplinas";
+import {
+  diagramasDe,
+  normativaDe,
+  DISCIPLINAS,
+  ENVERGADURAS,
+  ETIQUETA_DIAGRAMA,
+  TODOS_LOS_DIAGRAMAS,
+} from "@/lib/disciplinas";
+import type { TipoDiagrama } from "@/lib/disciplinas";
 import { EXTENSIONES_ACEPTADAS } from "@/lib/extractores";
 import type { Hallazgo, Partida, Requerimiento, ResumenEjecutivo } from "@/lib/types";
 import type { MemoriaProyecto } from "@/lib/tipos-proyecto";
@@ -74,9 +82,35 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
   const [disciplinas, setDisciplinas] = useState<DisciplinaProyecto[]>(["electrica"]);
   const disciplina = disciplinas[0] ?? "electrica";
 
+  // Las láminas se sugieren a partir de las disciplinas, pero mandan ellas: el
+  // usuario puede añadir cualquiera del catálogo o quitar las que no quiera.
+  const [laminas, setLaminas] = useState<TipoDiagrama[]>(() => diagramasDe(["electrica"]));
+
   function alternarDisciplina(id: DisciplinaProyecto) {
-    setDisciplinas((previas) =>
-      previas.includes(id) ? previas.filter((d) => d !== id) : [...previas, id],
+    setDisciplinas((previas) => {
+      const siguientes = previas.includes(id)
+        ? previas.filter((d) => d !== id)
+        : [...previas, id];
+
+      // Al añadir se suman sus láminas; al quitar se retiran solo las que
+      // ninguna de las disciplinas que quedan sigue aportando.
+      setLaminas((antes) => {
+        if (previas.includes(id)) {
+          const sostenidas = new Set(diagramasDe(siguientes));
+          const propias = new Set(diagramasDe([id]));
+          return antes.filter((t) => sostenidas.has(t) || !propias.has(t));
+        }
+        const nuevas = diagramasDe([id]).filter((t) => !antes.includes(t));
+        return [...antes, ...nuevas];
+      });
+
+      return siguientes;
+    });
+  }
+
+  function alternarLamina(tipo: TipoDiagrama) {
+    setLaminas((previas) =>
+      previas.includes(tipo) ? previas.filter((t) => t !== tipo) : [...previas, tipo],
     );
   }
   const [envergadura, setEnvergadura] = useState<Envergadura>("mediana");
@@ -189,6 +223,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
           descripcion,
           disciplina,
           disciplinas,
+          diagramas: laminas,
           envergadura,
           ubicacion,
           documentosAdjuntos,
@@ -423,10 +458,39 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
         </section>
 
         <section className="tarjeta p-6 sm:p-8">
-          <h2 className="text-lg font-semibold tracking-tight">Disciplina principal</h2>
-          <p className="mt-1 text-sm text-tinta-media">
-            Determina la normativa aplicable y qué planos se dibujan.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">Disciplinas</h2>
+              <p className="mt-1 text-sm text-tinta-media">
+                Determinan la normativa aplicable y qué planos se sugieren. Puedes
+                elegir todas las que necesites y quitar las que sobren.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const todas = DISCIPLINAS.map((d) => d.id);
+                  setDisciplinas(todas);
+                  setLaminas(diagramasDe(todas));
+                }}
+                className="rounded-md border border-borde px-3 py-1.5 text-xs font-medium text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
+              >
+                Seleccionar todas ({DISCIPLINAS.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDisciplinas([]);
+                  setLaminas([]);
+                }}
+                disabled={disciplinas.length === 0}
+                className="rounded-md border border-borde px-3 py-1.5 text-xs font-medium text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta disabled:opacity-40"
+              >
+                Quitar todas
+              </button>
+            </div>
+          </div>
 
           <div className="mt-5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {DISCIPLINAS.map((d) => {
@@ -485,28 +549,67 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
             </p>
           )}
 
-          {disciplinas.length > 0 && (
           <div className="mt-5 rounded-lg border border-borde-suave bg-superficie-alta px-4 py-3.5">
-            <p className="etiqueta-seccion">
-              Paquete completo de láminas
-              {disciplinas.length > 1 && ` · ${disciplinas.length} disciplinas`}
-            </p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {diagramasUnidos.map((t) => (
-                  <li
-                    key={t}
-                    className="rounded-full border border-acento/25 bg-superficie px-2.5 py-1 text-xs font-medium text-acento"
-                  >
-                    {ETIQUETA_DIAGRAMA[t]}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="etiqueta-seccion">
+                Láminas que se dibujarán · {laminas.length} de {TODOS_LOS_DIAGRAMAS.length}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLaminas(TODOS_LOS_DIAGRAMAS)}
+                  className="rounded-md border border-borde px-2.5 py-1 text-xs text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
+                >
+                  Todas las láminas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLaminas(diagramasUnidos)}
+                  className="rounded-md border border-borde px-2.5 py-1 text-xs text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
+                >
+                  Solo las de mis disciplinas
+                </button>
+              </div>
+            </div>
+
+            <ul className="mt-2.5 flex flex-wrap gap-2">
+              {TODOS_LOS_DIAGRAMAS.map((t) => {
+                const puesta = laminas.includes(t);
+                const sugerida = diagramasUnidos.includes(t);
+                return (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      onClick={() => alternarLamina(t)}
+                      aria-pressed={puesta}
+                      title={puesta ? `Quitar ${ETIQUETA_DIAGRAMA[t]}` : `Añadir ${ETIQUETA_DIAGRAMA[t]}`}
+                      className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                        puesta
+                          ? "border-acento/40 bg-acento-tenue text-acento"
+                          : "border-borde text-tinta-debil hover:border-acento/40 hover:text-tinta"
+                      }`}
+                    >
+                      <span aria-hidden="true" className="mr-1">{puesta ? "−" : "+"}</span>
+                      {ETIQUETA_DIAGRAMA[t]}
+                      {!puesta && sugerida && (
+                        <span className="ml-1 text-[0.625rem] opacity-70">sugerida</span>
+                      )}
+                    </button>
                   </li>
-              ))}
+                );
+              })}
             </ul>
-            <p className="mt-3 text-xs text-tinta-media">
-              Además de estas láminas podrás pedir cualquier otra del catálogo al
-              terminar. Normativa de referencia: {normativaUnida.join(" · ")}
-            </p>
+            {normativaUnida.length > 0 ? (
+              <p className="mt-3 text-xs text-tinta-media">
+                Además de estas láminas podrás pedir cualquier otra del catálogo al
+                terminar. Normativa de referencia: {normativaUnida.join(" · ")}
+              </p>
+            ) : (
+              <p className="mt-3 text-xs text-tinta-media">
+                Sin disciplina elegida no hay normativa de referencia que aplicar.
+              </p>
+            )}
           </div>
-          )}
         </section>
 
         <section className="tarjeta p-6 sm:p-8">
@@ -587,7 +690,7 @@ export function CrearProyecto({ apiDisponible }: { apiDisponible: boolean }) {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
+      <section className="relative z-50 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-borde bg-superficie px-5 py-3.5 shadow-[var(--shadow-sutil)]">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{nombre}</p>
           <p className="cifra mt-0.5 text-[0.6875rem] text-tinta-debil">

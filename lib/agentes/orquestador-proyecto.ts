@@ -35,6 +35,8 @@ export interface EncargoProyecto {
   disciplina: DisciplinaProyecto;
   /** Todas las elegidas. La primera es la principal. */
   disciplinas?: DisciplinaProyecto[];
+  /** Láminas pedidas explícitamente. Si falta, se usan las de las disciplinas. */
+  diagramas?: TipoDiagrama[];
   envergadura: Envergadura;
   ubicacion?: string;
   documentosAdjuntos?: string;
@@ -104,7 +106,10 @@ export async function* proyectar(
   // Etapa 3 — costos, normativa, memoria y el paquete COMPLETO de planos,
   // todos en paralelo: un proyecto entrega todas sus instalaciones, no una
   // muestra. La envergadura calibra la densidad de cada plano, no cuántos hay.
-  const tiposDiagrama = diagramasDe(elegidas);
+  // Manda la elección explícita del usuario sobre la sugerencia por disciplina.
+  const tiposDiagrama = encargo.diagramas?.length
+    ? encargo.diagramas
+    : diagramasDe(elegidas);
 
   yield { tipo: "inicio", agente: "costos", mensaje: "Elaborando el catálogo de conceptos" };
   yield { tipo: "inicio", agente: "normativo", mensaje: "Revisando el cumplimiento normativo" };
