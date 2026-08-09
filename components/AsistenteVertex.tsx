@@ -38,20 +38,12 @@ export function AsistenteVertex({
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [pregunta, setPregunta] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [invita, setInvita] = useState(false);
   const finRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes]);
 
-  // El bocadillo aparece a los pocos segundos, no nada más cargar la página, y
-  // solo mientras el usuario no haya abierto el asistente por su cuenta.
-  useEffect(() => {
-    if (abierto) return;
-    const t = setTimeout(() => setInvita(true), 3500);
-    return () => clearTimeout(t);
-  }, [abierto]);
 
   function actualizarUltimo(texto: string, fuentes: Mensaje["fuentes"]) {
     setMensajes((prev) => {
@@ -112,13 +104,10 @@ export function AsistenteVertex({
       {/* Botón flotante con el busto del robot. */}
       <button
         type="button"
-        onClick={() => {
-          setAbierto((v) => !v);
-          setInvita(false);
-        }}
+        onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
         aria-label={abierto ? "Cerrar el asistente" : "Abrir el asistente Vertex AI"}
-        className="group fixed bottom-0 right-5 z-40 transition-transform duration-300 hover:-translate-y-1"
+        className="group fixed bottom-3 right-5 z-40 flex flex-col items-center transition-transform duration-300 hover:-translate-y-1"
       >
         <Image
           src="/vertex-robot.png"
@@ -129,29 +118,15 @@ export function AsistenteVertex({
           className="h-[9.5rem] w-auto object-contain drop-shadow-[0_10px_28px_rgba(0,0,0,0.28)] sm:h-[12rem]"
         />
         <span className="absolute right-3 top-4 size-2.5 rounded-full bg-acento shadow-[0_0_0_4px_var(--color-acento-tenue)]" />
+
+        {/* Invitación fija: sin ella el robot parece decorativo y nadie lo pulsa. */}
+        {!abierto && (
+          <span className="mx-auto -mt-2 block w-max max-w-[13rem] rounded-full border border-acento/35 bg-superficie px-3.5 py-1.5 text-center text-xs font-medium text-tinta shadow-[var(--shadow-elevada)]">
+            Pregúntame sobre el proyecto
+          </span>
+        )}
       </button>
 
-      {invita && !abierto && (
-        <div className="fixed bottom-[7.5rem] right-[8.5rem] z-40 w-56 sm:bottom-[9.5rem] sm:right-[10.5rem]">
-          <div className="relative rounded-xl border border-acento/30 bg-superficie px-4 py-3 shadow-[var(--shadow-elevada)]">
-            <p className="text-sm font-medium text-tinta">Pregúntame lo que sea</p>
-            <p className="mt-1 text-xs leading-relaxed text-tinta-media">
-              Te explico el presupuesto, los hallazgos normativos o cualquier duda
-              del proyecto. Y si no está en el documento, lo busco en internet.
-            </p>
-            <button
-              type="button"
-              onClick={() => setInvita(false)}
-              aria-label="Ocultar el mensaje del asistente"
-              className="absolute right-2 top-2 text-xs text-tinta-debil transition-colors hover:text-tinta"
-            >
-              ✕
-            </button>
-            {/* Pico del bocadillo, apuntando al robot. */}
-            <span className="absolute -bottom-1.5 right-8 size-3 rotate-45 border-b border-r border-acento/30 bg-superficie" />
-          </div>
-        </div>
-      )}
 
       {abierto && (
         <section

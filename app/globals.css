@@ -173,8 +173,8 @@ body {
   background-color: var(--color-fondo);
   background-image:
     /* Fotografía de obra, casi velada: da cuerpo sin robar legibilidad. */
-    linear-gradient(to bottom, oklch(98.1% 0.003 248 / 0.78), oklch(98.1% 0.003 248 / 0.86) 55%, oklch(98.1% 0.003 248 / 0.92)),
-    url("/hero-ingenieria.jpg"),
+    linear-gradient(to bottom, oklch(98.1% 0.003 248 / 0.62), oklch(98.1% 0.003 248 / 0.74) 48%, oklch(98.1% 0.003 248 / 0.86)),
+    url("/fondo-holografico.jpg"),
     /* Lavado de acento arriba a la izquierda y de latón abajo a la derecha. */
     radial-gradient(ellipse 58% 42% at 12% 0%, oklch(62.8% 0.054 247 / 0.18), transparent 68%),
     radial-gradient(ellipse 52% 44% at 92% 96%, oklch(77.2% 0.068 85 / 0.20), transparent 70%),
