@@ -3,6 +3,13 @@
 import { useId, useMemo } from "react";
 import type { Diagrama, NodoDiagrama, TipoConexion } from "@/lib/diagramas/tipos";
 import { SimboloTecnico, radioSimbolo } from "./Simbolos";
+import {
+  anchoTexto,
+  colocar,
+  puntoEn,
+  type BloqueColocable,
+  type Caja,
+} from "@/lib/diagramas/disposicion";
 
 /**
  * Renderiza un diagrama técnico como plano: marco, cajetín, rejilla de
@@ -11,6 +18,11 @@ import { SimboloTecnico, radioSimbolo } from "./Simbolos";
  * El ruteo es en L (horizontal-vertical) porque es como se dibuja realmente un
  * unifilar o un P&ID; las diagonales solo aparecen en diagramas de bloques,
  * donde sí son convención.
+ *
+ * Los rótulos no se dibujan donde caigan: pasan antes por el colocador de
+ * `lib/diagramas/disposicion`, que les busca hueco. Sin ese paso, un unifilar
+ * con veinte elementos acaba con las palabras montadas unas sobre otras y el
+ * plano deja de poderse leer.
  */
 
 const ANCHO = 1200;
@@ -24,6 +36,18 @@ const AREA = {
   x1: ANCHO - MARGEN,
   y1: ALTO - MARGEN - ALTO_CAJETIN,
 };
+
+/** Métrica de los textos del plano. Se usa para medir y para dibujar. */
+const TEXTO = {
+  etiqueta: 12,
+  dato: 10,
+  conexion: 10.5,
+  /** Separación entre el renglón de la etiqueta y el primer dato. */
+  interlineado: 12,
+};
+
+/** Puntos que se muestrean de cada trazo para tratarlo como obstáculo. */
+const MUESTRAS_TRAZO = 10;
 
 const ESTILO_CONEXION: Record<TipoConexion, { trazo: string; ancho: number }> = {
   electrica: { trazo: "", ancho: 1.9 },
@@ -57,6 +81,11 @@ export function Plano({
   }, [diagrama.nodos]);
 
   const ortogonal = diagrama.tipo !== "bloques";
+
+  const disposicion = useMemo(
+    () => calcularDisposicion(diagrama, posiciones, ortogonal),
+    [diagrama, posiciones, ortogonal],
+  );
 
   return (
     <svg
@@ -178,7 +207,8 @@ export function Plano({
         const nodoB = diagrama.nodos.find((n) => n.id === conexion.hasta)!;
         const estilo = ESTILO_CONEXION[conexion.tipo];
 
-        const { d, medio } = ruta(a, b, radioSimbolo(nodoA.simbolo), radioSimbolo(nodoB.simbolo), ortogonal);
+        const { d } = ruta(a, b, radioSimbolo(nodoA.simbolo), radioSimbolo(nodoB.simbolo), ortogonal);
+        const rotulo = disposicion.conexiones.get(claveConexion(conexion, i));
 
         return (
           <g key={`${conexion.desde}-${conexion.hasta}-${i}`}>
@@ -191,21 +221,22 @@ export function Plano({
               strokeLinejoin="round"
               markerEnd={`url(#flecha-${idBase})`}
             />
-            {conexion.etiqueta && (
+            {conexion.etiqueta && rotulo && (
               <>
+                {/* El fondo opaco impide que el rótulo se lea sobre el trazo. */}
                 <rect
-                  x={medio.x - conexion.etiqueta.length * 3.3 - 4}
-                  y={medio.y - 9}
-                  width={conexion.etiqueta.length * 6.6 + 8}
+                  x={rotulo.x - rotulo.ancho / 2}
+                  y={rotulo.y - 8}
+                  width={rotulo.ancho}
                   height={16}
                   rx={3}
                   fill="var(--color-superficie)"
                 />
                 <text
-                  x={medio.x}
-                  y={medio.y + 3}
+                  x={rotulo.x}
+                  y={rotulo.y + 3.5}
                   textAnchor="middle"
-                  fontSize="10.5"
+                  fontSize={TEXTO.conexion}
                   fontFamily="var(--font-mono)"
                   fill="var(--color-tinta-media)"
                 >
@@ -221,7 +252,12 @@ export function Plano({
       {diagrama.nodos
         .filter((n) => n.simbolo !== "espacio")
         .map((nodo) => (
-          <Elemento key={nodo.id} nodo={nodo} p={posiciones.get(nodo.id)!} />
+          <Elemento
+            key={nodo.id}
+            nodo={nodo}
+            p={posiciones.get(nodo.id)!}
+            rotulo={disposicion.nodos.get(nodo.id)!}
+          />
         ))}
 
       {/* Cajetín */}
@@ -230,31 +266,44 @@ export function Plano({
   );
 }
 
-function Elemento({ nodo, p }: { nodo: NodoDiagrama; p: { x: number; y: number } }) {
+function Elemento({
+  nodo,
+  p,
+  rotulo,
+}: {
+  nodo: NodoDiagrama;
+  p: { x: number; y: number };
+  /** Centro del bloque de texto, ya resuelto sin colisiones. */
+  rotulo: { x: number; y: number; alto: number };
+}) {
+  const datos = nodo.datos.slice(0, 2);
+  // El bloque se ancla por su primer renglón, no por su centro.
+  const primeraLinea = rotulo.y - rotulo.alto / 2 + TEXTO.etiqueta;
+
   return (
-    <g transform={`translate(${p.x} ${p.y})`}>
-      <g className="text-[var(--color-acento-fuerte)]">
+    <g>
+      <g transform={`translate(${p.x} ${p.y})`} className="text-[var(--color-acento-fuerte)]">
         <SimboloTecnico simbolo={nodo.simbolo} />
       </g>
 
       <text
-        x="0"
-        y={radioSimbolo(nodo.simbolo) + 16}
+        x={rotulo.x}
+        y={primeraLinea}
         textAnchor="middle"
-        fontSize="12"
+        fontSize={TEXTO.etiqueta}
         fontWeight="600"
         fill="var(--color-tinta)"
       >
         {nodo.etiqueta}
       </text>
 
-      {nodo.datos.slice(0, 2).map((dato, i) => (
+      {datos.map((dato, i) => (
         <text
           key={i}
-          x="0"
-          y={radioSimbolo(nodo.simbolo) + 28 + i * 12}
+          x={rotulo.x}
+          y={primeraLinea + TEXTO.interlineado * (i + 1)}
           textAnchor="middle"
-          fontSize="10"
+          fontSize={TEXTO.dato}
           fontFamily="var(--font-mono)"
           fill="var(--color-tinta-media)"
         >
@@ -307,7 +356,7 @@ function Cajetin({
         PROYECTO
       </text>
       <text x={x0 + 656} y={y + 42} fontSize="12" fontWeight="600" fill="var(--color-tinta)">
-        {recorta(proyecto?.nombre ?? "—", 30)}
+        {recorta(textoOVacio(proyecto?.nombre) || "—", 30)}
       </text>
       <text x={x0 + 656} y={y + 60} fontSize="11" fill="var(--color-tinta-media)">
         {proyecto?.disciplina ?? ""}
@@ -317,7 +366,7 @@ function Cajetin({
         ESCALA
       </text>
       <text x={x0 + 896} y={y + 42} fontSize="12" fontFamily="var(--font-mono)" fill="var(--color-tinta)">
-        {diagrama.escala ?? "S/E"}
+        {textoOVacio(diagrama.escala) || "S/E"}
       </text>
       <text x={x0 + 896} y={y + 60} fontSize="10" fontFamily="var(--font-mono)" fill="var(--color-tinta-media)">
         {proyecto?.fecha ?? ""}
@@ -336,7 +385,7 @@ function ruta(
   radioA: number,
   radioB: number,
   ortogonal: boolean,
-): { d: string; medio: { x: number; y: number } } {
+): { d: string; puntos: { x: number; y: number }[] } {
   if (!ortogonal) {
     const angulo = Math.atan2(b.y - a.y, b.x - a.x);
     const ini = {
@@ -347,10 +396,7 @@ function ruta(
       x: b.x - Math.cos(angulo) * (radioB + 6),
       y: b.y - Math.sin(angulo) * (radioB + 6),
     };
-    return {
-      d: `M${ini.x} ${ini.y}L${fin.x} ${fin.y}`,
-      medio: { x: (ini.x + fin.x) / 2, y: (ini.y + fin.y) / 2 },
-    };
+    return { d: `M${ini.x} ${ini.y}L${fin.x} ${fin.y}`, puntos: [ini, fin] };
   }
 
   const horizontalPrimero = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
@@ -363,7 +409,7 @@ function ruta(
     const codo = { x: fin.x, y: ini.y };
     return {
       d: `M${ini.x} ${ini.y}H${codo.x}V${fin.y}`,
-      medio: { x: (ini.x + codo.x) / 2, y: ini.y - 8 },
+      puntos: [ini, codo, { x: codo.x, y: fin.y }],
     };
   }
 
@@ -372,8 +418,190 @@ function ruta(
   const codo = { x: ini.x, y: fin.y };
   return {
     d: `M${ini.x} ${ini.y}V${codo.y}H${fin.x}`,
-    medio: { x: ini.x + 8, y: (ini.y + codo.y) / 2 },
+    puntos: [ini, codo, { x: fin.x, y: codo.y }],
   };
+}
+
+/** Identificador estable de una conexión dentro del plano. */
+function claveConexion(
+  conexion: { desde: string; hasta: string },
+  indice: number,
+): string {
+  return `${conexion.desde}>${conexion.hasta}#${indice}`;
+}
+
+interface Disposicion {
+  nodos: Map<string, { x: number; y: number; alto: number }>;
+  conexiones: Map<string, { x: number; y: number; ancho: number }>;
+}
+
+/**
+ * Busca sitio a cada rótulo del plano.
+ *
+ * Primero los bloques de los elementos, que apenas pueden moverse porque
+ * pertenecen a un símbolo concreto; después los de las conexiones, que sí
+ * pueden deslizarse a lo largo de su trazo y separarse de él. Los símbolos y el
+ * cajetín entran como obstáculos: ningún texto debe caer encima de ellos.
+ */
+function calcularDisposicion(
+  diagrama: Diagrama,
+  posiciones: Map<string, { x: number; y: number }>,
+  ortogonal: boolean,
+): Disposicion {
+  const limites = { x0: AREA.x0 - 28, y0: AREA.y0 - 28, x1: AREA.x1 + 28, y1: AREA.y1 };
+
+  const elementos = diagrama.nodos.filter((n) => n.simbolo !== "espacio");
+
+  // Obstáculos fijos: los símbolos y el rótulo de las áreas dibujadas al fondo.
+  const obstaculos: Caja[] = [];
+  for (const nodo of elementos) {
+    const p = posiciones.get(nodo.id);
+    if (!p) continue;
+    const r = radioSimbolo(nodo.simbolo);
+    obstaculos.push({ x: p.x, y: p.y, ancho: r * 2 + 6, alto: r * 2 + 6 });
+  }
+
+  // Los trazos también estorban: una etiqueta cruzada por su propia línea se
+  // lee mal aunque no pise a ninguna otra etiqueta. Se muestrean como cajas
+  // finas a lo largo del recorrido.
+  for (const conexion of diagrama.conexiones) {
+    const a = posiciones.get(conexion.desde);
+    const b = posiciones.get(conexion.hasta);
+    const nodoA = diagrama.nodos.find((n) => n.id === conexion.desde);
+    const nodoB = diagrama.nodos.find((n) => n.id === conexion.hasta);
+    if (!a || !b || !nodoA || !nodoB) continue;
+
+    const { puntos } = ruta(
+      a,
+      b,
+      radioSimbolo(nodoA.simbolo),
+      radioSimbolo(nodoB.simbolo),
+      ortogonal,
+    );
+    for (let k = 0; k <= MUESTRAS_TRAZO; k++) {
+      const punto = puntoEn(puntos, k / MUESTRAS_TRAZO);
+      obstaculos.push({ x: punto.x, y: punto.y, ancho: 9, alto: 9 });
+    }
+  }
+
+  const bloquesNodo: BloqueColocable[] = [];
+  const alturas = new Map<string, number>();
+
+  for (const nodo of elementos) {
+    const p = posiciones.get(nodo.id);
+    if (!p) continue;
+    const datos = nodo.datos.slice(0, 2);
+    const ancho =
+      Math.max(
+        anchoTexto(nodo.etiqueta, TEXTO.etiqueta),
+        ...datos.map((d) => anchoTexto(d, TEXTO.dato, true)),
+        24,
+      ) + 8;
+    const alto = TEXTO.etiqueta + 4 + datos.length * TEXTO.interlineado;
+    alturas.set(nodo.id, alto);
+
+    const r = radioSimbolo(nodo.simbolo);
+    const debajo = p.y + r + 8 + alto / 2;
+    const encima = p.y - r - 8 - alto / 2;
+
+    bloquesNodo.push({
+      id: nodo.id,
+      ancho,
+      alto,
+      candidatos: [
+        // Debajo del símbolo es la convención; lo demás son salidas de socorro.
+        { x: p.x, y: debajo },
+        { x: p.x, y: encima },
+        { x: p.x, y: debajo + alto + 6 },
+        { x: p.x + ancho / 2 + r + 10, y: p.y },
+        { x: p.x - ancho / 2 - r - 10, y: p.y },
+        { x: p.x, y: encima - alto - 6 },
+        { x: p.x + ancho / 2 + r + 10, y: debajo },
+        { x: p.x - ancho / 2 - r - 10, y: debajo },
+      ],
+    });
+  }
+
+  const colocadosNodo = colocar(bloquesNodo, obstaculos, limites);
+
+  const nodos = new Map<string, { x: number; y: number; alto: number }>();
+  const ocupadas: Caja[] = [...obstaculos];
+  for (const bloque of bloquesNodo) {
+    const punto = colocadosNodo.get(bloque.id)!;
+    nodos.set(bloque.id, { ...punto, alto: bloque.alto });
+    ocupadas.push({ ...punto, ancho: bloque.ancho, alto: bloque.alto });
+  }
+
+  // Etiquetas de conexión: se deslizan por el trazo y se apartan de él.
+  const bloquesConexion: BloqueColocable[] = [];
+  const anchos = new Map<string, number>();
+
+  diagrama.conexiones.forEach((conexion, i) => {
+    if (!conexion.etiqueta) return;
+    const a = posiciones.get(conexion.desde);
+    const b = posiciones.get(conexion.hasta);
+    if (!a || !b) return;
+
+    const nodoA = diagrama.nodos.find((n) => n.id === conexion.desde);
+    const nodoB = diagrama.nodos.find((n) => n.id === conexion.hasta);
+    if (!nodoA || !nodoB) return;
+
+    const { puntos } = ruta(
+      a,
+      b,
+      radioSimbolo(nodoA.simbolo),
+      radioSimbolo(nodoB.simbolo),
+      ortogonal,
+    );
+
+    const ancho = anchoTexto(conexion.etiqueta, TEXTO.conexion, true) + 10;
+    const clave = claveConexion(conexion, i);
+    anchos.set(clave, ancho);
+
+    // Se prueba a lo largo del trazo y a ambos lados: un desplazamiento
+    // vertical aparta de un tramo horizontal, pero sobre uno vertical hay que
+    // moverse en x para salirse de la línea.
+    const candidatos: { x: number; y: number }[] = [];
+    for (const t of [0.5, 0.36, 0.64, 0.24, 0.76]) {
+      const base = puntoEn(puntos, t);
+      for (const [dx, dy] of [
+        [0, -13],
+        [0, 13],
+        [ancho / 2 + 10, 0],
+        [-(ancho / 2 + 10), 0],
+        [0, -26],
+        [0, 26],
+        [ancho / 2 + 22, 0],
+        [-(ancho / 2 + 22), 0],
+        [0, 0],
+      ]) {
+        candidatos.push({ x: base.x + dx, y: base.y + dy });
+      }
+    }
+
+    bloquesConexion.push({ id: clave, ancho, alto: 16, candidatos });
+  });
+
+  const colocadosConexion = colocar(bloquesConexion, ocupadas, limites);
+
+  const conexiones = new Map<string, { x: number; y: number; ancho: number }>();
+  for (const bloque of bloquesConexion) {
+    const punto = colocadosConexion.get(bloque.id)!;
+    conexiones.set(bloque.id, { ...punto, ancho: anchos.get(bloque.id)! });
+  }
+
+  return { nodos, conexiones };
+}
+
+/**
+ * Devuelve el texto solo si dice algo.
+ *
+ * Los modelos llegan a escribir la cadena "null" o "N/A" en un campo opcional,
+ * y el cajetín lo imprimía tal cual: se leía «ESCALA null» en un plano.
+ */
+function textoOVacio(valor: string | null | undefined): string {
+  const limpio = (valor ?? "").trim();
+  return /^(null|undefined|n\/?a|none|-)$/i.test(limpio) ? "" : limpio;
 }
 
 function recorta(texto: string, maximo: number): string {

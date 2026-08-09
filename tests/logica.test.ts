@@ -26,6 +26,13 @@ import {
   veredictoDe,
 } from "../lib/verificacion/comprobaciones.ts";
 import { MEMORIA_DEMO } from "../lib/demo-proyecto.ts";
+import { depuradorDeAndamiaje } from "../lib/modelo/depurar.ts";
+import {
+  anchoTexto,
+  colocar,
+  puntoEn,
+  solape,
+} from "../lib/diagramas/disposicion.ts";
 import { partidaSchema, resumenEjecutivoSchema } from "../lib/schemas.ts";
 import { HALLAZGOS_DEMO, PARTIDAS_DEMO, RESUMEN_DEMO } from "../lib/demo.ts";
 import type { Hallazgo, Partida } from "../lib/types.ts";
@@ -683,5 +690,111 @@ describe("comprobaciones deterministas del verificador", () => {
   it("sin hallazgos el paquete es entregable con confianza plena", () => {
     assert.equal(veredictoDe([]), "entregable");
     assert.equal(calcularConfianza([]), 100);
+  });
+});
+
+/* ------------------------------------------- Depurado del andamiaje del modelo -- */
+
+describe("depurador de andamiaje", () => {
+  /** Une el flujo depurado como lo vería la interfaz. */
+  function depurar(trozos: string[]): string {
+    const d = depuradorDeAndamiaje();
+    return trozos.map((t) => d.procesar(t)).join("") + d.cerrar();
+  }
+
+  it("elimina el bloque tool_code y el rótulo thought con su razonamiento", () => {
+    const salida = depurar([
+      "tool_code\nprint(google_search.search(queries=['supuestos']))\n",
+      "thought\nThe user is asking about the assumptions.\n\n",
+      "El presupuesto asume tres supuestos declarados.\n",
+    ]);
+
+    assert.ok(!salida.includes("tool_code"));
+    assert.ok(!salida.includes("google_search"));
+    assert.ok(!salida.includes("The user is asking"));
+    assert.ok(salida.includes("El presupuesto asume tres supuestos declarados."));
+  });
+
+  it("no toca una respuesta legítima que mencione esas palabras dentro de una frase", () => {
+    const texto = "El pensamiento (thought) del proyectista queda documentado.\n";
+    assert.equal(depurar([texto]), texto);
+  });
+
+  it("recompone una línea partida entre dos trozos del flujo", () => {
+    assert.equal(depurar(["La cister", "na es de 30 m³."]), "La cisterna es de 30 m³.");
+  });
+
+  it("descarta un andamiaje que llega troceado carácter a carácter", () => {
+    const salida = depurar([..."tool_code\nprint(default_api.buscar())\n\nRespuesta real."]);
+    assert.equal(salida.trim(), "Respuesta real.");
+  });
+});
+
+/* ------------------------------------- Disposición de rótulos en el plano -- */
+
+describe("colocación de rótulos", () => {
+  const limites = { x0: 0, y0: 0, x1: 1000, y1: 800 };
+
+  it("mide el solape de dos cajas y devuelve cero si no se tocan", () => {
+    const a = { x: 100, y: 100, ancho: 40, alto: 20 };
+    assert.equal(solape(a, { x: 100, y: 100, ancho: 40, alto: 20 }), 800);
+    assert.equal(solape(a, { x: 400, y: 100, ancho: 40, alto: 20 }), 0);
+  });
+
+  it("aparta el segundo rótulo cuando el primero ya ocupa su sitio preferido", () => {
+    const sitio = { x: 200, y: 200 };
+    const bloques = [
+      { id: "a", ancho: 80, alto: 20, candidatos: [sitio, { x: 200, y: 260 }] },
+      { id: "b", ancho: 80, alto: 20, candidatos: [sitio, { x: 200, y: 260 }] },
+    ];
+    const puestos = colocar(bloques, [], limites);
+
+    assert.deepEqual(puestos.get("a"), sitio);
+    assert.deepEqual(puestos.get("b"), { x: 200, y: 260 });
+  });
+
+  it("esquiva un obstáculo aunque sea la posición preferida", () => {
+    const puestos = colocar(
+      [{ id: "a", ancho: 60, alto: 20, candidatos: [{ x: 300, y: 300 }, { x: 300, y: 400 }] }],
+      [{ x: 300, y: 300, ancho: 60, alto: 20 }],
+      limites,
+    );
+    assert.deepEqual(puestos.get("a"), { x: 300, y: 400 });
+  });
+
+  it("prefiere quedarse dentro del área útil antes que fuera del marco", () => {
+    // La primera candidata está debajo del borde inferior: ahí caería sobre el
+    // cajetín, que es exactamente lo que recortaba los rótulos.
+    const puestos = colocar(
+      [{ id: "a", ancho: 60, alto: 20, candidatos: [{ x: 500, y: 900 }, { x: 500, y: 700 }] }],
+      [],
+      limites,
+    );
+    assert.deepEqual(puestos.get("a"), { x: 500, y: 700 });
+  });
+
+  it("cuando todo está ocupado elige la posición que menos pisa", () => {
+    const puestos = colocar(
+      [{ id: "a", ancho: 100, alto: 20, candidatos: [{ x: 300, y: 300 }, { x: 340, y: 300 }] }],
+      [{ x: 300, y: 300, ancho: 100, alto: 20 }],
+      limites,
+    );
+    assert.deepEqual(puestos.get("a"), { x: 340, y: 300 });
+  });
+
+  it("sitúa un punto a lo largo de la polilínea por longitud real", () => {
+    const puntos = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
+    assert.deepEqual(puntoEn(puntos, 0), { x: 0, y: 0 });
+    assert.deepEqual(puntoEn(puntos, 0.5), { x: 100, y: 0 });
+    assert.deepEqual(puntoEn(puntos, 1), { x: 100, y: 100 });
+  });
+
+  it("estima anchuras crecientes con la longitud del texto", () => {
+    assert.ok(anchoTexto("Tablero General", 12) > anchoTexto("TG", 12));
+    assert.ok(anchoTexto("480 V", 10, true) > 0);
   });
 });

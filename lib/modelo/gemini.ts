@@ -21,6 +21,8 @@ export const MODELO_GEMINI = process.env.MODELO_GEMINI ?? "gemini-2.5-flash";
 
 interface ParteGemini {
   text?: string;
+  /** Gemini marca así sus partes de razonamiento: nunca son la respuesta. */
+  thought?: boolean;
   functionCall?: { name: string; args: unknown };
   functionResponse?: { name: string; response: unknown };
 }
@@ -59,7 +61,14 @@ export const clienteGemini: ClienteModelo = {
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           // Grounding con Google Search: el modelo decide cuándo buscar.
           ...(web ? { tools: [{ google_search: {} }] } : {}),
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3 },
+          generationConfig: {
+            maxOutputTokens: maxTokens,
+            temperature: 0.3,
+            // Sin presupuesto de razonamiento no hay razonamiento que filtrar.
+            // Con el grounding activo, Gemini llegaba a emitirlo como texto
+            // plano —«thought», «tool_code»— y salía por pantalla.
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       },
     );
@@ -87,6 +96,9 @@ export const clienteGemini: ClienteModelo = {
           const partes: ParteGemini[] =
             dato?.candidates?.[0]?.content?.parts ?? [];
           for (const parte of partes) {
+            // Cinturón además del tirante: si aun así llega una parte marcada
+            // como razonamiento, no se emite.
+            if (parte.thought) continue;
             if (parte.text) yield parte.text;
           }
         } catch {

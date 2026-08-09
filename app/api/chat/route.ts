@@ -6,26 +6,54 @@ import {
   preferenciaDeCookie,
   transmitirTexto,
 } from "@/lib/modelo";
+import { depuradorDeAndamiaje } from "@/lib/modelo/depurar";
 import { fragmentar, recuperar } from "@/lib/rag";
+import { FICHA_APP } from "@/lib/ficha-app";
 import { ipDe, verificarLimite } from "@/lib/limite";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SISTEMA = `Eres un ingeniero de proyectos que responde preguntas sobre un proyecto
-concreto. Respondes en español, de forma directa y breve.
+const SISTEMA = `Eres el asistente de ANDRES Engineering AI. Respondes dos cosas, y solo dos:
+la herramienta en sí, y el proyecto que se está revisando en ella.
+
+Tienes dos fuentes y no se mezclan:
+- La FICHA DE LA APLICACIÓN describe qué hace la herramienta, cómo se organiza y qué
+  entrega. Es tu fuente para cualquier pregunta sobre la aplicación.
+- El PROYECTO EN REVISIÓN es el documento del usuario. Es tu fuente para cualquier
+  pregunta sobre ese proyecto concreto: partidas, supuestos, hallazgos, plazos, planos.
 
 Reglas:
-- El documento del proyecto es tu fuente PRIMARIA: si los fragmentos contienen la
-  respuesta, úsalos y cita entre comillas la parte en la que te apoyas.
-- Si la pregunta requiere información externa —normas vigentes, precios de mercado,
-  proveedores, clima del sitio, criterios técnicos que el documento no trae—, usa la
-  búsqueda web y di de dónde salió el dato (nombre de la fuente o sitio).
-- Distingue siempre qué viene del documento y qué viene de internet.
-- No inventes números, normas ni cantidades: o están en el documento, o están en una
-  fuente que nombras, o declaras que no lo sabes.
+- Si la pregunta es sobre el proyecto y su estado es «sin_cargar», dilo con amabilidad
+  y en una o dos frases: todavía no hay proyecto que consultar, y se carga subiendo
+  documentos o generándolo desde cero en «Crear proyecto». No respondas con la ficha
+  de la aplicación como si fuera el proyecto, y no inventes cifras.
+- Si la pregunta es sobre el proyecto y sí hay fragmentos, respóndela con ellos y cita
+  entre comillas la parte en la que te apoyas.
+- Si la pregunta necesita información externa —normas vigentes, precios de mercado,
+  proveedores, clima del sitio, criterios técnicos que ninguna de tus dos fuentes
+  trae—, búscala en internet y di de dónde salió el dato.
+- Distingue siempre qué viene del proyecto, qué de la ficha y qué de internet.
+- No inventes números, normas ni cantidades: o están en una de tus fuentes, o están en
+  una fuente que nombras, o declaras que no lo sabes.
+- Si te preguntan algo sin relación con esta herramienta ni con este proyecto, redirige
+  con amabilidad en una línea.
+- Si te saludan o escriben algo suelto o mal tecleado, saluda de vuelta en una línea y
+  ofrece en qué puedes ayudar. Nunca expliques la etimología de la palabra ni corrijas
+  cómo se escribe: eso no es lo que te están pidiendo.
+- Trato cordial y profesional, de ingeniero a ingeniero. Ni seco ni efusivo.
+- Responde SIEMPRE en español, aunque la pregunta llegue en otro idioma.
 - Escribe en texto plano. No uses Markdown (nada de **negritas**, listas con guiones
-  ni encabezados): la interfaz muestra el texto tal cual.`;
+  ni encabezados): la interfaz muestra el texto tal cual.
+- Entrega la respuesta directamente. No narres tu proceso, no anuncies búsquedas ni
+  escribas rótulos como «thought» o «tool_code», y no digas «el fragmento 1 menciona»:
+  cita el contenido entre comillas y sigue.
+- Sé BREVE. Tres o cuatro frases como máximo, y una sola si la pregunta se
+  contesta con una. Nada de enumerar los diez agentes uno por uno si preguntan
+  cómo se organizan: se responde la estructura en dos frases y se ofrece
+  detallar el que interese.
+- No cierres con ofertas de ayuda ni con «si deseas ver…»: termina cuando
+  termina la respuesta.`;
 
 export async function POST(request: Request) {
   if (!hayApiKey()) {
@@ -59,18 +87,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Falta la pregunta." }, { status: 400 });
     }
     modoWeb = cuerpo.modo === "web";
-    if (!modoWeb && (typeof cuerpo.documento !== "string" || !cuerpo.documento.trim())) {
-      return NextResponse.json({ error: "Falta el documento." }, { status: 400 });
-    }
     pregunta = cuerpo.pregunta.slice(0, 1000);
     documento = typeof cuerpo.documento === "string" ? cuerpo.documento : "";
   } catch {
     return NextResponse.json({ error: "Petición malformada." }, { status: 400 });
   }
 
+  const hayProyecto = documento.trim().length > 0;
+
   // Si el documento no tiene fragmentos relevantes —o la consulta es en modo
-  // web puro—, la pregunta se responde con la búsqueda web declarando la fuente.
-  const fragmentos = modoWeb ? [] : recuperar(fragmentar(documento), pregunta, 5);
+  // web puro—, la pregunta se responde con la ficha o con la búsqueda web.
+  const fragmentos = modoWeb || !hayProyecto
+    ? []
+    : recuperar(fragmentar(documento), pregunta, 5);
 
   const contexto = fragmentos
     .map(
@@ -78,6 +107,17 @@ export async function POST(request: Request) {
         `<fragmento numero="${i + 1}"${f.pagina ? ` pagina="${f.pagina}"` : ""}>\n${f.texto}\n</fragmento>`,
     )
     .join("\n\n");
+
+  // La ficha de la aplicación viaja siempre: el asistente responde de la
+  // herramienta aunque todavía no haya proyecto que revisar.
+  const bloqueFicha = `<ficha_de_la_aplicacion>\n${FICHA_APP}\n</ficha_de_la_aplicacion>`;
+  const bloqueProyecto = hayProyecto
+    ? `<proyecto_en_revision estado="cargado">\n${
+        fragmentos.length > 0
+          ? contexto
+          : "Hay un proyecto cargado, pero ningún fragmento suyo responde a esta pregunta."
+      }\n</proyecto_en_revision>`
+    : `<proyecto_en_revision estado="sin_cargar" />`;
 
   const codificador = new TextEncoder();
   const flujo = new ReadableStream({
@@ -98,18 +138,23 @@ export async function POST(request: Request) {
       }
 
       const preferencia = await preferenciaDeCookie(request);
+      // Filtra el andamiaje que algunos modelos emiten como texto plano.
+      const depurador = depuradorDeAndamiaje();
       try {
         await conMotor(preferencia, async () => {
           for await (const trozo of transmitirTexto({
             sistema: SISTEMA,
             web: true,
-            maxTokens: 3000,
-            prompt: fragmentos.length > 0
-              ? `<fragmentos_del_documento>\n${contexto}\n</fragmentos_del_documento>\n\nPregunta: ${pregunta}`
-              : `${modoWeb ? "Consulta directa a internet, sin documento adjunto" : "El documento del proyecto no contiene fragmentos relevantes para esta pregunta"}; respóndela con la búsqueda web declarando la fuente.\n\nPregunta: ${pregunta}`,
+            maxTokens: 900,
+            prompt: modoWeb
+              ? `Consulta directa a internet, sin documento adjunto; respóndela con la búsqueda web declarando la fuente.\n\nPregunta: ${pregunta}`
+              : `${bloqueFicha}\n\n${bloqueProyecto}\n\nPregunta: ${pregunta}`,
           })) {
-            enviar({ tipo: "texto", texto: trozo });
+            const limpio = depurador.procesar(trozo);
+            if (limpio) enviar({ tipo: "texto", texto: limpio });
           }
+          const cola = depurador.cerrar();
+          if (cola) enviar({ tipo: "texto", texto: cola });
         });
       } catch (error) {
         enviar({

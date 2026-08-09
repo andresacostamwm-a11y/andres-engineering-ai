@@ -9,10 +9,13 @@
  *    del servidor, así que nadie puede colar un documento propio ni usar esto
  *    como un chat de propósito general gratuito.
  *  · Límite por IP más estrecho que el del chat autenticado.
- *  · Sin salida a internet: responde sobre la herramienta, no sobre el mundo.
+ *  · Con salida a internet, pero con la ficha como fuente primaria: si la
+ *    pregunta es sobre la herramienta manda la ficha, y solo se sale a buscar
+ *    cuando hace falta contexto externo, declarando siempre la fuente.
  */
 import { NextResponse } from "next/server";
 import { transmitirTexto, esErrorDeCuota, hayApiKey } from "@/lib/modelo";
+import { depuradorDeAndamiaje } from "@/lib/modelo/depurar";
 import { fragmentar, recuperar } from "@/lib/rag";
 import { FICHA_APP } from "@/lib/ficha-app";
 import { ipDe, verificarLimite } from "@/lib/limite";
@@ -24,12 +27,29 @@ todavía no ha entrado en la aplicación: explicas qué hace la herramienta, có
 funciona por dentro, cómo se organiza y qué se puede descargar.
 
 Reglas:
-- Respondes SOLO con la ficha que se te entrega. Si algo no está en ella, dilo
-  con naturalidad y sugiere entrar con el acceso de prueba para verlo.
-- No inventas cifras, plazos, precios ni funciones que la ficha no mencione.
+- La ficha es tu fuente PRIMARIA. Si contiene la respuesta, respondes con ella.
+- No inventas cifras, plazos, precios ni funciones que la ficha no mencione. Si
+  algo de la aplicación no está en la ficha, lo dices y sugieres entrar con el
+  acceso de prueba para verlo.
+- Si la pregunta necesita contexto externo —una norma, una tecnología, un término
+  del sector—, puedes buscarlo en internet y declaras de dónde salió el dato.
+  Distingue siempre qué viene de la ficha y qué viene de internet.
 - Tono profesional y directo, en español, sin marketing hueco. Frases cortas.
-- Si preguntan algo ajeno a la aplicación, redirige con amabilidad: aquí solo
-  hablas de esta herramienta.`;
+- Escribe en texto plano, sin Markdown.
+- Entrega la respuesta directamente. No narres tu proceso, no anuncies búsquedas
+  ni escribas rótulos como «thought» o «tool_code».
+- Si preguntan algo sin relación alguna con esta herramienta ni con la ingeniería,
+  redirige con amabilidad.
+- Si te saludan o escriben algo suelto o mal tecleado, saluda de vuelta en una
+  línea y ofrece en qué puedes ayudar. Nunca expliques la etimología de la
+  palabra ni corrijas cómo se escribe: eso no es lo que te están pidiendo.
+- Trato cordial y profesional, de ingeniero a ingeniero. Ni seco ni efusivo.
+- Sé BREVE. Tres o cuatro frases como máximo, y una sola si la pregunta se
+  contesta con una. Nada de enumerar los diez agentes uno por uno si preguntan
+  cómo se organizan: se responde la estructura en dos frases y se ofrece
+  detallar el que interese.
+- No cierres con ofertas de ayuda ni con «si deseas ver…»: termina cuando
+  termina la respuesta.`;
 
 export async function POST(request: Request) {
   // Más estrecho que el chat autenticado: esta puerta está abierta a cualquiera.
@@ -67,14 +87,19 @@ export async function POST(request: Request) {
   const codificador = new TextEncoder();
   const flujo = new ReadableStream({
     async start(controlador) {
+      const depurador = depuradorDeAndamiaje();
       try {
         for await (const trozo of transmitirTexto({
           sistema: SISTEMA,
+          web: true,
           prompt: `<ficha_de_la_aplicacion>\n${contexto}\n</ficha_de_la_aplicacion>\n\nPregunta del visitante: ${pregunta}`,
-          maxTokens: 700,
+          maxTokens: 600,
         })) {
-          controlador.enqueue(codificador.encode(trozo));
+          const limpio = depurador.procesar(trozo);
+          if (limpio) controlador.enqueue(codificador.encode(limpio));
         }
+        const cola = depurador.cerrar();
+        if (cola) controlador.enqueue(codificador.encode(cola));
       } catch (error) {
         controlador.enqueue(
           codificador.encode(

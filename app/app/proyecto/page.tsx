@@ -52,11 +52,12 @@ export default async function PaginaProyecto() {
             Proyectar desde cero
           </h1>
           <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-tinta-media">
-            Describe qué quieres construir y en qué disciplina. Siete agentes con
+            Describe qué quieres construir y en qué disciplina. Diez agentes con
             perfil doctoral redactan el alcance, extraen los requerimientos,
             presupuestan, revisan la normativa, dibujan el paquete completo de
-            planos de las instalaciones y entregan la memoria descriptiva y de
-            cálculo del proyecto.
+            planos, entregan la memoria descriptiva y de cálculo, programan la
+            obra con su ruta crítica y evalúan el riesgo. Un verificador
+            independiente revisa el paquete antes de entregártelo.
           </p>
         </div>
 

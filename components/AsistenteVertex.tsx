@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { FICHA_APP } from "@/lib/ficha-app";
 
 /**
  * Asistente Vertex AI: el chat del proyecto con cara.
@@ -22,7 +21,7 @@ interface Mensaje {
 
 const SUGERENCIAS_PUBLICAS = [
   "¿Qué hace exactamente esta aplicación?",
-  "¿Cómo se organizan los siete agentes?",
+  "¿Cómo se organizan los diez agentes?",
   "¿Qué disciplinas y qué planos cubre?",
   "¿Qué puedo descargar al terminar?",
 ];
@@ -74,20 +73,15 @@ export function AsistenteVertex({
       { rol: "usuario", contenido: limpio },
       { rol: "asistente", contenido: "" },
     ]);
+
     setCargando(true);
 
     try {
       const respuesta = await fetch(publico ? "/api/consulta-publica" : "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Sin contexto de proyecto la consulta va directa a internet.
-        // Sin proyecto todavía, el respaldo es la ficha de la propia
-        // herramienta, no una búsqueda web a ciegas: preguntar «qué formatos
-        // acepta» devolvía JPEG, MP3 y ZIP en vez de los nueve reales.
         body: JSON.stringify(
-          publico
-            ? { pregunta: limpio }
-            : { pregunta: limpio, documento: contexto.trim() || FICHA_APP },
+          publico ? { pregunta: limpio } : { pregunta: limpio, documento: contexto },
         ),
       });
 
@@ -189,8 +183,10 @@ export function AsistenteVertex({
               <p className="text-sm font-semibold text-tinta">Asistente Vertex AI</p>
               <p className="truncate text-xs text-tinta-media">
                 {nombreProyecto
-                  ? `Responde sobre «${nombreProyecto}» y consulta internet`
-                  : "Consulta el proyecto e internet"}
+                  ? `Responde sobre «${nombreProyecto}», sobre la app e internet`
+                  : contexto.trim()
+                    ? "Responde sobre el proyecto, la app e internet"
+                    : "Responde sobre la app; carga un proyecto para consultarlo"}
               </p>
             </div>
             <button
@@ -207,12 +203,15 @@ export function AsistenteVertex({
             {mensajes.length === 0 && (
               <div className="space-y-3">
                 <p className="text-xs leading-relaxed text-tinta-media">
-                  Pregunta lo que necesites del proyecto. Si el documento lo cubre,
-                  responde citando sus fragmentos; si no, sale a internet y declara
-                  la fuente.
+                  {publico || !contexto.trim()
+                    ? "Pregúntame lo que quieras sobre la herramienta: qué hace, cómo se organiza y qué entrega. Cuando cargues un proyecto, respondo también sobre él."
+                    : "Pregunta lo que necesites del proyecto. Si el documento lo cubre, responde citando sus fragmentos; si no, sale a internet y declara la fuente."}
                 </p>
                 <ul className="space-y-1.5">
-                  {(publico ? SUGERENCIAS_PUBLICAS : SUGERENCIAS).map((s) => (
+                  {(publico || !contexto.trim()
+                    ? SUGERENCIAS_PUBLICAS
+                    : SUGERENCIAS
+                  ).map((s) => (
                     <li key={s}>
                       <button
                         type="button"
@@ -255,6 +254,25 @@ export function AsistenteVertex({
             <div ref={finRef} />
           </div>
 
+          {/* Sugerencias siempre a mano: al desaparecer tras la primera
+              pregunta, no había forma de elegir otra sin escribirla entera. */}
+          {mensajes.length > 0 && (
+            <div className="flex gap-1.5 overflow-x-auto border-t border-borde px-3 py-2">
+              {(publico || !contexto.trim() ? SUGERENCIAS_PUBLICAS : SUGERENCIAS).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={cargando}
+                  onClick={() => preguntar(s)}
+                  title={s}
+                  className="shrink-0 rounded-full border border-borde px-3 py-1 text-xs text-tinta-media transition-colors hover:border-acento/50 hover:text-tinta disabled:opacity-40"
+                >
+                  {s.replace(/^¿|\?$/g, "").slice(0, 34)}
+                </button>
+              ))}
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -265,7 +283,7 @@ export function AsistenteVertex({
             <input
               value={pregunta}
               onChange={(e) => setPregunta(e.target.value)}
-              placeholder="Pregunta sobre el proyecto…"
+              placeholder="Pregunta sobre la app o el proyecto…"
               className="min-w-0 flex-1 rounded-md border border-borde bg-superficie px-3 py-2 text-sm placeholder:text-tinta-debil focus:border-acento focus:outline-none"
             />
             <button
