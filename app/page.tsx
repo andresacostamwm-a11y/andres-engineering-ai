@@ -84,7 +84,7 @@ export default function Inicio() {
                   href="/app"
                   className="rounded-md border border-borde bg-superficie px-6 py-3 text-sm text-tinta-media transition-colors hover:border-acento/60 hover:text-tinta"
                 >
-                  Analizar un documento
+                  Analizar un Proyecto
                 </Link>
               </div>
 
