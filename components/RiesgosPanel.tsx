@@ -1,6 +1,7 @@
 "use client";
 
 import type { RiesgoEvaluado, Viabilidad } from "@/lib/tipos-proyecto";
+import { InsigniaRiesgo } from "./Insignias";
 import type { Moneda } from "@/lib/moneda/tipos";
 import { dinero, porcentajeConSigno } from "@/lib/formato";
 
@@ -13,18 +14,15 @@ import { dinero, porcentajeConSigno } from "@/lib/formato";
  * sobre el presupuesto real, no sobre una cifra redonda.
  */
 
+/* El color del nivel vive en la insignia y en un borde discreto, nunca en el
+   relleno de la tarjeta: un bloque entero teñido de rojo satura la lectura, más
+   aún en tema oscuro, donde `--color-critico-tenue` es un rojo profundo y no un
+   tinte suave. Misma insignia que el panel de hallazgos normativos. */
 const NIVEL_ESTILO: Record<RiesgoEvaluado["nivel"], string> = {
-  critico: "bg-critico-tenue text-critico border-critico/30",
-  alto: "bg-alto-tenue text-alto border-alto/30",
-  medio: "bg-superficie-alta text-tinta-media border-borde",
-  bajo: "bg-superficie-alta text-tinta-debil border-borde",
-};
-
-const NIVEL_ETIQUETA: Record<RiesgoEvaluado["nivel"], string> = {
-  critico: "Crítico",
-  alto: "Alto",
-  medio: "Medio",
-  bajo: "Bajo",
+  critico: "bg-superficie-alta border-critico/40",
+  alto: "bg-superficie-alta border-alto/40",
+  medio: "bg-superficie-alta border-borde",
+  bajo: "bg-superficie-alta border-borde",
 };
 
 /** Color de fondo de cada celda de la matriz, según su severidad. */
@@ -198,9 +196,7 @@ export function RiesgosPanel({
                 className={`rounded-lg border px-4 py-3 ${NIVEL_ESTILO[riesgo.nivel]}`}
               >
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider">
-                    {NIVEL_ETIQUETA[riesgo.nivel]}
-                  </span>
+                  <InsigniaRiesgo riesgo={riesgo.nivel} />
                   <span className="text-sm font-medium text-tinta">{riesgo.titulo}</span>
                   <span className="ml-auto text-xs tabular-nums text-tinta-debil">
                     {riesgo.categoria} · P{riesgo.probabilidad}×I{riesgo.impacto} ={" "}

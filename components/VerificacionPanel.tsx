@@ -15,19 +15,19 @@ const VEREDICTO = {
   entregable: {
     titulo: "Entregable",
     texto: "No se encontraron defectos que impidan entregar el paquete.",
-    estilo: "border-bajo/35 bg-bajo-tenue",
+    estilo: "border-bajo/55 bg-superficie",
     color: "text-bajo",
   },
   "entregable-con-reservas": {
     titulo: "Entregable con reservas",
     texto: "Hay defectos que conviene corregir antes de entregar a un tercero.",
-    estilo: "border-alto/35 bg-alto-tenue",
+    estilo: "border-alto/55 bg-superficie",
     color: "text-alto",
   },
   "requiere-correccion": {
     titulo: "Requiere corrección",
     texto: "Hay defectos que invalidan parte del paquete. No entregar sin resolverlos.",
-    estilo: "border-critico/35 bg-critico-tenue",
+    estilo: "border-critico/55 bg-superficie",
     color: "text-critico",
   },
 } as const;
