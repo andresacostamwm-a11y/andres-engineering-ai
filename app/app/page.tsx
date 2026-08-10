@@ -35,7 +35,7 @@ export default async function PaginaTaller() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[101.5rem] flex-1 px-5 py-7 sm:px-8">
+      <main className="mx-auto w-full max-w-[101.5rem] flex-1 px-5 py-7 sm:px-8 xl:max-[2093px]:pr-[15.5rem]">
         <div className="mb-7">
           <span className="etiqueta-seccion">Área de trabajo</span>
           <h1 className="mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl">

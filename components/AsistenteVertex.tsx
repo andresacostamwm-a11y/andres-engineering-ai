@@ -144,24 +144,35 @@ export function AsistenteVertex({
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
         aria-label={abierto ? "Cerrar el asistente" : "Abrir el asistente Vertex AI"}
-        className="group fixed bottom-[10.2rem] right-[6rem] z-40 flex flex-col items-center transition-transform duration-300 hover:-translate-y-1"
+        /* margin:0 blinda la posición: los contenedores con space-y-* inyectan
+           margin-top y desplazarían el robot respecto a otras páginas. */
+        style={{ margin: 0 }}
+        className="group fixed bottom-[2.5rem] right-[2.5rem] z-40 flex flex-col items-center gap-[0.5mm] transition-transform duration-300 hover:-translate-y-1"
       >
-        <Image
-          src="/vertex-robot.png"
-          alt=""
-          width={520}
-          height={871}
-          priority={false}
-          className="h-[9.5rem] w-auto object-contain drop-shadow-[0_10px_28px_rgba(0,0,0,0.28)] sm:h-[12rem]"
-        />
-        <span className="absolute right-3 top-4 size-2.5 rounded-full bg-acento shadow-[0_0_0_4px_var(--color-acento-tenue)]" />
+        {/* El robot vive en su propio contenedor relativo: así queda centrado
+           sobre la píldora y el indicador de estado no se despega de él. */}
+        <span className="relative block">
+          <Image
+            src="/vertex-robot.png"
+            alt=""
+            width={520}
+            height={871}
+            priority={false}
+            className="h-[4.3rem] w-auto object-contain drop-shadow-[0_10px_28px_rgba(0,0,0,0.28)] sm:h-[5.4rem] xl:h-[6.7rem]"
+          />
+          <span className="absolute right-3 top-4 size-2.5 rounded-full bg-acento shadow-[0_0_0_4px_var(--color-acento-tenue)]" />
+        </span>
 
-        {/* Invitación fija: sin ella el robot parece decorativo y nadie lo pulsa. */}
-        {!abierto && (
-          <span className="mx-auto -mt-2 block w-max max-w-[13rem] rounded-full border border-acento/35 bg-superficie px-3.5 py-1.5 text-center text-xs font-medium text-tinta shadow-[var(--shadow-elevada)]">
-            {publico ? "Pregúntame sobre la app" : "Pregúntame sobre el proyecto"}
-          </span>
-        )}
+        {/* Invitación fija: sin ella el robot parece decorativo y nadie lo pulsa.
+           Solo desde xl, que es donde las páginas reservan el carril derecho
+           (xl:pr-[15.5rem]); por debajo invadiría el contenido. Al abrir se oculta
+           sin desmontarse: así conserva el ancho y el robot no salta de sitio. */}
+        <span
+          aria-hidden={abierto}
+          className={`hidden w-max whitespace-nowrap rounded-full border border-acento/35 bg-superficie px-3.5 py-1.5 text-center text-xs font-medium text-tinta shadow-[var(--shadow-elevada)] xl:block ${abierto ? "invisible" : ""}`}
+        >
+          {publico ? "Pregúntame sobre la app" : "Pregúntame sobre el proyecto"}
+        </span>
       </button>
 
 
@@ -169,7 +180,7 @@ export function AsistenteVertex({
         <section
           role="dialog"
           aria-label="Asistente Vertex AI"
-          className="fixed bottom-[10.5rem] right-[15.5rem] z-40 sm:right-[18rem] flex max-h-[min(38rem,75dvh)] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-elevada)]"
+          className="fixed bottom-[2.8rem] right-[12rem] z-40 sm:right-[14.5rem] flex max-h-[min(38rem,75dvh)] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-borde bg-superficie shadow-[var(--shadow-elevada)]"
         >
           <header className="flex items-center gap-3 border-b border-borde px-4 py-3">
             <Image
